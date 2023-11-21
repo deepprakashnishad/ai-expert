@@ -23,7 +23,7 @@ module.exports = {
 			    "queryVector": quesEmbeddingData,
 			    "path": "e",
 			    "numCandidates": 100,
-			    "limit": 2,
+			    "limit": 5,
 			    "index": "cvectorIndex",
 				}
 			},
@@ -33,10 +33,12 @@ module.exports = {
 					"p": 0,
 					"e": 0,
 					"createdAt": 0,
-					"updatedAt": 0
+					"updatedAt": 0,
+					"score": { $meta: "vectorSearchScore" }
 				}
 			}
 		]).toArray(async(err, results)=>{
+			console.log(results);
 			var info = "";
 
 			for(var result of results){
@@ -48,8 +50,8 @@ module.exports = {
 			console.log(messages);
 			var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 256});
 			console.log(result);
-
-			res.successResponse({data:result}, 200, null, true, "Record found");
+			// res.successResponse({data:messages}, 200, null, true, "Record found");
+			res.successResponse({data:result}, 200, null, true, "Response from AI bot");
 		});
 	},
 

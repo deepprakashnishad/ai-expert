@@ -34,7 +34,14 @@ module.exports = {
         type: "string",
         isIn: ['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'DELETED', 'BLACKLISTED'],
         defaultsTo: 'APPROVAL_PENDING'
-    }
+    },
+    r:{ //Role
+        model: "role",
+    },
+    permissions:{
+        collection: "permission",
+        via:"persons"
+    },
   },
 };
 

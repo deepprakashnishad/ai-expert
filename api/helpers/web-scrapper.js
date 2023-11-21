@@ -31,15 +31,17 @@ module.exports = {
       const { convert } = require('html-to-text');
 
       const options = {
-        "baseElements.selectors": [{selector: 'p'}]
+        /*"baseElements.selectors": [
+          {selector: 'p'},
+        ]*/
       };
-      console.log(html);
+
       var html = await rp(inputs.url);
+
       const text = convert(html, options);
       
-      console.log(text);
-
-      return exits.success(text);
+      var result = await sails.helpers.getTextInChunks.with({"text": text});
+      return exits.success(result);
   	}catch(e){
   		console.log(e);
   	}  	

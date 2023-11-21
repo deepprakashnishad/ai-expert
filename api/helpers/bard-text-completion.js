@@ -3,10 +3,10 @@ const OpenAI = require("openai");
 module.exports = {
 
 
-  friendlyName: 'CallChatGPT',
+  friendlyName: 'BardTextCompletion',
 
 
-  description: 'Call Chat GPT',
+  description: 'Call Bard Text Completion',
 
 
   inputs: {
@@ -37,22 +37,8 @@ module.exports = {
 
 
   fn: async function (inputs, exits) {
-  	try{
-
-      const openAI = new OpenAI({
-        apiKey: sails.config.custom.OPEN_API_KEY
-      })
-			const resp = await openAI.chat.completions.create({
-        "messages": inputs.messages,
-        "model": 'gpt-3.5-turbo',
-        "max_tokens": inputs.max_tokens,
-        "temperature": inputs.temperature
-      });
-
-      return exits.success(resp.choices);
-  	}catch(e){
-  		console.log(e);
-  	}  	
+  	
+      return exits.success("To be implemented");
   }
 };
 
