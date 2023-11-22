@@ -15,7 +15,7 @@ html, body {
 }
 
 main {    
-    background-color: slategrey;
+    background-color: transparent;
     padding: 0px 16px 16px 0px;
     height: 100vh;
     display: flex;
@@ -189,4 +189,7 @@ img.send-btn-icon.hidden, img.send-btn-loader.hidden{
 
 .chat-icon{
     cursor: pointer;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
 }
