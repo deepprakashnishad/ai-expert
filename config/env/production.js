@@ -148,9 +148,11 @@ module.exports = {
     *                                                                          *
     ***************************************************************************/
     cors: {
-      // allowOrigins: [
-      //   'https://example.com',
-      // ]
+      allRoutes: true,
+      allowOrigins: '*',
+      allowCredentials: false,
+      allowRequestMethods:'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD',
+      allowRequestHeaders: 'content-type, authorization, access-control-allow-origin'
     },
 
   },
@@ -265,10 +267,9 @@ module.exports = {
     * > Be sure to use the right protocol!  ("http://" vs. "https://")         *
     *                                                                          *
     ***************************************************************************/
-    // onlyAllowOrigins: [
-    //   'https://example.com',
-    //   'https://staging.example.com',
-    // ],
+    onlyAllowOrigins: [
+      'https://ai-expert.onrender.com/',
+    ],
 
 
     /***************************************************************************
