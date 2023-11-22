@@ -1,12 +1,10 @@
-const OpenAI = require("openai");
-
 module.exports = {
 
 
-  friendlyName: 'CallChatGPT',
+  friendlyName: 'Web Scrapper',
 
 
-  description: 'Call Chat GPT',
+  description: 'Extract text from html for given url',
 
 
   inputs: {

@@ -20,12 +20,16 @@ module.exports.routes = {
   ***************************************************************************/
 
   '/': { view: 'pages/homepage' },
+  '/dashboard': { view: 'pages/dashboard' },
+
 
   'POST /ai/textCompletion': { controller: 'ChatGPT', action: "callTextCompletions" },
   'POST /ai/createEmbeddings': { controller: 'ChatGPT', action: "createEmbeddings" },
   'POST /ai/customAIReply': { controller: 'ChatGPT', action: "customAIReply" },
 
   'POST /document/webScrapper': { controller: 'DocumentBuilder', action: "webScrapper" },
+  'POST /document/pdfScrapper': { controller: 'DocumentBuilder', action: "pdfScrapper" },
+  'POST /document/uploadFile': { controller: 'DocumentBuilder', action: "uploadFile" },
 
 
   /***************************************************************************
