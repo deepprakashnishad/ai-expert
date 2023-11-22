@@ -268,7 +268,7 @@ module.exports = {
     *                                                                          *
     ***************************************************************************/
     onlyAllowOrigins: [
-      'https://ai-expert.onrender.com/',
+      'https://ai-expert.onrender.com',
     ],
 
 
