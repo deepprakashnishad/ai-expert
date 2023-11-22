@@ -50,6 +50,7 @@ function userInputSubmitted(){
 		toggleLoaderSendDisplay(false);
 		if(response[0] && response[0].message){
 			messages.push(response[0].message);
+			window.parent.postMessage({data: response[0].message}, "*");
 		}
 		addNewBubble(response[0].message.role, response[0].message.content);
 	}).catch((err)=>{
