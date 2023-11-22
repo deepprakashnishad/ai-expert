@@ -89,7 +89,7 @@ config/local.js
 
 node_modules
 
-
+assets/uploads
 ################################################
 #
 # > Do you use bower?
