@@ -20,7 +20,7 @@ module.exports.custom = {
   // …
 
 
-  OPEN_API_KEY: "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",
+  OPEN_API_KEY: "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",
 
   BARD_API_KEY: "AIzaSyA0Dx2UQg7tCSs3Uj9EITO4k1njcgBpYig"
 };
