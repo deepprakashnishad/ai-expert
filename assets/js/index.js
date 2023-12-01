@@ -1,4 +1,5 @@
-const host = "http://localhost:1337/";
+// const host = "http://localhost:1337/";
+const host = "https://ai-expert.onrender.com/";
 
 const chatGptTextCompletion = "ai/textCompletion";
 
