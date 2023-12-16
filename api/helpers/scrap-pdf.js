@@ -1,5 +1,3 @@
-const PDFExtract = require('pdf.js-extract').PDFExtract;
-
 module.exports = {
 
   friendlyName: 'PDF Text Extractor',
@@ -25,6 +23,7 @@ module.exports = {
 
   fn: async function (inputs, exits) {
   	try{
+      const PDFExtract = require('pdf.js-extract').PDFExtract;
       const pdfExtract = new PDFExtract();
 
       const options = {}; /* see below */

@@ -26,6 +26,7 @@ module.exports.routes = {
   'POST /ai/textCompletion': { controller: 'ChatGPT', action: "callTextCompletions" },
   'POST /ai/createEmbeddings': { controller: 'ChatGPT', action: "createEmbeddings" },
   'POST /ai/customAIReply': { controller: 'ChatGPT', action: "customAIReply" },
+  'POST /ai/translateQuestionInHtml': { controller: 'ChatGPT', action: "translateQuestionInHtml" },
 
   'POST /document/webScrapper': { controller: 'DocumentBuilder', action: "webScrapper" },
   'POST /document/pdfScrapper': { controller: 'DocumentBuilder', action: "pdfScrapper" },

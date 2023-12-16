@@ -1,5 +1,3 @@
-const OpenAI = require("openai");
-
 module.exports = {
 
 
@@ -37,10 +35,14 @@ module.exports = {
 
   fn: async function (inputs, exits) {
   	try{
+      console.log("Creating Embeddings");
+      const OpenAI = require("openai");
 
       const openAI = new OpenAI({
         apiKey: sails.config.custom.OPEN_API_KEY
-      })
+      });
+
+      console.log("OpenAI instance created successfully");
 
       var embeddingResponse;
 
@@ -58,7 +60,7 @@ module.exports = {
           "format": inputs.format
         });
       }
-
+      console.log("Recieved response");
       return exits.success(embeddingResponse.data);
   	}catch(e){
   		console.log(e);

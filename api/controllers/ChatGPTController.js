@@ -5,6 +5,36 @@ module.exports = {
 		res.successResponse({data:result}, 200, null, true, "Record found");
 	},
 
+	translateQuestionInHtml: async function(req, res){
+		/*var result = {
+		  "data": [
+		    {
+		      "index": 0,
+		      "message": {
+		        "role": "assistant",
+		        "content": "[{\"q\":\"<p><strong style=\\\"background-color: rgb(255, 255, 255); color: rgb(58, 58, 58);\\\">&nbsp;दो दिए गए दो SHMs के समयांतर के बीच क्या संबंध हैं।</strong></p><p><strong style=\\\"background-color: rgb(255, 255, 255); color: rgb(58, 58, 58);\\\">{{{img0}}}</strong></p>\",\"o0\":\"<p>4T1 = T2</p>\",\"o1\":\"<p>T1 = 2T2</p>\",\"o2\":\"<p>2T1 = T2</p>\",\"o3\":\"<p>T1 = 4T2</p>\"}]"
+		      },
+		      "logprobs": null,
+		      "finish_reason": "stop"
+		    }
+		  ],
+		  "success": true,
+		  "msg": "Record found"
+		}
+		return res.successResponse(result, 200, null, true, "Record found");*/
+
+		var messages = [
+        	{"role": "system","content": "You are a translator who translates in any language asked. You simply translate and never alter the meaning of the content"},
+        	{"role": "user", "content": "Translate the text present in html tags in json values from English to {output_lang} language. Text can be reordered but original meaning should be preserved. Do not alter text in triple braces. {mText}. Response should be in valid json format."}
+    	]
+
+    	messages[1]['content'] = messages[1]['content'].replace("{output_lang}", req.body.lang).replace("{mText}", JSON.stringify(req.body.content));
+
+		var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": req.body.max_tokens?req.body.max_tokens:1500});
+		
+		return res.successResponse({data:result}, 200, null, true, "Record found");
+	},
+
 	customAIReply: async function(req, res){
 		var messages = req.body.messages;
 		var currMessage = messages;

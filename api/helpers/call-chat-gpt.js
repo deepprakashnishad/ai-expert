@@ -1,5 +1,3 @@
-const OpenAI = require("openai");
-
 module.exports = {
 
 
@@ -38,6 +36,7 @@ module.exports = {
 
   fn: async function (inputs, exits) {
   	try{
+      const OpenAI = require("openai");
 
       const openAI = new OpenAI({
         apiKey: sails.config.custom.OPEN_API_KEY

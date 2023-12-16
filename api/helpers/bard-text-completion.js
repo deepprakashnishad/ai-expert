@@ -1,5 +1,3 @@
-const OpenAI = require("openai");
-
 module.exports = {
 
 
@@ -37,7 +35,7 @@ module.exports = {
 
 
   fn: async function (inputs, exits) {
-  	
+  	 const OpenAI = require("openai");
       return exits.success("To be implemented");
   }
 };
