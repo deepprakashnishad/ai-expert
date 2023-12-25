@@ -32,6 +32,8 @@ module.exports.routes = {
   'POST /document/pdfScrapper': { controller: 'DocumentBuilder', action: "pdfScrapper" },
   'POST /document/uploadFile': { controller: 'DocumentBuilder', action: "uploadFile" },
 
+  'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
+
 
   /***************************************************************************
   *                                                                          *

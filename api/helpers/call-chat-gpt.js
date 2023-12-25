@@ -47,7 +47,7 @@ module.exports = {
         "max_tokens": inputs.max_tokens,
         "temperature": inputs.temperature
       });
-
+      // console.log(resp);
       return exits.success(resp.choices);
   	}catch(e){
   		console.log(e);
