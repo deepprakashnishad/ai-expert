@@ -22,5 +22,7 @@ module.exports.custom = {
 
   OPEN_API_KEY: "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",
 
-  BARD_API_KEY: "AIzaSyA0Dx2UQg7tCSs3Uj9EITO4k1njcgBpYig"
+  BARD_API_KEY: "AIzaSyA0Dx2UQg7tCSs3Uj9EITO4k1njcgBpYig",
+
+  ROCKET_CHAT_MSG_HOOK: "http://localhost:3000/hooks/65fc43a1f74ef92b93461bcf/cH6yWL2o4ue8jr435J4wJQPoDHnLdc5YyTSJwtoZjctJPhPY"
 };
