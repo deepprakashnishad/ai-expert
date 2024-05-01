@@ -27,14 +27,28 @@ module.exports.routes = {
   'POST /ai/createEmbeddings': { controller: 'ChatGPT', action: "createEmbeddings" },
   'POST /ai/customAIReply': { controller: 'ChatGPT', action: "customAIReply" },
   'POST /ai/translateQuestionInHtml': { controller: 'ChatGPT', action: "translateQuestionInHtml" },
+  'POST /ai/genStrengthWeakness': { controller: 'ChatGPT', action: "genStrengthWeakness" },
+  'POST /ai/dataCollector': { controller: 'ChatGPT', action: "dataCollector" },
+  'POST /ai/technicalAnalysis': { controller: 'ChatGPT', action: "technicalAnalysis" },
+  'POST /ai/softwareEngg': { controller: 'ChatGPT', action: "softwareEngg" },
+  'POST /ai/softwareDeveloper': { controller: 'ChatGPT', action: "softwareDeveloper" },
+
 
   'POST /document/webScrapper': { controller: 'DocumentBuilder', action: "webScrapper" },
   'POST /document/pdfScrapper': { controller: 'DocumentBuilder', action: "pdfScrapper" },
   'POST /document/uploadFile': { controller: 'DocumentBuilder', action: "uploadFile" },
 
   'POST /RocketChat': { controller: 'RocketChat', action: "recieveUserMessage"},
+  'POST /RocketChat/authenticate': { controller: 'RocketChat', action: "authenticate"},
+
+  'POST /Agent': { controller: 'Agent', action: "create"},
+  'PATCH /Agent': { controller: 'Agent', action: "update"},
+  'GET /Agent/:id': { controller: 'Agent', action: "list"},
+  'GET /Agent': { controller: 'Agent', action: "get"},
+  'DELETE /Agent': { controller: 'Agent', action: "delete"},
 
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
+  'POST /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
 
 
   /***************************************************************************

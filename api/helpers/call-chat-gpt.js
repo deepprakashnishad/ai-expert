@@ -14,7 +14,7 @@ module.exports = {
     },
     model: {
     	type: "string",
-    	defaultsTo: "gpt-3.5-turbo"
+    	defaultsTo: "gpt-3.5-turbo-0125"
     },
     temperature:{
       type:"number",
@@ -23,6 +23,10 @@ module.exports = {
     max_tokens: {
       type: "number",
       defaultsTo: 16
+    },
+    response_format: {
+      type: "string",
+      defaultsTo: "json_object"
     }
   },
 
@@ -42,6 +46,7 @@ module.exports = {
         apiKey: sails.config.custom.OPEN_API_KEY
       })
 			const resp = await openAI.chat.completions.create({
+        "response_format": { "type": inputs.response_format },
         "messages": inputs.messages,
         "model": 'gpt-3.5-turbo',
         "max_tokens": inputs.max_tokens,

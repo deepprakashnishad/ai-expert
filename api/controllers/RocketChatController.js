@@ -1,9 +1,34 @@
 const axios = require('axios');
 
+var token;
+var userId;
+
 module.exports = {
 
+	authenticate: async function(req, response){
+		axios.post(
+			`${sails.config.custom.ROCKET_CHAT.BASE_URL}${sails.config.custom.ROCKET_CHAT.AUTH_URL}`,
+			{
+				user: sails.config.custom.ROCKET_CHAT.USERNAME, 
+				password: sails.config.custom.ROCKET_CHAT.PASSWORD,
+			}
+		).then(function(res){
+			if(res.data.status==="success"){
+				token = res.data.data.authToken;
+				userid = res.data.data.userId
+
+				console.log(`Token: ${token}`);
+				console.log(`UserId: ${userid}`);
+				response.json(res.data);
+			}else{
+				console.log("Authentication Failed")
+			}
+		})
+	},
+
 	recieveUserMessage: async function(req, res){
-		console.log(req.body);
+		var rcData = req.body;
+		console.log(rcData);
 		/* var result = await sails.helpers.callChatGpt.with({messages: [
 			{
 				"role": "system",
@@ -15,20 +40,37 @@ module.exports = {
 		console.log(result);
 		res.successResponse({data:result}, 200, null, true, "Record found"); */
 
-		/* axios.post(sails.custom.config.ROCKET_CHAT_MSG_HOOK, {
-			text: result[0].message.content,
-			alias: "Astrina"
-		}).then(function(res){
-			console.log(res);
-		}) */
-
 		res.ok(200);
 
-		axios.post(sails.config.custom.ROCKET_CHAT_MSG_HOOK, {
-			text: "Pong",
-			alias: "Astrina"
-		}).then(function(res){
-			console.log(res);
+		if(!token || !userId){
+			var authResult = await axios.post(`${sails.config.custom.ROCKET_CHAT.BASE_URL}${sails.config.custom.ROCKET_CHAT.AUTH_URL}`, {
+				user: sails.config.custom.ROCKET_CHAT.USERNAME,
+				password: sails.config.custom.ROCKET_CHAT.PASSWORD
+			});
+			authResult = authResult.data;
+			if(authResult.status==="success"){
+				token = authResult.data.authToken;
+				userId = authResult.data.userId;
+			}else{
+				console.log("Authentication failed");
+				console.log(authResult);
+			}
+		}
+
+		const headers = {
+			'Content-Type': 'application/json',
+			'x-auth-token': token,
+			'x-user-id': userId
+		}
+
+		axios.post(`${sails.config.custom.ROCKET_CHAT.BASE_URL}${sails.config.custom.ROCKET_CHAT.SEND_MSG}`, {
+			message:{
+				rid: rcData['messages'][0]['rid'],
+				msg: "Pong"
+			}
+		}, {"headers": headers}).then(function(res){
+			console.log("Response from rocket chat");
+			console.log(res.data);
 		})
 
 		/* var messages = req.body.messages;

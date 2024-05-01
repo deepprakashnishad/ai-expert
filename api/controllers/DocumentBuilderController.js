@@ -36,5 +36,9 @@ module.exports = {
 		var result = await sails.helpers.scrapPdf.with({path: "assets/uploads/gst.pdf"});
 
 		res.successResponse({data: result}, 200, null, true, "Website scrapped and information has been processed")
+	},
+
+	excelReader: async function(req, res){
+		
 	}
 }

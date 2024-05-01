@@ -1,3 +1,5 @@
+var srs = "";
+
 module.exports = {
 
 	callTextCompletions: async function(req, res){
@@ -100,5 +102,164 @@ module.exports = {
 		await Cvector.createEach(embeddingData);
 	
 		return res.successResponse({}, 200, null, true, "Embeddings created");
+	},
+
+	genStrengthWeakness: async function(req, res){
+		var result = await sails.helpers.genProdStrengthWeakness.with({
+			reviews: req.body.reviews
+		});
+		console.log(result);
+		return res.successResponse({data:result}, 200, null, true, "Summary generated");
+	},
+
+	dataCollector: async function(req, res){ 
+
+		var messages = [ 
+			{
+				"role": "system",
+				"content": `You are a 'Professional Business Analyst' who is expert in understanding user requirements,
+				collecting requirements, data and any information required for implementing the
+				given requirement. You will be provided with user input alongwith an SRS optionally. You generate SRS based 
+				on your knowledge and input provided by the user. You may ask questions if you are looking for specific information.
+				In case one liner is provided you must still generate the SRS based on your knowledge. Your response must in below JSON format only.
+
+				{
+					question: {question},
+					srs: {srs}
+				}`
+			}, 
+			{
+				"role": "user", 
+				"content": `
+				{existing_SRS: "{SRS}",
+				user_current_msg: "{curr_msg}"}`
+			}
+		]
+
+    	messages[1]['content'] = messages[1]['content']
+    	.replace("{curr_msg}", req.body.userInput)
+    	.replace("{SRS}", srs);
+    	
+		var result = await sails.helpers.callChatGpt.with({
+			"messages": messages, 
+			"max_tokens": req.body.max_tokens?req.body.max_tokens:2500
+		});
+
+		srs = JSON.parse(result[0]["message"]['content'])['srs'];
+
+		return res.successResponse({data:result}, 200, null, true, "Record found");
+	},
+
+	technicalAnalysis: async function(req, res){
+
+		if(!srs){
+			srs = JSON.stringify(req.body)
+		}
+
+		var messages = [ 
+			{
+				"role": "system",
+				"content": `You are a 'Professional Software Architect' who is expert in understanding the given SRS,
+				and create overall architecture, structure of the system, technical constraints, system specifications,
+				modules, classes, function declarations with arguments, return type and database design. You must explan in detail what each function does, which table is updated so that it is easy for developer to write the code. Your output must be in JSON format as follows
+
+				{
+					modules: {modules},
+					classes: {classes},
+					database: {tables}
+				}`
+			}, 
+			{
+				"role": "user", 
+				"content": `{srs: "{SRS}"`
+			}
+		]
+
+    	messages[1]['content'] = messages[1]['content']
+    	.replace("{SRS}", srs);
+    	
+		var result = await sails.helpers.callChatGpt.with({
+			"messages": messages, 
+			"max_tokens": req.body.max_tokens?req.body.max_tokens:2500
+		});
+
+		srs = JSON.parse(result[0]["message"]['content'])['srs'];
+
+		return res.successResponse({data:result}, 200, null, true, "Record found");
+	},
+
+	softwareEngg: async function(req, res){
+		var messages = [ 
+			{
+				"role": "system",
+				"content": `You are a 'Professional Full Stack Developer' who is expert in writing elegant, clean code with proper comments as per SRS provided to you. You also make changes to existing code as per required changes or the bug that has to be fixed. Before fixing the code you do complete impact analysis so that your changes do not impact other component of the software. Your output must be in JSON format as follows
+
+				{
+					functions: {
+						filename: {filename},
+						function_name: {function_name},
+						arguments: {args},
+						codesnippet: {complete_code_implementation},
+						result: {function_return_result}
+					}
+				}`
+			}, 
+			{
+				"role": "user", 
+				"content": `{
+					srs: "{SRS}",
+					tech_specs: "{technical_spec}"
+				}`
+			}
+		]
+
+    	messages[1]['content'] = messages[1]['content']
+    	.replace("{SRS}", JSON.stringify(req.body.srs))
+    	.replace("{technical_spec}", JSON.stringify(req.body.technical_spec));
+    	
+		var result = await sails.helpers.callChatGpt.with({
+			"messages": messages, 
+			"max_tokens": req.body.max_tokens?req.body.max_tokens:2500
+		});
+
+		srs = JSON.parse(result[0]["message"]['content'])['srs'];
+
+		return res.successResponse({data:result}, 200, null, true, "Record found");
+	},
+
+	softwareDeveloper: async function(req, res){
+		var messages = [ 
+			{
+				"role": "system",
+				"content": `You are a 'Professional Full Stack Developer' who is expert in implementing functions by writing code into the functions in language provided. You also make changes to existing code as per required changes or the bug that has to be fixed. Before fixing the code you do complete impact analysis so that your changes do not impact other component of the software. Your output must be in JSON format as follows
+
+				{
+					final_code: {final_code}
+				}`
+			}, 
+			{
+				"role": "user", 
+				"content": `{
+					database: "sql",
+					language: {language},
+					srs: "{SRS}",
+					function_declaration: "{function_declaration}"
+				}`
+			}
+		]
+
+    	messages[1]['content'] = messages[1]['content']
+    	.replace("{language}", JSON.stringify(req.body.language))
+    	.replace("{SRS}", JSON.stringify(req.body.srs))
+    	.replace("{function_declaration}", JSON.stringify(req.body.function_declaration));
+    	
+		var result = await sails.helpers.callChatGpt.with({
+			"messages": messages, 
+			"max_tokens": req.body.max_tokens?req.body.max_tokens:2500
+		});
+
+		srs = JSON.parse(result[0]["message"]['content'])['srs'];
+
+		return res.successResponse({data:result}, 200, null, true, "Record found");
 	}
 }

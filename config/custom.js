@@ -20,9 +20,22 @@ module.exports.custom = {
   // …
 
 
-  OPEN_API_KEY: "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",
+  OPEN_API_KEY: "sk-proj-8WaEQhgL6c2OuV78b17KT3BlbkFJT9MhR2DXCjdbKlonFeqh",//"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",
 
   BARD_API_KEY: "AIzaSyA0Dx2UQg7tCSs3Uj9EITO4k1njcgBpYig",
 
-  ROCKET_CHAT_MSG_HOOK: "http://localhost:3000/hooks/65fc43a1f74ef92b93461bcf/cH6yWL2o4ue8jr435J4wJQPoDHnLdc5YyTSJwtoZjctJPhPY"
+  ROCKET_CHAT: {
+
+    USERNAME: "deepnishad",
+
+    PASSWORD: 'nsNbtK7"wV5GPs]',
+
+    BASE_URL: "http://localhost:3000",
+
+    AUTH_URL: "/api/v1/login",
+    
+    MSG_HOOK: "/hooks/65fce148b3ca20e5728e4720/BjFvbpJRwPsQPknkbfKAgSckrEJJDbuxgMe6x8C5wR9ZC87q",
+
+    SEND_MSG: "/api/v1/chat.sendMessage",
+  }
 };

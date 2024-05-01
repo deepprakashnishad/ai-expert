@@ -49,7 +49,8 @@ module.exports.datastores = {
     *                                                                          *
     ***************************************************************************/
     adapter: 'sails-mongo',
-    url: 'mongodb+srv://deepprakashnishad:xeN4lBNogCRIkpI7@clustermum.q6xzhsn.mongodb.net/openai?retryWrites=true&w=majority',
+    url: 'mongodb://localhost:27017/openai'
+    // url: 'mongodb+srv://deepprakashnishad:xeN4lBNogCRIkpI7@clustermum.q6xzhsn.mongodb.net/openai?retryWrites=true&w=majority',
   },
 
 

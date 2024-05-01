@@ -77,7 +77,7 @@ module.exports.models = {
     //  ||   Replace `id` above with this instead:
     //
     // ```
-    // id: { type: 'string', columnName: '_id' },
+    id: { type: 'string', columnName: '_id' },
     // ```
     //
     // Plus, don't forget to configure MongoDB as your default datastore:
@@ -101,7 +101,8 @@ module.exports.models = {
   ******************************************************************************/
 
   dataEncryptionKeys: {
-    default: 'C9S8qG9iSZtXqI5OkD+9G4iTJ9buwmvR7K+avq0Ien4='
+    default: 'C9S8qG9iSZtXqI5OkD+9G4iTJ9buwmvR7K+avq0Ien4=',
+    passHashKey: 'C9S8qG9iSZtXqI5OkD+9G4iTJ9buwmvR7K+avq0Ien4='
   },
 
 
