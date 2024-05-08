@@ -21,19 +21,19 @@ module.exports = {
 	},
 
 	get: async function(req, res){
-		var agent = await Agent.findOne({id: req.body.id});
+		var agent = await Agent.findOne({id: req.params.id});
 
 		res.successResponse({data:agent}, 200, null, true, "Agent retrieved successfully");
 	},
 
 	list: async function(req, res){
-		var agents = await Agent.findOne();
+		var agents = await Agent.find();
 
 		res.successResponse({agents: agents}, 200, null, true, "Agent retrieved successfully");
 	},
 
 	delete: async function(){
-		var result = await Agent.destroyOne();
+		var result = await Agent.destroyOne({id: req.params.id});
 
 		res.successResponse({result: result}, 200, null, true, "Agent deleted successfully");
 	}

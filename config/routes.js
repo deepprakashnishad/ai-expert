@@ -45,7 +45,7 @@ module.exports.routes = {
   'PATCH /Agent': { controller: 'Agent', action: "update"},
   'GET /Agent/:id': { controller: 'Agent', action: "list"},
   'GET /Agent': { controller: 'Agent', action: "get"},
-  'DELETE /Agent': { controller: 'Agent', action: "delete"},
+  'DELETE /Agent/:id': { controller: 'Agent', action: "delete"},
 
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
   'POST /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
