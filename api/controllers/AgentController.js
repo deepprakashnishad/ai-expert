@@ -22,17 +22,21 @@ module.exports = {
 
 	get: async function(req, res){
 		var agent = await Agent.findOne({id: req.params.id});
-
-		res.successResponse({data:agent}, 200, null, true, "Agent retrieved successfully");
+		if(agent){
+			res.successResponse({"agent" :agent}, 200, null, true, "Agent retrieved successfully");
+		}else{
+			res.successResponse({}, 200, null, false, "Agent not found");
+		}
+		
 	},
 
 	list: async function(req, res){
 		var agents = await Agent.find();
 
-		res.successResponse({agents: agents}, 200, null, true, "Agent retrieved successfully");
+		res.successResponse({"agents": agents}, 200, null, true, "Agent retrieved successfully");
 	},
 
-	delete: async function(){
+	delete: async function(req, res){
 		var result = await Agent.destroyOne({id: req.params.id});
 
 		res.successResponse({result: result}, 200, null, true, "Agent deleted successfully");
