@@ -47,6 +47,7 @@ module.exports.routes = {
   'GET /Agent/:id': { controller: 'Agent', action: "get"},
   'GET /Agent': { controller: 'Agent', action: "list"},
   'DELETE /Agent/:id': { controller: 'Agent', action: "delete"},
+  'POST /Agent/chat': { controller: 'Agent', action: "chat"},
 
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
   'POST /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
