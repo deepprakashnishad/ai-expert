@@ -57,7 +57,7 @@ module.exports = {
 		if(req.body.chatKey){
 			data['chatKey'] = req.body.chatKey;
 		}
-
+		
 		var agent = await Agent.update({id: req.body.id}, data);
 
 		res.successResponse({data:agent}, 200, null, true, "Agent updated successfully");
