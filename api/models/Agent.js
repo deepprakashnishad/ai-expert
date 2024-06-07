@@ -8,6 +8,7 @@ module.exports = {
     iPromptKeys: {type: "json", defaultsTo: {}}, // Input prompt keys
     oPromptKeys: {type: "json", defaultsTo: ["bot-answer"]}, //Output prompt keys
     chatKey: {type: "string", defaultsTo: "answer"},
-    avatar: {type: "string"}
+    avatar: {type: "string"},
+    tools: {collection: "Tool"}
   },
 };

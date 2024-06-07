@@ -48,9 +48,19 @@ module.exports.routes = {
   'GET /Agent': { controller: 'Agent', action: "list"},
   'DELETE /Agent/:id': { controller: 'Agent', action: "delete"},
   'POST /Agent/chat': { controller: 'Agent', action: "chat"},
+  'POST /Agent/assignTools': { controller: 'Agent', action: "assignTools"},
+  'POST /Agent/langchainAgentChat': { controller: 'Agent', action: "langchainAgentChat"},
+  'POST /Agent/test': { controller: 'Agent', action: "langchainAgentChat1"},
+
+  'POST /Tool': { controller: 'Tool', action: "create"},
+  'PATCH /Tool': { controller: 'Tool', action: "update"},
+  'PUT /Tool': { controller: 'Tool', action: "update"},
+  'GET /Tool/:id': { controller: 'Tool', action: "get"},
+  'GET /Tool': { controller: 'Tool', action: "list"},
+  'DELETE /Tool/:id': { controller: 'Tool', action: "delete"},
 
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
-  'POST /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
+  'POST /Generic/resetPassword': {controller: "Generic", action:"resetPassword"},
 
 
   /***************************************************************************

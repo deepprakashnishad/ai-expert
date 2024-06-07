@@ -3,6 +3,7 @@ module.exports = {
     a: {model: "Agent"}, //Chatbot id
     ch: {type: "json", defaultsTo: []}, //Chat History
     ei: {type: "json", defaultsTo: {}}, //Useful Information Json
-    p: {model: "Person"} //User
+    p: {model: "Person"}, //User
+    graphState: {type: "json"}
   },
 };

@@ -27,6 +27,10 @@ module.exports = {
     response_format: {
       type: "string",
       defaultsTo: "json_object"
+    },
+    tools: {
+      type: "json",
+      defaultsTo: []
     }
   },
 
@@ -50,7 +54,8 @@ module.exports = {
         "messages": inputs.messages,
         "model": 'gpt-3.5-turbo',
         "max_tokens": inputs.max_tokens,
-        "temperature": inputs.temperature
+        "temperature": inputs.temperature,
+        "tools": inputs.tools
       });
       // console.log(resp);
       return exits.success(resp.choices);

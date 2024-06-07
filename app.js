@@ -1,3 +1,4 @@
+require('ts-node/register');
 /**
  * app.js
  *

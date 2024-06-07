@@ -29,7 +29,7 @@ module.exports = {
       var chunk = inputs.chunks[i];
       console.log(chunk);
       console.log(`Chunk Length - ${chunk.length}`);
-      var mPrompt = `Combine all information in small logical section from the text enclosed in triple hash ###${chunk}###. Your reply should be formatted in an array`;
+      var mPrompt = `Combine all information in small logical section from the text enclosed in triple hash ###${chunk}###. Your reply should be formatted in an json array`;
       var response = await sails.helpers.callChatGpt.with(
         {
           messages: [{"role": "system", "content": mPrompt}], 

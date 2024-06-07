@@ -14,11 +14,15 @@ module.exports = {
     },
     personId:{
       type: "json",
-      required: true
+      required: false
     },
     botId:{
       type: "string",
-      required: true
+      required: false
+    },
+    agentId:{
+      type: "string",
+      required: false
     },
     textModel: {
       type: "string",
@@ -31,6 +35,9 @@ module.exports = {
     maxEmbeddingInputLength: {
       type: "number",
       defaultsTo: 8000
+    },
+    metadata: {
+      type: "json"
     }
   },
 
@@ -48,7 +55,7 @@ module.exports = {
     console.log("Useful information retrieved");
     var temp = [];
     var embeddingData = [];
-      
+
     console.log("Creating embeddings");
     for(let i=0;i<infoArray.length;i++){
       var inputText = infoArray[i];
@@ -61,7 +68,7 @@ module.exports = {
         console.log(`Embedding completed for ${i+1}/${infoArray.length}`);
         var embResult = await sails.helpers.chatGptEmbedding.with({inputTextArray: temp, userId: inputs.personId});   
         for(var embedding of embResult){
-          embeddingData.push({p: inputs.personId, b:inputs.botId, it: temp[embedding.index], e: embedding.embedding});
+          embeddingData.push({p: inputs.personId, b:inputs.botId, it: temp[embedding.index], e: embedding.embedding, a: inputs.agentId, md: inputs.metadata});
         }
         temp = [];
       }else{

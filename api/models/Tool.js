@@ -6,12 +6,12 @@ module.exports = {
         required: true
     },
     description:{
-        type: "string"
+        type: "string",
+        required: true
     },
-    permissions:{
-        collection: "permission",
-        via: "roles"
+    type: {
+        type: "string",
+        required: true    
     }
   },
-
 };

@@ -14,11 +14,15 @@ module.exports = {
     },
     chunkMaxLength: {
     	type: "string",
-    	defaultsTo: "2000"
+    	defaultsTo: "1000"
+    },
+    overlapSize: {
+      type: "number",
+      defaultsTo: 100
     },
     logicalDelimeters:{
       type:"json",
-      defaultsTo: ["\n"]
+      defaultsTo: ["\n\n", "\n"]
     }
   },
 
