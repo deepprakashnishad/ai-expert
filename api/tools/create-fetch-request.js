@@ -51,8 +51,8 @@ async function createFetchRequest(state) {
         fetchOptions = {
           ...fetchOptions,
           body: JSON.stringify(params),
-          headers: {
-            "Content-Type": "application/json",
+          headers: bestApi.headers?bestApi.headers:{
+            "content-type": "application/json"
           },
         };
       }

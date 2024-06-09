@@ -9,6 +9,7 @@ class GraphState {
       params = null, 
       response = null, 
       question = null,
+      conversation = [],
       lastExecutedNode = null
   ) {
     this.llm = llm;
@@ -19,6 +20,7 @@ class GraphState {
     this.params = params;
     this.response = response;
     this.question = question;
+    this.conversation=conversation;
     this.lastExecutedNode = lastExecutedNode;
     this.chatId = chatId;
   }

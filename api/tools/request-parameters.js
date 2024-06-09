@@ -59,7 +59,7 @@ function parseUserInput(input) {
  * @returns {Promise<Partial<GraphState>>}
  */
 async function requestParameters(state) {
-  const { llm, bestApi, params, chatId } = state;
+  const { llm, bestApi, params, chatId, conversation, query } = state;
   if (!bestApi) {
     throw new Error("No best API found");
   }
@@ -77,33 +77,49 @@ async function requestParameters(state) {
     )
     .filter((p) => p !== undefined);
 
-  const missingParamsString = missingParams
-    .map((p) => `Name: ${p.name}, Description: ${p.description}`)
+  const missingParamsString = missingParamsSchemas
+    .map((p) => `{Name: ${p.name}, Description: ${p.description}}`)
     .join("\n----\n");
-  const question = `LangTool couldn't find all the required params for the API.\nMissing params:\n${missingParamsString}\nPlease provide the missing params in the following format:\n${paramsFormat}\n`;  
+
+  var messages = 
+    [
+      {
+        "role": "system",
+        "content": `You are an expert customer representative who rephrases provided list of missing information into user-friendly questions in order to reply user query. You may collect less information so that user is not stressed by seeing many questions at a time. Your reply must be in form of json format with serial number as keys. You should STRICTLY limit your questions to collect missing_info provided by the user and DO NOT add questions on your own.
+          `
+      },{
+        "role": "user",
+        "content": `query: {query}, missing_info: [{params}]`
+      }
+  ];
+
+  messages[1]['content'] = messages[1]['content'].replace("{params}", missingParamsString).replace("{query}", query);
+
+  console.log(messages);
+
+  var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
+  var res_params = JSON.parse(response[0]['message']['content']);
+
+  console.log(res_params);
+
+  var question = "";
+  Object.keys(res_params).forEach(key => {
+    question = `${question}${res_params[key]}\n`;
+  })
+  // const question = `LangTool couldn't find all the required params for the API.\nMissing params:\n${missingParamsString}\nPlease provide the missing params in the following format:\n${paramsFormat}\n`;  
+
 
   state['question'] = question;
 
+  if(state['conversation']){
+    state['conversation'].push({"role":"assistant", "content": question});
+  }else{
+    state['conversation'] = [{"role":"assistant", "content": question}];
+  }
+
   await ChatHistory.update({"id": chatId}, {"graphState": state});  
 
-  return {"question": question}
-  // const userInput = await readUserInput(missingParamsSchemas);
-  // const parsedUserInput = parseUserInput(userInput);
-
-  // console.log(
-  //   `\n-----\nNew parsed params: ${JSON.stringify(
-  //     parsedUserInput,
-  //     null,
-  //     2
-  //   )}\n-----\n`
-  // );
-
-  // return {
-  //   params: {
-  //     ...params,
-  //     ...parsedUserInput,
-  //   },
-  // };
+  return {"question": question, "conversation": conversation}
 }
 
 module.exports = {

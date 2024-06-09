@@ -3,8 +3,20 @@ var srs = "";
 module.exports = {
 
 	callTextCompletions: async function(req, res){
-		var result = await sails.helpers.callChatGpt.with({messages: req.body.messages});
-		res.successResponse({data:result}, 200, null, true, "Record found");
+		var messages = [
+		    {
+		        "role": "system",
+		        "content": `You are an expert software engineer. Your task is to extract values of the parameters from the conversation provided. In case you do NOT find value for a parameter then skip it and do not include in your result untill a default value is provided in the parameter list. Return empty object in case value for any of the parameters are found. Also DO  NOT INSERT parameters on your own. Response must be in json format.
+		        Parameters: Name: phone_number, Description: , Type: NUMBER
+    `
+		    },
+		    {
+		        "role": "user",
+		        "content": "I'm researching WhatsApp for Business accounts. If I provide you a mobile number will you be able to help me determine if it is a business account."
+		    }
+		]
+		var result = await sails.helpers.callChatGpt.with({"messages": messages});
+		res.successResponse({data:result, "tempo": "high"}, 200, null, true, "Record found");
 	},
 
 	translateQuestionInHtml: async function(req, res){

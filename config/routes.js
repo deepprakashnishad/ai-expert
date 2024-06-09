@@ -47,7 +47,7 @@ module.exports.routes = {
   'GET /Agent/:id': { controller: 'Agent', action: "get"},
   'GET /Agent': { controller: 'Agent', action: "list"},
   'DELETE /Agent/:id': { controller: 'Agent', action: "delete"},
-  'POST /Agent/chat': { controller: 'Agent', action: "chat"},
+  'POST /Agent/chat': { controller: 'Agent', action: "langchainAgentChat1"},
   'POST /Agent/assignTools': { controller: 'Agent', action: "assignTools"},
   'POST /Agent/langchainAgentChat': { controller: 'Agent', action: "langchainAgentChat"},
   'POST /Agent/test': { controller: 'Agent', action: "langchainAgentChat1"},

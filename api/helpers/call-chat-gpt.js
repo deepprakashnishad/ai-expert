@@ -49,14 +49,26 @@ module.exports = {
       const openAI = new OpenAI({
         apiKey: sails.config.custom.OPEN_API_KEY
       })
-			const resp = await openAI.chat.completions.create({
-        "response_format": { "type": inputs.response_format },
-        "messages": inputs.messages,
-        "model": 'gpt-3.5-turbo',
-        "max_tokens": inputs.max_tokens,
-        "temperature": inputs.temperature,
-        "tools": inputs.tools
-      });
+      var resp;
+      if(inputs.tools && inputs.tools.length > 0){
+        resp = await openAI.chat.completions.create({
+          "response_format": { "type": inputs.response_format },
+          "messages": inputs.messages,
+          "model": 'gpt-3.5-turbo',
+          "max_tokens": inputs.max_tokens,
+          "temperature": inputs.temperature,
+          "tools": inputs.tools
+        });
+      }else{
+        resp = await openAI.chat.completions.create({
+          "response_format": { "type": inputs.response_format },
+          "messages": inputs.messages,
+          "model": 'gpt-3.5-turbo',
+          "max_tokens": inputs.max_tokens,
+          "temperature": inputs.temperature
+        });
+      }
+			
       // console.log(resp);
       return exits.success(resp.choices);
   	}catch(e){

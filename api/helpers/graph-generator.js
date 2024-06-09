@@ -2,7 +2,7 @@ const { END, StateGraph }  = require("@langchain/langgraph");
 
 const toolsLib = require("./../tools");
 
-const graphChannels = {
+/*const graphChannels = {
   llm: {
     value: null,
   },
@@ -24,7 +24,7 @@ const graphChannels = {
   response: {
     value: null,
   },
-};
+};*/
 
 module.exports = {
 
@@ -82,6 +82,9 @@ module.exports = {
       question: {
         value: null,
       },
+      conversation: {
+        value: [],
+      },
       lastExecutedNode: {
         value: null
       },
@@ -102,14 +105,14 @@ module.exports = {
       channels: graphChannels,
     });
 
-    graph.addNode("extract_category_node", toolsLib.extractCategory);
+    // graph.addNode("extract_category_node", toolsLib.extractCategory);
     graph.addNode("get_apis_node", toolsLib.getApis);
     graph.addNode("select_api_node", toolsLib.selectApi);
     graph.addNode("extract_params_node", toolsLib.extractParameters);
     graph.addNode("human_loop_node", toolsLib.requestParameters);
     graph.addNode("execute_request_node", toolsLib.createFetchRequest);
 
-    graph.addEdge("extract_category_node", "get_apis_node");
+    // graph.addEdge("extract_category_node", "get_apis_node");
     graph.addEdge("get_apis_node", "select_api_node");
     graph.addEdge("select_api_node", "extract_params_node");
 
@@ -121,7 +124,8 @@ module.exports = {
       console.log(`Last Executed Node - ${inputs.state.lastExecutedNode}`)
       graph.setEntryPoint(inputs.state.lastExecutedNode);  
     }else{
-      graph.setEntryPoint("extract_category_node");  
+      // graph.setEntryPoint("extract_category_node");
+      graph.setEntryPoint("get_apis_node");  
     }
     
     graph.setFinishPoint("human_loop_node");

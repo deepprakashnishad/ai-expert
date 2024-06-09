@@ -390,17 +390,20 @@ module.exports = {
 		    temperature: 0,
 		});
 
-		var query = req.body.query;
+		var query = req.body.userInput;
 
 		var stream;
 
 		if(lChatHistory.graphState){
-			const splitParams = query.split(":::");
+			/*const splitParams = query.split(":::");
 			splitParams.forEach((param) => {
 			    const [key, value] = param.split(",");
 			    lChatHistory.graphState.params[key] = value.trim();
-			});
+			});*/
+
 			lChatHistory.graphState.question = null;
+
+			lChatHistory.graphState.conversation.push({"role": "user", "content": query})
 		
 			stream = await graphApp.stream({
 							"llm": llm,
@@ -412,6 +415,7 @@ module.exports = {
 							"params": lChatHistory.graphState.params,
 							"response": lChatHistory.graphState.response,
 							"question": lChatHistory.graphState.question,
+							"conversation": lChatHistory.graphState.conversation,
 							"lastExecutedNode": lChatHistory.graphState.lastExecutedNode,
 						});
 		}else{
@@ -434,7 +438,7 @@ module.exports = {
 		    } else {
 		      console.log("Stream event: ", Object.keys(event)[0]);
 		      // Uncomment the line below to see the values of the event.
-		      console.log("Value(s): ", Object.values(event)[0]);
+		      // console.log("Value(s): ", Object.values(event)[0]);
 		    }
 		}
 		if (!finalResult) {
@@ -444,13 +448,10 @@ module.exports = {
 		    throw new Error("No best API found");
 		}
 
-		console.log("---FETCH RESULT---");
-		console.log(finalResult.response);
-		console.log(finalResult);
 		if(finalResult.question){
-			res.successResponse(finalResult, 200, null, true, "Information required");	
+			res.successResponse({result: finalResult['question'], chatId: chatId}, 200, null, true, "Information required");	
 		}else{
-			res.successResponse(finalResult, 200, null, true, "Processing completed")
+			res.successResponse({result: finalResult['response'], chatId: chatId}, 200, null, true, "Processing completed")
 		}
 	}
 

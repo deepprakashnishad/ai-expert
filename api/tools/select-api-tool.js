@@ -22,14 +22,14 @@ class SelectAPITool extends StructuredTool {
     APIs:
     ${apis
       .map(
-    (api) => `Tool name: ${api.tool_name}
+    (api) => `Tool name: ${api.name}
       API Name: ${api.api_name}
-      Description: ${api.api_description}
+      Description: ${api.description}
       Parameters: ${[...api.required_parameters, ...api.optional_parameters]
       .map((p) => `Name: ${p.name}, Description: ${p.description}`)
       .join("\n")}`
-  )
-  .join("\n---\n")}`;
+    )
+    .join("\n---\n")}`;
     return description;
   }
 
@@ -79,8 +79,7 @@ Given their query, use the 'Select_API' tool to select the best API for the quer
     query,
   });
   const bestApi = JSON.parse(response);
-  console.log(bestApi);
-
+  console.log(bestApi)
   return {
     bestApi,
     "lastExecutedNode": "select_api_node"

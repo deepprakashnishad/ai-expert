@@ -133,16 +133,14 @@ module.exports = {
 
 	getApis: async function(state){
 		const { categories } = state;
-		if (!categories || categories.length === 0) {
+		/*if (!categories || categories.length === 0) {
 		    throw new Error("No categories passed to get_apis_node");
-		}
+		}*/
 		/*const allData = JSON.parse(
 		    fs.readFileSync(TRIMMED_CORPUS_PATH, "utf8")
 		);*/
 
 		const apis = await Tool.find({type: "api"});
-
-		console.log(apis);
 
 		/*const apis = categories
 		    .map((c) => allData.filter((d) => d.category_name === c))
