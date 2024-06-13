@@ -8,6 +8,7 @@ const extract_parameters = require('./extract-parameters')
 const request_parameters = require('./request-parameters')
 const create_fetch_request = require('./create-fetch-request')
 const utils = require('./utils');
+const sql_db = require('./sql_db.js');
 // Add more module imports as needed
 
 const {TavilySearchResults} = require("@langchain/community/tools/tavily_search");
@@ -22,6 +23,7 @@ module.exports = {
   ...request_parameters,
   ...create_fetch_request,
   ...utils,
+  ...sql_db,
   // Include other modules similarly
 
   toolGeneratorFactory: async function(funcName, params){

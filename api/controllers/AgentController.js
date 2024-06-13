@@ -301,6 +301,9 @@ module.exports = {
 			temperature: 0.7
 		});
 
+		await toolLib.execute_db_operation(model, req.body.query)
+		return res.ok(200);
+
 		const prompt = ChatPromptTemplate.fromMessages([
 			["system", "You are helpful assistant called Govind"],
 			["human", "{input}"],
@@ -357,17 +360,6 @@ module.exports = {
 	},
 
 	langchainAgentChat1: async function(req, res){
-
-		/*const llm = new ChatOpenAI({
-		    modelName: "gpt-4-turbo-preview",
-		    temperature: 0,
-		});
-
-		await llm.invoke("Hello, world!");
-
-		return res.ok(200);*/
-
-		// To gain dyanmism store graph in database and runtime variable. Fetch graph details
 		var lChatHistory = {ch: []};
 
 		if(!req.body.chatId){
