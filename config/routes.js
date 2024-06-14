@@ -50,7 +50,7 @@ module.exports.routes = {
   'POST /Agent/chat': { controller: 'Agent', action: "langchainAgentChat1"},
   'POST /Agent/assignTools': { controller: 'Agent', action: "assignTools"},
   'POST /Agent/langchainAgentChat': { controller: 'Agent', action: "langchainAgentChat"},
-  'POST /Agent/test': { controller: 'Agent', action: "langchainAgentChat1"},
+  'POST /Agent/langGraphChat': { controller: 'Agent', action: "langGraphChat"},
 
   'POST /Tool': { controller: 'Tool', action: "create"},
   'PATCH /Tool': { controller: 'Tool', action: "update"},

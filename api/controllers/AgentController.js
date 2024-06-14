@@ -301,7 +301,7 @@ module.exports = {
 			temperature: 0.7
 		});
 
-		await toolLib.execute_db_operation(model, req.body.query)
+		await toolLib.sql_lang_graph_db_query({"llm": model, "query": req.body.query})
 		return res.ok(200);
 
 		const prompt = ChatPromptTemplate.fromMessages([
@@ -359,7 +359,7 @@ module.exports = {
 		res.json(response);
 	},
 
-	langchainAgentChat1: async function(req, res){
+	langGraphChat: async function(req, res){
 		var lChatHistory = {ch: []};
 
 		if(!req.body.chatId){
