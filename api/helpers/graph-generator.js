@@ -82,6 +82,9 @@ module.exports = {
       question: {
         value: null,
       },
+      finalResult:{
+        value: null
+      },
       conversation: {
         value: [],
       },
@@ -105,31 +108,40 @@ module.exports = {
       channels: graphChannels,
     });
 
-    // graph.addNode("extract_category_node", toolsLib.extractCategory);
-    graph.addNode("get_apis_node", toolsLib.getApis);
-    graph.addNode("select_api_node", toolsLib.selectApi);
-    graph.addNode("extract_params_node", toolsLib.extractParameters);
-    graph.addNode("human_loop_node", toolsLib.requestParameters);
-    graph.addNode("execute_request_node", toolsLib.createFetchRequest);
-
-    // graph.addEdge("extract_category_node", "get_apis_node");
-    graph.addEdge("get_apis_node", "select_api_node");
-    graph.addEdge("select_api_node", "extract_params_node");
-
-    graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
-
-    graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
-    
-    if(inputs.state && inputs.state.lastExecutedNode){
-      console.log(`Last Executed Node - ${inputs.state.lastExecutedNode}`)
-      graph.setEntryPoint(inputs.state.lastExecutedNode);  
+    if(inputs.id === "Report Builder"){
+      graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      graph.addEdge("sql_query_node", "response_formatter_node");
+      graph.setEntryPoint("sql_query_node");
+      graph.setFinishPoint("response_formatter_node");
     }else{
-      // graph.setEntryPoint("extract_category_node");
-      graph.setEntryPoint("get_apis_node");  
+      // graph.addNode("extract_category_node", toolsLib.extractCategory);
+      graph.addNode("get_apis_node", toolsLib.getApis);
+      graph.addNode("select_api_node", toolsLib.selectApi);
+      graph.addNode("extract_params_node", toolsLib.extractParameters);
+      graph.addNode("human_loop_node", toolsLib.requestParameters);
+      graph.addNode("execute_request_node", toolsLib.createFetchRequest);
+
+      // graph.addEdge("extract_category_node", "get_apis_node");
+      graph.addEdge("get_apis_node", "select_api_node");
+      graph.addEdge("select_api_node", "extract_params_node");
+
+      graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
+
+      graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
+      
+      if(inputs.state && inputs.state.lastExecutedNode){
+        console.log(`Last Executed Node - ${inputs.state.lastExecutedNode}`)
+        graph.setEntryPoint(inputs.state.lastExecutedNode);  
+      }else{
+        // graph.setEntryPoint("extract_category_node");
+        graph.setEntryPoint("get_apis_node");  
+      }
+      
+      graph.setFinishPoint("human_loop_node");
+      graph.setFinishPoint("execute_request_node");
     }
     
-    graph.setFinishPoint("human_loop_node");
-    graph.setFinishPoint("execute_request_node");
 
     const app = graph.compile();
     return exits.success(app);

@@ -10,6 +10,8 @@ const create_fetch_request = require('./create-fetch-request')
 const utils = require('./utils');
 const sql_db = require('./sql_db.js');
 // Add more module imports as needed
+const { DynamicTool, DynamicStructuredTool } = require("@langchain/core/tools");
+
 
 const {TavilySearchResults} = require("@langchain/community/tools/tavily_search");
 
@@ -26,31 +28,52 @@ module.exports = {
   ...sql_db,
   // Include other modules similarly
 
-  toolGeneratorFactory: async function(funcName, params){
-  	if(funcName === "apiCaller"){
-  		if(!params['params']){
-  			params['params'] = {}
-  		}
-  		if(!params['body']){
-  			params['body'] = {}	
-  		}
-  		if(!params['queryParams']){
-  			params['queryParams'] = []
-  		}
-  		if(!params['options']){
-  			params['options'] = {}
-  		}
-  		return generic.apiCaller(
-  			params['method'], 
-  			params['url'], 
-  			params['queryParams'], 
-  			params['body'], 
-  			params['params'], 
-  			params['options']
-		);
-  	}else if(funcName === "sqlDBCaller"){
-  		return generic.sqlDBCaller(params['db_name'], params['prompt'], params['question'], params['tables']);
-  	}else if(funcName === "tavilySearch"){
+  toolGeneratorFactory: async function(llm, tool){
+    console.log(tool);
+  	if(tool['type'] === "api"){
+      var params = {};
+      if(tool['api_url']){
+        params['url'] = tool['api_url'];
+      }else{
+        return null;
+      }
+      if(tool['method']){
+        params['method'] = tool['method']
+      }else{
+        return null;
+      }
+  		if(tool['url_params']){
+  			params['params'] = tool['url_params']
+  		}else{
+        params['params'] = tool['url_params']
+      }
+  		if(tool['required_parameters'] || tool['optional_parameters']){
+  			params['body'] = tool['required_parameters'].concat(tool['optional_parameters']);
+  		}else{
+        params['body'] = {}
+      }
+  		if(tool['queryParams']){
+  			params['queryParams'] = tool['queryParams']
+  		}else{
+        params['queryParams'] = {}
+      }
+  		if(tool['headers']){
+  			params['options'] = {'headers': tool['headers']}
+  		}else{
+        params['options'] = {}
+      }
+  		return new DynamicTool({
+        name: tool['name'],
+        description: tool['description'],
+        func: generic.apiCaller
+      })
+  	}else if(tool['type'] === "sql"){
+  		return new DynamicTool({
+        name: tool['name'],
+        description: tool['description'],
+        func: sql_db.execute_db_operation,
+      }); //generic.sqlDBCaller(params['db_name'], params['prompt'], params['question'], params['tables']);
+  	}else if(tool['type'] === "langchain"){
   		return new TavilySearchResults();
   	}
   },

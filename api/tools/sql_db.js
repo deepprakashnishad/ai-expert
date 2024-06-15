@@ -195,9 +195,11 @@ function formatSchema({ tables, columns, constraints }, useful_tables=[]) {
 
 async function sql_lang_graph_with_human_response(state){
 	const { query, llm } = state;
+	console.log("Langchain SQL Agent Activated");
 	var res = await execute_db_operation(llm, query);
+	console.log(res);
 	return {
-	    db_result: res,
+	    finalResult: res,
 	    "lastExecutedNode": "sql_lang_graph_with_human_response"
 	};
 }
@@ -214,6 +216,8 @@ async function sql_lang_graph_db_query(state){
 	const schema = await get_schema();
 	const {tables} = schema;
 
+	console.log("SQL query node execution initiated");
+
 	var messages = [{"role": "system", "content":`Find list of useful tables from the provided list of tables for the given user query. Your response must be in json format as {useful_tables: array_of_table_names}. Given tables:
 		${tables.join("\n")}`},
 		{"role": "user", "content": `query: ${query}`}];
@@ -221,6 +225,8 @@ async function sql_lang_graph_db_query(state){
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
 
 	var useful_tables = JSON.parse(response[0]['message']['content']);
+
+	console.log(`Useful tables are:\n ${useful_tables}`);
 
   	const formattedSchema = formatSchema(schema, useful_tables['useful_tables']);
 
@@ -248,7 +254,8 @@ async function sql_lang_graph_db_query(state){
 	console.log(final_query_result);
 
 	return {
-		db_result: final_query_result
+		lastExecutedNode: "sql_lang_graph_db_query",
+		finalResult: final_query_result
 	}
 }
 

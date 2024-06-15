@@ -173,5 +173,34 @@ module.exports = {
 	    return "human_loop_node";
 	  }
 	  return "execute_request_node";
+	},
+
+	responseFormatter: async function(state){
+		const {llm, query, finalResult} = state;
+
+		const prompt = `
+			User Query: ${query}
+
+			Final Result: ${typeof finalResult==="string"? finalResult: JSON.stringify(finalResult)}
+
+			Please format this information into a well-structured response for a human to read. You should not add any information from your side. Just based on the user query and provided Final Result only you must produce the response. There is no restriction in providing this information. Make sure that response doesn't contains any type of json object but is in the form of plain string.
+			`;
+
+		var messages = [
+			{
+				"role": "system",
+				"content": prompt
+			}
+		]
+		console.log(messages)
+		var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
+		response = response[0]['message']['content'];
+
+		// Call the language model
+		// const response = await llm.call(prompt);
+
+		return {
+			"response": response
+		};
 	}
 } 

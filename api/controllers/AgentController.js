@@ -80,7 +80,7 @@ module.exports = {
 	},
 
 	get: async function(req, res){
-		var agent = await Agent.findOne({id: req.params.id});
+		var agent = await Agent.findOne({id: req.params.id}).populate("tools");
 		if(agent){
 			res.successResponse({"agent" :agent}, 200, null, true, "Agent retrieved successfully");
 		}else{
@@ -259,8 +259,24 @@ module.exports = {
 			temperature: 0.7
 		});
 
-		await toolLib.sql_lang_graph_db_query({"llm": model, "query": req.body.query})
+		/*await toolLib.sql_lang_graph_db_query({"llm": model, "query": req.body.query})
 		return res.ok(200);
+
+		if(!req.body.agentId){
+			return res.successResponse({}, 200, null, false, "Agent not found");
+		}*/
+
+		var mAgent;
+
+		if(!agents[req.body.agentId]){
+			mAgent = await Agent.findOne({"id": req.body.agentId}).populate("tools");
+			if(!mAgent){
+				return res.successResponse({}, 200, null, false, "Agent not found");
+			}
+			agents[req.body.agentId] = mAgent;
+		}else {
+			mAgent = agents[req.body.agentId];
+		}
 
 		const prompt = ChatPromptTemplate.fromMessages([
 			["system", "You are helpful assistant called Govind"],
@@ -268,7 +284,13 @@ module.exports = {
 			new MessagesPlaceholder("agent_scratchpad"),
 		]);
 
-		const tools = [
+		var tools = [];
+
+		mAgent.tools.forEach(tool=>{
+			tools.push(toolLib.toolGeneratorFactory(model, tool));
+		});
+
+		/*const tools = [
 		  new DynamicTool({
 		    name: "FOO",
 		    description:
@@ -285,7 +307,7 @@ module.exports = {
 		    func: async ({ low, high }) =>
 		      (Math.random() * (high - low) + low).toString(), // Outputs still must be strings
 		  }),
-		];
+		];*/
 
 		/*const searchTool = new TavilySearchResults();
 		const retrieverTool = new createRetrieverTool({
@@ -333,7 +355,7 @@ module.exports = {
 
 		var chatId = lChatHistory.id;
 
-		var graphApp = await sails.helpers.graphGenerator.with({state: lChatHistory.graphState});
+		var graphApp = await sails.helpers.graphGenerator.with({state: lChatHistory.graphState, id: req.body.agentId});
 
 		const llm = new ChatOpenAI({
 		    modelName: "gpt-4-turbo-preview",
@@ -365,6 +387,7 @@ module.exports = {
 							"params": lChatHistory.graphState.params,
 							"response": lChatHistory.graphState.response,
 							"question": lChatHistory.graphState.question,
+							"finalResult": lChatHistory.graphState.finalResult,
 							"conversation": lChatHistory.graphState.conversation,
 							"lastExecutedNode": lChatHistory.graphState.lastExecutedNode,
 						});
@@ -391,17 +414,17 @@ module.exports = {
 		      // console.log("Value(s): ", Object.values(event)[0]);
 		    }
 		}
-		if (!finalResult) {
-		    throw new Error("No final result");
-		}
-		if (!finalResult.bestApi) {
-		    throw new Error("No best API found");
-		}
 
 		if(finalResult.question){
 			res.successResponse({result: finalResult['question'], chatId: chatId}, 200, null, true, "Information required");	
-		}else{
+		}else if(finalResult.response){
 			res.successResponse({result: finalResult['response'], chatId: chatId}, 200, null, true, "Processing completed")
+		}else if(typeof finalResult === "string"){
+			res.successResponse({result: finalResult, chatId: chatId}, 200, null, true, "Processing completed")
+		}else if(!finalResult){
+			return res.successResponse({result: "I am not sure how to solve your query. I can create a ticket for your issue though.", chatId: chatId}, 200, null, true, "Processing Completed");	
+		}else{
+			return res.successResponse({result: "I am not sure how to solve your query. I can create a ticket for your issue though.", chatId: chatId}, 200, null, true, "Processing Completed");	
 		}
 	}
 

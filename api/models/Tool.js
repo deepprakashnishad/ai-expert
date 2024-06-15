@@ -12,6 +12,24 @@ module.exports = {
     type: {
         type: "string",
         required: true    
+    },
+    api_name: {
+        type: "string"
+    },
+    required_parameters: {
+        type: "json"
+    },
+    optional_parameters: {
+        type: "json"
+    },
+    method: {
+        type: "string"
+    },
+    template_response:{
+        type: "json"
+    },
+    api_url: {
+        type: "string"
     }
   },
 };
