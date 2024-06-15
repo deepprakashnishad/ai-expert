@@ -242,7 +242,7 @@ async function sql_lang_graph_db_query(state){
 	response2 = JSON.parse(response2[0]['message']['content']);
 
 	console.log(`User Query: ${query}`);
-	console.log(`SQL from model`: ${response2['sql_query']});
+	console.log(`SQL from model: ${response2['sql_query']}`);
 	var final_query_result = await execute_query(llm, response2['sql_query']);
 
 	console.log(final_query_result);

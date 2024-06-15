@@ -141,7 +141,7 @@ module.exports = {
 		);*/
 
 		const apis = await Tool.find({type: "api"});
-
+		console.log(apis);
 		/*const apis = categories
 		    .map((c) => allData.filter((d) => d.category_name === c))
 		    .flat();*/
