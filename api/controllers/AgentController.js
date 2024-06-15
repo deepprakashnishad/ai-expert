@@ -209,33 +209,6 @@ module.exports = {
 			mAgent = agents[req.body.agentId];
 		}
 
-		var tools = [];
-
-		for(var tool of mAgent.tools){
-			if(tool.langchainTool){
-				tools.push()	
-			} else{
-				if(tool.functionName==="sqlDBCaller"){
-					tool.params.query.description = `
-								SQL query extracting info to answer the user's question.
-                                SQL should be written using this database schema:
-                                ${tool.params.query.description}
-                                The query should be returned in plain text, not in JSON.`;
-				}	
-				tools.push({
-					"type": "function",
-			        "function": {
-			            "name": tool.functionName,
-			            "description": tool.description,
-			            "parameters": {
-			                "type": "object",
-			                "properties": tool.params
-			            },
-			        }
-				});
-			}	
-		}
-
 		var lChatHistory = {ch: [{"role":"system", "content": mAgent.sPrompt}], a: req.body.agentId, "p": req.body.userId, ei: {}};
 
 		if(!req.body.chatId){
@@ -250,12 +223,7 @@ module.exports = {
 		}
 
 		var messages = lChatHistory['ch'];
-		var inputMessage = `${mAgent.iPrompt}\nOutput must be in JSON format`;
-
-		for (var i = 0; i < mAgent.iPromptKeys.length; i++) {
-			var key = mAgent.iPromptKeys[i];
-			inputMessage.replace(key, lChatHistory.ei[key]);
-		}
+		var inputMessage = `${mAgent.iPrompt}`;
 
 		inputMessage = inputMessage.replace("UserInput", req.body.userInput);
 
@@ -267,32 +235,22 @@ module.exports = {
 
 		var result = await sails.helpers.callChatGpt.with({
 			"messages": messages, 
-			"max_tokens": req.body.max_tokens?req.body.max_tokens:2500,
-			"tools": tools,
-			"temperature": 0
+			"max_tokens": req.body.max_tokens?req.body.max_tokens:4096,
+			"temperature": 0,
+			"response_format": "text"
 		});
 
 		console.log(result);
 
 		var responseContent = result[0]["message"];
 
-		if(result[0]['finish_reason']==="tool_calls"){			
-			for(var mTool of responseContent['tool_calls']){
-				if(mTool.type === "function"){
-					toolLib.toolGeneratorFactory(mTool['function']['name'], JSON.parse(mTool['function']['arguments']))
-					var toolCallMsg = `${mTool['function']['name']} called. Your request is in progress.`;
-					lChatHistory['ch'].push({"role": "assistant", "content": toolCallMsg});
-					responseContent['content'] = toolCallMsg;			
-				}
-			}
-		}else{
-			lChatHistory['ch'].push({"role": "assistant", "content": result[0]["message"]['content']});	
-		}
-
+		
+		lChatHistory['ch'].push({"role": "assistant", "content": result[0]["message"]['content']});	
+		
 		ch = await ChatHistory.update({"id": lChatHistory.id}, {"ch": lChatHistory.ch, "ei": lChatHistory.ei});
 		chatHistories[lChatHistory.id] = lChatHistory;
 
-		return res.successResponse({chatId: lChatHistory.id, data: responseContent}, 200, null, true, "Record found");
+		return res.successResponse({chatId: lChatHistory.id, result: responseContent['content']}, 200, null, true, "Record found");
 	},
 
 	langchainAgentChat: async function(req, res){
