@@ -1,21 +1,72 @@
 const { PDFLoader } = require("langchain/document_loaders/fs/pdf");
-const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
 
+const cheerio = require("cheerio");
+const { CheerioWebBaseLoader } = require("langchain/document_loaders/web/cheerio");
+const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
+const { MemoryVectorStore,MongoDBAtlasVectorStore } = require("langchain/vectorstores/memory");
+const { Chroma } =require("@langchain/community/vectorstores/chroma");
+const { FaissStore } = require("@langchain/community/vectorstores/faiss");
+const { QdrantVectorStore } = require("@langchain/qdrant");
+const { OpenAIEmbeddings, ChatOpenAI } = require("@langchain/openai");
+const { pull } = require("langchain/hub");
+const { ChatPromptTemplate } = require("@langchain/core/prompts");
+const { StringOutputParser } = require("@langchain/core/output_parsers");
+
+const { Pinecone } = require("@pinecone-database/pinecone");
+const { Document } = require("@langchain/core/documents");
+const { PineconeStore } = require("@langchain/pinecone");
+
+const { createStuffDocumentsChain } = require("langchain/chains/combine_documents");
+
+const pinecone = new Pinecone({apiKey: sails.config.custom.PINECONE_API_KEY});
+
+const pineconeIndex = pinecone.Index('ragdoc');
 
 module.exports = {
 
 	webScrapper: async function(req, res){
-	 	var rawInfoChunks = await sails.helpers.scrapWeb.with({url: req.body.url});
-	 	console.log("Web scrapping completed");
-	 	var response = await sails.helpers.processRawChunksToEmbeddings.with(
-	 		{
-	 			chunks: rawInfoChunks,
-	 			personId: req.body.personId,
-	 			botId: req.body.botId
-	 		}
- 		);
 
-	 	res.successResponse({data: response}, 200, null, true, "Website scrapped and information has been processed");
+		/*var existingDoc = await UploadedDocument.findOne({title: req.body.url});
+
+		if(existingDoc){
+			return res.successResponse({}, 200, null, true, "This url has been already scrapped");
+		}*/
+
+		const loader = new CheerioWebBaseLoader(
+		  req.body.url
+		);
+
+		const docs = await loader.load();
+
+		const textSplitter = new RecursiveCharacterTextSplitter({
+		  chunkSize: 1000,
+		  chunkOverlap: 200,
+		});
+		const splits = await textSplitter.splitDocuments(docs);
+
+		const mDoc = await UploadedDocument.create({"title": req.body.url, "type": "web_url"}).fetch();
+
+		var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
+			chunks: splits,
+			doc_id: mDoc.id 
+		})
+
+		/*const vectorStore = await PineconeStore.fromDocuments(splits,
+		  new OpenAIEmbeddings(), {
+			  pineconeIndex,
+			  maxConcurrency: 5, // Maximum number of batch requests to allow at once. Each batch is 1000 vectors.
+			}
+		);*/
+		/*console.log(process.env.QDRANT_URL)
+		
+		const vectorStore = await QdrantVectorStore.fromDocuments(splits,
+		  new OpenAIEmbeddings(), {
+		    url: process.env.QDRANT_URL,
+		    collectionName: "cvector",
+		  }
+		);	*/	
+
+	 	return res.successResponse({data: vectorStore}, 200, null, true, "Website scrapped and information has been processed");
 	},
 
 	uploadFile: async function(req, res){

@@ -12,18 +12,6 @@ module.exports = {
       type: "json",
       required: true
     },
-    personId:{
-      type: "json",
-      required: false
-    },
-    botId:{
-      type: "string",
-      required: false
-    },
-    agentId:{
-      type: "string",
-      required: false
-    },
     textModel: {
       type: "string",
       defaultsTo: "gpt-3.5-turbo"
@@ -36,12 +24,21 @@ module.exports = {
       type: "number",
       defaultsTo: 8000
     },
-    metadata: {
-      type: "json"
-    },
     data_key:{
       type: "string",
       defaultsTo: "pageContent"
+    },
+    doc_id:{
+      type: "string",
+      required: true
+    },
+    cat: {
+      type: "string",
+      defaultsTo: "generic"
+    },
+    itt:{
+      type: "string",
+      defaultsTo: "text"
     }
   },
 
@@ -54,25 +51,30 @@ module.exports = {
 
 
   fn: async function (inputs, exits) {
-    console.log("Converting raw data to useful information");
-    var infoArray = await sails.helpers.processChunksToInfo.with({chunks: inputs.chunks});
-    console.log("Useful information retrieved");
     var temp = [];
     var embeddingData = [];
 
     console.log("Creating embeddings");
-    for(let i=0;i<infoArray.length;i++){
-      var inputText = infoArray[i];
+    for(let i=0;i<inputs.chunks.length;i++){
+      var inputText = inputs.chunks[i][inputs.data_key];
 
       if(typeof inputText !== "string"){
         inputText = JSON.stringify(inputText);
       }
 
-      if((temp.join(",").length+inputText.length) >= inputs.maxEmbeddingInputLength || i===infoArray.length-1){
-        console.log(`Embedding completed for ${i+1}/${infoArray.length}`);
+      if((temp.join(",").length+inputText.length) >= inputs.maxEmbeddingInputLength || i===inputs.chunks.length-1){
+        temp.push(inputText);
+        console.log(`Embedding completed for ${i+1}/${inputs.chunks.length}`);
         var embResult = await sails.helpers.chatGptEmbedding.with({inputTextArray: temp, userId: inputs.personId});   
         for(var embedding of embResult){
-          embeddingData.push({p: inputs.personId, b:inputs.botId, it: temp[embedding.index], e: embedding.embedding, a: inputs.agentId, md: inputs.metadata});
+          embeddingData.push({
+            it: temp[embedding.index], 
+            e: embedding.embedding, 
+            md: inputs.chunks[i].metadata,
+            cat: inputs.cat,
+            itt: inputs.itt,
+            d: inputs.doc_id
+          });
         }
         temp = [];
       }else{
@@ -82,6 +84,6 @@ module.exports = {
     console.log("Embeddings created");
     await Cvector.createEach(embeddingData);
     console.log("Embeddings saved to database");
-    return exits.success(infoArray);
+    return exits.success(true);
   }
 };

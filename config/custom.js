@@ -24,6 +24,10 @@ module.exports.custom = {
 
   BARD_API_KEY: "AIzaSyA0Dx2UQg7tCSs3Uj9EITO4k1njcgBpYig",
 
+  PINECONE_API_KEY: "c547ff1d-b710-4887-8d7b-5449be71c4a7",
+
+  RAGDOC: "55Ggb3N3rYT4GdUb370qJmH1Nlfm_o169Udjjjl6ESSZRn1tW4hUzg",
+
   ROCKET_CHAT: {
 
     USERNAME: "deepnishad",

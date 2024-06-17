@@ -417,12 +417,14 @@ module.exports = {
 
 		if(finalResult.question){
 			res.successResponse({result: finalResult['question'], chatId: chatId}, 200, null, true, "Information required");	
+		}else if(finalResult.finalResult){
+			res.successResponse({result: finalResult['finalResult'], chatId: chatId}, 200, null, true, "Processing completed")
 		}else if(finalResult.response){
 			res.successResponse({result: finalResult['response'], chatId: chatId}, 200, null, true, "Processing completed")
-		}else if(typeof finalResult === "string"){
+		}else if(finalResult && typeof finalResult === "string"){
 			res.successResponse({result: finalResult, chatId: chatId}, 200, null, true, "Processing completed")
-		}else if(!finalResult){
-			return res.successResponse({result: "I am not sure how to solve your query. I can create a ticket for your issue though.", chatId: chatId}, 200, null, true, "Processing Completed");	
+		}else if(finalResult && typeof finalResult==="object"){
+			return res.successResponse({result: finalResult, chatId: chatId}, 200, null, true, "Processing Completed");	
 		}else{
 			return res.successResponse({result: "I am not sure how to solve your query. I can create a ticket for your issue though.", chatId: chatId}, 200, null, true, "Processing Completed");	
 		}

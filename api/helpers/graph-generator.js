@@ -108,7 +108,13 @@ module.exports = {
       channels: graphChannels,
     });
 
-    if(inputs.id === "Report Builder"){
+    if(inputs.id === "Info Teller"){
+
+      graph.addNode("document_retriever", toolsLib.document_retriever);
+      graph.setEntryPoint("document_retriever");
+      graph.setFinishPoint("document_retriever");
+
+    }else if(inputs.id === "Report Builder"){
       graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
       graph.addEdge("sql_query_node", "response_formatter_node");

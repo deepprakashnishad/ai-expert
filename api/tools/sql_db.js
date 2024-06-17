@@ -247,15 +247,23 @@ async function sql_lang_graph_db_query(state){
 	var response2 = await sails.helpers.callChatGpt.with({"messages": final_messages, "max_tokens": 4096});
 	response2 = JSON.parse(response2[0]['message']['content']);
 
+	if(!state['conversation']){
+		state['conversation'] = [];
+	}
+
+	state.conversation.push({"role": "user", "content": query});
+	state.conversation.push({"role": "assistant", "content": response2['sql_query']});
+
+
 	console.log(`User Query: ${query}`);
 	console.log(`SQL from model: ${response2['sql_query']}`);
 	var final_query_result = await execute_query(llm, response2['sql_query']);
 
-	console.log(final_query_result);
-
+	state.conversation.push({"role": "assistant", "content": JSON.stringify(final_query_result)});
 	return {
 		lastExecutedNode: "sql_lang_graph_db_query",
-		finalResult: final_query_result
+		finalResult: final_query_result,
+		conversation: state['conversation']
 	}
 }
 

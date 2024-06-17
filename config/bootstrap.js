@@ -113,9 +113,9 @@ function getPermissionIds(permissions) {
 async function createIndices(){
   sails.log.debug(("Creating indices").grey);
   db = Person.getDatastore().manager;
-  var result = await db.collection(Person.tableName).createIndexes( { n: 1, m: 1, e: 1 } );
+  var result = await db.collection(Person.tableName).createIndex( { n: 1, m: 1, e: 1 } );
   db = UserLogin.getDatastore().manager;
-  var result = await db.collection(UserLogin.tableName).createIndexes( { lt: 1, m: 1, e: 1 } );
+  var result = await db.collection(UserLogin.tableName).createIndex( { lt: 1, m: 1, e: 1 } );
 
   sails.log.debug(("Indices created").grey);
 }
