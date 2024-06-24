@@ -28,6 +28,22 @@ module.exports.custom = {
 
   RAGDOC: "55Ggb3N3rYT4GdUb370qJmH1Nlfm_o169Udjjjl6ESSZRn1tW4hUzg",
 
+  SQL_DB:{
+    user: 'postgres',
+    host: 'ecpms.cbsugemiw2rk.us-east-2.rds.amazonaws.com',
+    database: 'ecpms',
+    password: 'A2mw0bdod#1',
+    port: 5432, // default PostgreSQL port
+  },
+
+  // SQL_DB:{
+  //   user: 'demo',
+  //   host: 'localhost',
+  //   database: 'ecmps',
+  //   password: 'demo',
+  //   port: 5432, // default PostgreSQL port
+  // },
+
   ROCKET_CHAT: {
 
     USERNAME: "deepnishad",

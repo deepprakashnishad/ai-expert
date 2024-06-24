@@ -9,6 +9,7 @@ const request_parameters = require('./request-parameters')
 const create_fetch_request = require('./create-fetch-request')
 const utils = require('./utils');
 const sql_db = require('./sql_db.js');
+const gmail = require('./gmailApiService.js');
 const document_retriever = require('./document_retriever.js');
 // Add more module imports as needed
 const { DynamicTool, DynamicStructuredTool } = require("@langchain/core/tools");
@@ -28,6 +29,7 @@ module.exports = {
   ...utils,
   ...sql_db,
   ...document_retriever,
+  ...gmail,
   // Include other modules similarly
 
   toolGeneratorFactory: async function(llm, tool){

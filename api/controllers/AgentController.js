@@ -253,92 +253,6 @@ module.exports = {
 		return res.successResponse({chatId: lChatHistory.id, result: responseContent['content']}, 200, null, true, "Record found");
 	},
 
-	langchainAgentChat: async function(req, res){
-		const model = new ChatOpenAI({
-			modelName: 'gpt-3.5-turbo-1106',
-			temperature: 0.7
-		});
-
-		/*await toolLib.sql_lang_graph_db_query({"llm": model, "query": req.body.query})
-		return res.ok(200);
-
-		if(!req.body.agentId){
-			return res.successResponse({}, 200, null, false, "Agent not found");
-		}*/
-
-		var mAgent;
-
-		if(!agents[req.body.agentId]){
-			mAgent = await Agent.findOne({"id": req.body.agentId}).populate("tools");
-			if(!mAgent){
-				return res.successResponse({}, 200, null, false, "Agent not found");
-			}
-			agents[req.body.agentId] = mAgent;
-		}else {
-			mAgent = agents[req.body.agentId];
-		}
-
-		const prompt = ChatPromptTemplate.fromMessages([
-			["system", "You are helpful assistant called Govind"],
-			["human", "{input}"],
-			new MessagesPlaceholder("agent_scratchpad"),
-		]);
-
-		var tools = [];
-
-		mAgent.tools.forEach(tool=>{
-			tools.push(toolLib.toolGeneratorFactory(model, tool));
-		});
-
-		/*const tools = [
-		  new DynamicTool({
-		    name: "FOO",
-		    description:
-		      "call this to get the value of foo. input should be an empty string.",
-		    func: async () => "baz",
-		  }),
-		  new DynamicStructuredTool({
-		    name: "random-number-generator",
-		    description: "generates a random number between two input numbers",
-		    schema: z.object({
-		      low: z.number().describe("The lower bound of the generated number"),
-		      high: z.number().describe("The upper bound of the generated number"),
-		    }),
-		    func: async ({ low, high }) =>
-		      (Math.random() * (high - low) + low).toString(), // Outputs still must be strings
-		  }),
-		];*/
-
-		/*const searchTool = new TavilySearchResults();
-		const retrieverTool = new createRetrieverTool({
-			name: "lcel_search",
-			description: "Use this tool when searching for Lang Chain Expression Language(LCEL)"
-		});
-
-		const tools = [searchTool, retrieverTool];*/
-
-		const agent = await createOpenAIFunctionsAgent({
-			llm: model,
-			prompt: prompt,
-			tools: tools
-		});
-
-		const agentExecutor = new AgentExecutor({
-			agent,
-			tools,
-			chat_history: chatHistory
-		})
-
-		const response = await agentExecutor.invoke({
-			input: req.body.input
-		});
-
-		chatHistory.push(new HumanMessage(req.body.query));
-		chatHistory.push(new AIMessage(response.output));
-
-		res.json(response);
-	},
-
 	langGraphChat: async function(req, res){
 		var lChatHistory = {ch: []};
 
@@ -428,6 +342,10 @@ module.exports = {
 		}else{
 			return res.successResponse({result: "I am not sure how to solve your query. I can create a ticket for your issue though.", chatId: chatId}, 200, null, true, "Processing Completed");	
 		}
-	}
+	},
 
+	test: async function(req, res){
+		var result = await toolLib.gmailAgent();
+		return res.json(result);
+	},
 }

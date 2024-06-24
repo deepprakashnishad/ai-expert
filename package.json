@@ -5,6 +5,7 @@
   "description": "a Sails application",
   "keywords": [],
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "@langchain/community": "^0.0.56",
     "@langchain/langgraph": "^0.0.10",
     "@langchain/openai": "^0.0.28",
@@ -21,6 +22,7 @@
     "chromadb": "^1.8.1",
     "dotenv": "^16.4.5",
     "fs": "*",
+    "googleapis": "^126.0.1",
     "grunt": "1.0.4",
     "html-to-text": "^9.0.5",
     "langchain": "^0.1.36",

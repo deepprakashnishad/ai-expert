@@ -1,0 +1,461 @@
+const {createTransport} = require('nodemailer');
+
+const axios = require("axios");
+
+const path = require("path");
+const process = require("process");
+
+const { initializeAgentExecutorWithOptions } = require("langchain/agents");
+const { OpenAI } = require("@langchain/openai");
+const {
+  GmailCreateDraft,
+  GmailGetMessage,
+  GmailGetThread,
+  GmailSearch,
+  GmailSendMessage,
+} = require("@langchain/community/tools/gmail");
+
+
+
+const {google} = require("googleapis");
+
+const {authorize} = require("./googleApiAuthService.js");
+
+const { StructuredTool } = require("@langchain/core/tools");
+
+class MyGmailCreateDraft extends GmailCreateDraft{
+  constructor(fields){
+    super(fields);
+  }
+
+  async _call(arg) {
+    const auth = await authorize();
+    const gmail = google.gmail({ version: 'v1', auth });
+
+    const { message, to, subject, cc, bcc } = arg;
+    const create_message = this.prepareDraftMessage(message, to, subject, cc, bcc);
+    const response = await gmail.users.drafts.create({
+        userId: "me",
+        requestBody: create_message,
+    });
+    return `Draft created. Draft Id: ${response.data.id}`;
+  }
+}
+
+class MyGmailSearch extends GmailSearch {
+  gmail;
+  
+  constructor(fields){
+    super(fields);
+  }
+
+  async _call(arg) {
+    const { query, maxResults = 10, resource = "messages" } = arg;
+    if(!this.gmail){
+      var auth = await authorize();
+      this.gmail = google.gmail({ version: 'v1', auth });
+    }
+
+    const response = await this.gmail.users.messages.list({
+        userId: "me",
+        q: query,
+        maxResults,
+    });
+    const { data } = response;
+    if (!data) {
+        throw new Error("No data returned from Gmail");
+    }
+    const { messages } = data;
+    if (!messages) {
+        throw new Error("No messages returned from Gmail");
+    }
+    if (resource === "messages") {
+        const parsedMessages = await this.parseMessages(messages);
+        return `Result for the query ${query}:\n${JSON.stringify(parsedMessages)}`;
+    }
+    else if (resource === "threads") {
+        const parsedThreads = await this.parseThreads(messages);
+        return `Result for the query ${query}:\n${JSON.stringify(parsedThreads)}`;
+    }
+    throw new Error(`Invalid resource: ${resource}`);
+  }
+
+  async parseMessages(messages) {
+    if(!this.gmail){
+      var auth = await authorize();
+      this.gmail = google.gmail({ version: 'v1', auth });
+    }
+    const parsedMessages = await Promise.all(messages.map(async (message) => {
+        const messageData = await this.gmail.users.messages.get({
+            userId: "me",
+            format: "raw",
+            id: message.id ?? "",
+        });
+        const headers = messageData.data.payload?.headers || [];
+        const subject = headers.find((header) => header.name === "Subject");
+        const sender = headers.find((header) => header.name === "From");
+        let body = "";
+        if (messageData.data.payload?.parts) {
+            body = messageData.data.payload.parts
+                .map((part) => part.body?.data ?? "")
+                .join("");
+        }
+        else if (messageData.data.payload?.body?.data) {
+            body = messageData.data.payload.body.data;
+        }
+        return {
+            id: message.id,
+            threadId: message.threadId,
+            snippet: message.snippet,
+            body,
+            subject,
+            sender,
+        };
+    }));
+    return parsedMessages;
+  }
+
+  async parseThreads(threads) {
+    if(!this.gmail){
+      var auth = await authorize();
+      this.gmail = google.gmail({ version: 'v1', auth });
+    }
+    const parsedThreads = await Promise.all(threads.map(async (thread) => {
+        const threadData = await this.gmail.users.threads.get({
+            userId: "me",
+            format: "raw",
+            id: thread.id ?? "",
+        });
+        const headers = threadData.data.messages?.[0]?.payload?.headers || [];
+        const subject = headers.find((header) => header.name === "Subject");
+        const sender = headers.find((header) => header.name === "From");
+        let body = "";
+        if (threadData.data.messages?.[0]?.payload?.parts) {
+            body = threadData.data.messages[0].payload.parts
+                .map((part) => part.body?.data ?? "")
+                .join("");
+        }
+        else if (threadData.data.messages?.[0]?.payload?.body?.data) {
+            body = threadData.data.messages[0].payload.body.data;
+        }
+        return {
+            id: thread.id,
+            snippet: thread.snippet,
+            body,
+            subject,
+            sender,
+        };
+    }));
+    return parsedThreads;
+  }
+}
+
+class MyGmailGetThread extends GmailGetThread{
+  gmail;
+  constructor(fields){
+    super(fields);
+  }
+
+  async _call(arg) {
+
+    if(!this.gmail){
+      var auth = await authorize();
+      this.gmail = google.gmail({ version: 'v1', auth });
+    }
+
+    const { threadId } = arg;
+    const thread = await this.gmail.users.threads.get({
+        userId: "me",
+        id: threadId,
+    });
+    const { data } = thread;
+    if (!data) {
+        throw new Error("No data returned from Gmail");
+    }
+    const { messages } = data;
+    if (!messages) {
+        throw new Error("No messages returned from Gmail");
+    }
+    return `Result for the prompt ${threadId} \n${JSON.stringify(messages.map((message) => {
+        const { payload } = message;
+        if (!payload) {
+            throw new Error("No payload returned from Gmail");
+        }
+        const { headers } = payload;
+        if (!headers) {
+            throw new Error("No headers returned from Gmail");
+        }
+        const subject = headers.find((header) => header.name === "Subject");
+        if (!subject) {
+            throw new Error("No subject returned from Gmail");
+        }
+        const body = headers.find((header) => header.name === "Body");
+        if (!body) {
+            throw new Error("No body returned from Gmail");
+        }
+        const from = headers.find((header) => header.name === "From");
+        if (!from) {
+            throw new Error("No from returned from Gmail");
+        }
+        const to = headers.find((header) => header.name === "To");
+        if (!to) {
+            throw new Error("No to returned from Gmail");
+        }
+        const date = headers.find((header) => header.name === "Date");
+        if (!date) {
+            throw new Error("No date returned from Gmail");
+        }
+        const messageIdHeader = headers.find((header) => header.name === "Message-ID");
+        if (!messageIdHeader) {
+            throw new Error("No message id returned from Gmail");
+        }
+        return {
+            subject: subject.value,
+            body: body.value,
+            from: from.value,
+            to: to.value,
+            date: date.value,
+            messageId: messageIdHeader.value,
+        };
+    }))}`;
+  }
+}
+
+class MyGmailGetMessage extends GmailGetMessage{
+  gmail;
+
+  constructor(fields){
+    super(fields);
+  }
+
+  async _call(arg) {
+
+    if(!this.gmail){
+      var auth = await authorize();
+      this.gmail = google.gmail({ version: 'v1', auth });
+    }
+
+    const { messageId } = arg;
+    const message = await this.gmail.users.messages.get({
+        userId: "me",
+        id: messageId,
+    });
+    const { data } = message;
+    if (!data) {
+        throw new Error("No data returned from Gmail");
+    }
+    const { payload } = data;
+    if (!payload) {
+        throw new Error("No payload returned from Gmail");
+    }
+    const { headers } = payload;
+    if (!headers) {
+        throw new Error("No headers returned from Gmail");
+    }
+    const subject = headers.find((header) => header.name === "Subject");
+    if (!subject) {
+        throw new Error("No subject returned from Gmail");
+    }
+    const body = headers.find((header) => header.name === "Body");
+    if (!body) {
+        throw new Error("No body returned from Gmail");
+    }
+    const from = headers.find((header) => header.name === "From");
+    if (!from) {
+        throw new Error("No from returned from Gmail");
+    }
+    const to = headers.find((header) => header.name === "To");
+    if (!to) {
+        throw new Error("No to returned from Gmail");
+    }
+    const date = headers.find((header) => header.name === "Date");
+    if (!date) {
+        throw new Error("No date returned from Gmail");
+    }
+    const messageIdHeader = headers.find((header) => header.name === "Message-ID");
+    if (!messageIdHeader) {
+        throw new Error("No message id returned from Gmail");
+    }
+    return `Result for the prompt ${messageId} \n${JSON.stringify({
+        subject: subject.value,
+        body: body.value,
+        from: from.value,
+        to: to.value,
+        date: date.value,
+        messageId: messageIdHeader.value,
+    })}`;
+  }
+}
+
+
+async function initialize(){
+	const transporter = createTransport({
+	  service: 'gmail', // Replace with your provider
+	  auth: {
+	    user: 'radhagovindsewadham@gmail.com',
+	    pass: 'bjbx binl hyhx yjes'
+	  }
+	});
+
+	return transporter;
+}
+
+async function sendMail( 
+	recipients, 
+	subject, 
+	body, 
+	attachments,
+	from="Notamedia <radhagovindsewadham@gmail.com>",
+){
+
+	var transporter = createTransport({
+	  service: 'gmail', // Replace with your provider
+	  auth: {
+	    user: 'radhagovindsewadham@gmail.com',
+	    pass: 'bjbx binl hyhx yjes'
+	  }
+	});
+
+	const mailOptions = {
+	  from: from,
+	  to: recipients,
+	  subject: subject,
+	  text: body,
+	  attachments: attachments
+	};
+
+	return await transporter.sendMail(mailOptions, (error, info) => {
+	  if (error) {
+	    console.error(error);
+	  } else {
+	    console.log("Mail sent");
+	  }
+	});
+}
+
+async function gmailAgent() {
+
+  const SERVICE_ACCOUNT_PATH = path.join(process.cwd(), './auto-gpt-service-account.json');
+  const serviceAccount = require(SERVICE_ACCOUNT_PATH);
+
+  // These are the default parameters for the Gmail tools
+  const gmailParams = {
+    credentials: {
+      clientEmail: serviceAccount.client_email,
+      privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'), // Ensure proper formatting
+    },
+    scopes: ["https://mail.google.com/"],
+  };
+
+  const model = new OpenAI({
+    temperature: 0,
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  // For custom parameters, uncomment the code above, replace the values with your own, and pass it to the tools below
+  const tools = [
+    new MyGmailCreateDraft(gmailParams),
+    new MyGmailGetMessage(gmailParams),
+    new GmailGetThread(gmailParams),
+    new MyGmailSearch(gmailParams),
+    new GmailSendMessage(gmailParams),
+  ];
+
+  const gmailAgent = await initializeAgentExecutorWithOptions(tools, model, {
+    agentType: "structured-chat-zero-shot-react-description",
+    verbose: true,
+  });
+
+  const createInput = `Create a gmail draft for me to edit of a letter from the perspective of a sentient parrot who is looking to collaborate on some research with her estranged friend, a cat. Under no circumstances may you send the message, however.`;
+
+  const createResult = await gmailAgent.invoke({ input: createInput });
+    // Create Result {
+    //   output: 'I have created a draft email for you to edit. The draft Id is r5681294731961864018.'
+    // }
+  console.log("Create Result", createResult);
+
+  const viewInput = `Could please fetch me the latest drafted email.`;
+
+  const viewResult = await gmailAgent.invoke({ input: viewInput });
+  //   View Result {
+  //     output: "The latest email in your drafts is from hopefulparrot@gmail.com with the subject 'Collaboration Opportunity'. The body of the email reads: 'Dear [Friend], I hope this letter finds you well. I am writing to you in the hopes of rekindling our friendship and to discuss the possibility of collaborating on some research together. I know that we have had our differences in the past, but I believe that we can put them aside and work together for the greater good. I look forward to hearing from you. Sincerely, [Parrot]'"
+  //   }
+  console.log("View Result", viewResult);
+}
+
+async function listMessages(query="", userId="me", maxResults=10, labelIds = [], includeSpamTrash = false){
+  const auth = await authorize();
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  const res = await gmail.users.messages.list({
+    q: query,
+    userId: 'me',
+    maxResults: 10,
+    labelIds: labelIds,
+    includeSpamTrash: includeSpamTrash
+  });
+
+  const messages = res.data.messages;
+  if (messages.length) {
+    console.log('Messages:');
+    messages.forEach((message) => {
+      console.log(`- ${message.id}`);
+      console.log(message);
+    });
+
+    return messages;
+  } else {
+    console.log('No messages found.');
+  }
+}
+
+async function listThreads(query="", userId="me", maxResults=10, labelIds = [], includeSpamTrash = false){
+  const auth = await authorize();
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  const res = await gmail.users.messages.list({
+    q: query,
+    userId: userId,
+    maxResults: maxResults,
+    labelIds: labelIds,
+    includeSpamTrash: includeSpamTrash
+  });
+
+  const messages = res.data.messages;
+  if (messages.length) {
+    console.log('Messages:');
+    messages.forEach((message) => {
+      console.log(`- ${message.id}`);
+      console.log(message);
+    });
+  } else {
+    console.log('No messages found.');
+  }
+}
+
+async function getMessage(messageId, userId="me"){
+  const auth = await authorize();
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  const res = await gmail.users.messages.get({
+    id: messageId,
+    userId: userId
+  });
+
+  const message = res.data;
+  if (messages.length) {
+    return message;
+  } else {
+    console.log('No messages found.');
+  }
+}
+
+async function sendMessage(){
+
+}
+
+module.exports = {
+	sendMail,
+	gmailAgent,
+  listMessages
+}

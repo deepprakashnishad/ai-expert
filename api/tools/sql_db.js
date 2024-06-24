@@ -16,11 +16,11 @@ var pool = null;
 async function initializeDB(llm){
 
 	pool = new Pool({
-	  user: 'demo',
-	  host: 'localhost',
-	  database: 'ecmps',
-	  password: 'demo',
-	  port: 5432, // default PostgreSQL port
+	  user: sails.config.custom.SQL_DB.user,
+	  host: sails.config.custom.SQL_DB.host,
+	  database: sails.config.custom.SQL_DB.database,
+	  password: sails.config.custom.SQL_DB.password,
+	  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
 	});
 
 	const datasource = new DataSource({
