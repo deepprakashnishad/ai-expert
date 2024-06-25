@@ -3,7 +3,7 @@ const { PDFLoader } = require("langchain/document_loaders/fs/pdf");
 const cheerio = require("cheerio");
 const { CheerioWebBaseLoader } = require("langchain/document_loaders/web/cheerio");
 const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
-const { MemoryVectorStore,MongoDBAtlasVectorStore } = require("langchain/vectorstores/memory");
+const { MongoDBAtlasVectorStore } = require("langchain/vectorstores/memory");
 const { Chroma } =require("@langchain/community/vectorstores/chroma");
 const { FaissStore } = require("@langchain/community/vectorstores/faiss");
 const { QdrantVectorStore } = require("@langchain/qdrant");
@@ -22,6 +22,18 @@ const pinecone = new Pinecone({apiKey: sails.config.custom.PINECONE_API_KEY});
 
 const pineconeIndex = pinecone.Index('ragdoc');
 
+async function splitter(loader){
+	const docs = await loader.load();
+
+	const textSplitter = new RecursiveCharacterTextSplitter({
+	  chunkSize: 1000,
+	  chunkOverlap: 200,
+	});
+	const splits = await textSplitter.splitDocuments(docs);
+
+	return splits;
+}
+
 module.exports = {
 
 	webScrapper: async function(req, res){
@@ -36,16 +48,9 @@ module.exports = {
 		  req.body.url
 		);
 
-		const docs = await loader.load();
-
-		const textSplitter = new RecursiveCharacterTextSplitter({
-		  chunkSize: 1000,
-		  chunkOverlap: 200,
-		});
-		const splits = await textSplitter.splitDocuments(docs);
-
 		const mDoc = await UploadedDocument.create({"title": req.body.url, "type": "web_url"}).fetch();
 
+		var splits = await splitter(loader);
 		var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
 			chunks: splits,
 			doc_id: mDoc.id 
@@ -92,15 +97,42 @@ module.exports = {
 
 		res.successResponse({data: result}, 200, null, true, "Website scrapped and information has been processed")*/
 
-		const loader = new PDFLoader(req.body.filePath, {
-		  parsedItemSeparator: "",
-		});
+		req.file('doc').upload({
+		  		dirname: require('path').resolve(sails.config.appPath, 'assets/uploads/pdfs')
+			},
+			async function (err, files) {
+			    if (err){
+			        return res.serverError(err);
+			    }
+
+				console.log(files);	  
+				for(var file of files){
+					const loader = new PDFLoader(file['fd'], {
+					  parsedItemSeparator: "",
+					});	
+					const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf"}).fetch();
+
+					var splits = await splitter(loader);
+					var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
+						chunks: splits,
+						doc_id: mDoc.id 
+					})
+				}  	
+				
+
+
+		        return res.json({
+			        message: files.length + ' file(s) uploaded successfully!',
+			        files: files
+	      		}
+	      	);
+	    });
 
 		/*const loader = new PDFLoader("assets/uploads/pdfs/Veritas-Technical-Support-Handbook.pdf", {
 		  parsedItemSeparator: "",
 		});*/
 
-		const docs = await loader.load();
+		/*const docs = await loader.load();
 
 		var chunk_list = [];
 		for (var i = 0; i < docs.length; i++) {
@@ -113,8 +145,8 @@ module.exports = {
 	 		{
 	 			chunks: chunk_list
 	 		}
- 		);
-		return res.ok(200);
+ 		);*/
+		// return res.ok(200);
 	},
 
 	excelReader: async function(req, res){

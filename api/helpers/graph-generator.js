@@ -111,6 +111,8 @@ module.exports = {
     if(inputs.id === "Info Teller"){
 
       graph.addNode("document_retriever", toolsLib.document_retriever);
+      // graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      // graph.addEdge("document_retriever", "response_formatter_node");
       graph.setEntryPoint("document_retriever");
       graph.setFinishPoint("document_retriever");
 
