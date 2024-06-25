@@ -183,7 +183,8 @@ module.exports = {
 
 			Final Result: ${typeof finalResult==="string"? finalResult: JSON.stringify(finalResult)}
 
-			Please format this information into a well-structured response for a human to read. You should not add any information from your side. Just based on the user query and provided Final Result only you must produce the response. There is no restriction in providing this information. Make sure that response doesn't contains any type of json object but is in the form of plain string.
+			Please format this information into a well-structured response for a human to read. You should not add any information from your side. Just based on the user query and provided Final Result only you must produce the response. Make sure that response doesn't contains any type of json object and is in the form of html which can be displayed in best way to user.
+			For example any array of json can be displayed in html table, paragraph can be returned in <p> tags, Points can formatted using li tag etc.
 			`;
 
 		var messages = [
@@ -200,6 +201,7 @@ module.exports = {
 		// const response = await llm.call(prompt);
 
 		return {
+			"finalResult": response,
 			"response": response
 		};
 	}
