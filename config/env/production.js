@@ -243,6 +243,8 @@ module.exports = {
       maxAge: 24 * 60 * 60 * 1000,  // 24 hours
     },
 
+    secret: '672625a5e25a40f6ef706634378d05b0',
+
   },
 
 
