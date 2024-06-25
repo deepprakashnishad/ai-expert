@@ -209,6 +209,8 @@ module.exports = {
 			mAgent = agents[req.body.agentId];
 		}
 
+		console.log(mAgent)
+
 		var lChatHistory = {ch: [{"role":"system", "content": mAgent.sPrompt}], a: req.body.agentId, "p": req.body.userId, ei: {}};
 
 		if(!req.body.chatId){

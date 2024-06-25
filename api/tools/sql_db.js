@@ -1,5 +1,6 @@
 const { SqlDatabase } = require("langchain/sql_db");
 const { DataSource } = require("typeorm");
+const fs = require('fs');
 
 const { ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder, PromptTemplate } = require("@langchain/core/prompts");
 const { ChatOpenAI } = require("@langchain/openai");
@@ -15,24 +16,61 @@ var pool = null;
 
 async function initializeDB(llm){
 
-	pool = new Pool({
-	  user: sails.config.custom.SQL_DB.user,
-	  host: sails.config.custom.SQL_DB.host,
-	  database: sails.config.custom.SQL_DB.database,
-	  password: sails.config.custom.SQL_DB.password,
-	  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
-	});
+	var datasource;
 
-	const datasource = new DataSource({
-	  type: "postgres",
-	  host: "localhost",
-	  port: 5432,
-	  username: "demo",
-	  password: "demo",
-	  database: "ecmps",
-	  synchronize: false,
-	  logging: false
-	});
+	console.log(sails.config.environment);
+
+	if(sails.config.environment === 'development'){
+		pool = new Pool({
+		  user: sails.config.custom.SQL_DB.user,
+		  host: sails.config.custom.SQL_DB.host,
+		  database: sails.config.custom.SQL_DB.database,
+		  password: sails.config.custom.SQL_DB.password,
+		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
+		});
+
+		datasource = new DataSource({
+		  type: "postgres",
+		  host: "localhost",
+		  port: 5432,
+		  username: "demo",
+		  password: "demo",
+		  database: "ecmps",
+		  synchronize: false,
+		  logging: false
+		});	
+	}else{
+		//Specific to aws cert
+		const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
+		pool = new Pool({
+		  user: sails.config.custom.SQL_DB.user,
+		  host: sails.config.custom.SQL_DB.host,
+		  database: sails.config.custom.SQL_DB.database,
+		  password: sails.config.custom.SQL_DB.password,
+		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
+		  ssl: {
+		    rejectUnauthorized: true,
+		    ca: sslCert
+		  }
+		});
+
+		datasource = new DataSource({
+		  type: "postgres",
+		  host: "localhost",
+		  port: 5432,
+		  username: "demo",
+		  password: "demo",
+		  database: "ecmps",
+		  synchronize: false,
+		  logging: false,
+		  ssl: {
+		    rejectUnauthorized: true,
+		    ca: sslCert
+		  }
+		});	
+	}
+
+	
 
 	db = await SqlDatabase.fromDataSourceParams({
 	  appDataSource: datasource,
