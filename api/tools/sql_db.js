@@ -48,9 +48,9 @@ async function execute_query(llm, query){
 		await initializeDB(llm);
 	}
 
-	const res = JSON.parse(await db.run(query))
+	const res = JSON.parse(await db.run(query))/*
     	.flat()
-    	.filter(el => el != null);
+    	.filter(el => el != null)*/;
   	return res;
 }
 
