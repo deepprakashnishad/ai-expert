@@ -210,7 +210,7 @@ async function sql_lang_graph_with_human_response(state){
 	console.log(res);
 	return {
 	    finalResult: res,
-	    "lastExecutedNode": "sql_lang_graph_with_human_response"
+	    "lastExecutedNode": "sql_query_node"
 	};
 }
 
@@ -271,7 +271,7 @@ async function sql_lang_graph_db_query(state){
 	console.log(final_query_result);
 	state.conversation.push({"role": "assistant", "content": JSON.stringify(final_query_result)});
 	return {
-		lastExecutedNode: "sql_lang_graph_db_query",
+		lastExecutedNode: "sql_query_node",
 		finalResult: final_query_result,
 		conversation: state['conversation']
 	}
