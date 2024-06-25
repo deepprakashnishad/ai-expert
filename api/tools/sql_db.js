@@ -36,11 +36,11 @@ async function initializeDB(llm){
 
 		datasource = new DataSource({
 		  type: "postgres",
-		  host: "localhost",
-		  port: 5432,
-		  username: "demo",
-		  password: "demo",
-		  database: "ecmps",
+		  host: sails.config.custom.SQL_DB.host,
+		  port: sails.config.custom.SQL_DB.port,
+		  username: sails.config.custom.SQL_DB.user,
+		  password: sails.config.custom.SQL_DB.password,
+		  database: sails.config.custom.SQL_DB.database,
 		  synchronize: false,
 		  logging: false,
 		  ssl: {
@@ -65,11 +65,11 @@ async function initializeDB(llm){
 
 		datasource = new DataSource({
 		  type: "postgres",
-		  host: "localhost",
-		  port: 5432,
-		  username: "demo",
-		  password: "demo",
-		  database: "ecmps",
+		  host: sails.config.custom.SQL_DB.host,
+		  port: sails.config.custom.SQL_DB.port,
+		  username: sails.config.custom.SQL_DB.user,
+		  password: sails.config.custom.SQL_DB.password,
+		  database: sails.config.custom.SQL_DB.database,
 		  synchronize: false,
 		  logging: false,
 		  ssl: {
