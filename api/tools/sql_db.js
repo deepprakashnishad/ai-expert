@@ -21,12 +21,17 @@ async function initializeDB(llm){
 	console.log(sails.config.environment);
 
 	if(sails.config.environment === 'development'){
+		const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
 		pool = new Pool({
 		  user: sails.config.custom.SQL_DB.user,
 		  host: sails.config.custom.SQL_DB.host,
 		  database: sails.config.custom.SQL_DB.database,
 		  password: sails.config.custom.SQL_DB.password,
 		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
+		  ssl: {
+		    rejectUnauthorized: true,
+		    ca: sslCert
+		  }
 		});
 
 		datasource = new DataSource({
@@ -37,7 +42,11 @@ async function initializeDB(llm){
 		  password: "demo",
 		  database: "ecmps",
 		  synchronize: false,
-		  logging: false
+		  logging: false,
+		  ssl: {
+		    rejectUnauthorized: true,
+		    ca: sslCert
+		  }
 		});	
 	}else{
 		//Specific to aws cert
