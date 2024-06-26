@@ -37,7 +37,6 @@ async function loadSavedCredentialsIfExists(){
 		}		
 		return google.auth.fromJSON(credentials);
 	}catch(e){
-		console.log(e);
 		return null;
 	}
 }
@@ -57,8 +56,11 @@ async function saveCredentials(client){
 		refresh_token: client.credentials.refresh_token,
 		access_token: client.credentials.access_token,
 	});
+	console.log(payload)
 	if(payload.refresh_token){
-		await fs.writeFile(TOKEN_PATH, payload);	
+		console.log("Writing tokenfile");
+		var write_result = await fs.writeFile(TOKEN_PATH, payload);	
+		console.log(write_result)
 	}
 	
 }
@@ -86,6 +88,7 @@ async function authorize(){
 	console.log(client)
 
 	if(client.credentials){
+		console.log("Saving credentials");
 		await saveCredentials(client)
 	}
 

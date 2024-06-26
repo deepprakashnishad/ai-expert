@@ -15,6 +15,8 @@ const {
   GmailSendMessage,
 } = require("@langchain/community/tools/gmail");
 
+const {TavilySearchResults} = require("@langchain/community/tools/tavily_search");
+
 
 
 const {google} = require("googleapis");
@@ -287,6 +289,41 @@ class MyGmailGetMessage extends GmailGetMessage{
   }
 }
 
+class MyGmailSendMessage extends GmailSendMessage{
+  gmail;
+
+  constructor(fields){
+    super(fields);
+  }
+
+  async _call({ message, to, subject, cc, bcc, }) {
+
+    if(!this.gmail){
+      var auth = await authorize();
+      this.gmail = google.gmail({ version: 'v1', auth });
+    }
+
+    const rawMessage = this.createEmailMessage({
+        message,
+        to,
+        subject,
+        cc,
+        bcc,
+    });
+    try {
+        const response = await gmail.users.messages.send({
+            userId: "me",
+            requestBody: {
+                raw: rawMessage,
+            },
+        });
+        return `Message sent. Message Id: ${response.data.id}`;
+    }
+    catch (error) {
+        throw new Error(`An error occurred while sending the message: ${error}`);
+    }
+  }
+}
 
 async function initialize(){
 	const transporter = createTransport({
@@ -305,7 +342,7 @@ async function sendMail(
 	subject, 
 	body, 
 	attachments,
-	from="Notamedia <radhagovindsewadham@gmail.com>",
+	from="Notamedia Support",
 ){
 
 	var transporter = createTransport({
@@ -333,7 +370,9 @@ async function sendMail(
 	});
 }
 
-async function gmailAgent() {
+async function gmail_agent(state) {
+
+  const {query, llm} = state;
 
   const SERVICE_ACCOUNT_PATH = path.join(process.cwd(), './auto-gpt-service-account.json');
   const serviceAccount = require(SERVICE_ACCOUNT_PATH);
@@ -347,40 +386,37 @@ async function gmailAgent() {
     scopes: ["https://mail.google.com/"],
   };
 
-  const model = new OpenAI({
-    temperature: 0,
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
   // For custom parameters, uncomment the code above, replace the values with your own, and pass it to the tools below
   const tools = [
     new MyGmailCreateDraft(gmailParams),
     new MyGmailGetMessage(gmailParams),
-    new GmailGetThread(gmailParams),
+    new MyGmailGetThread(gmailParams),
     new MyGmailSearch(gmailParams),
-    new GmailSendMessage(gmailParams),
+    new MyGmailSendMessage(gmailParams),
+    new TavilySearchResults()
   ];
 
-  const gmailAgent = await initializeAgentExecutorWithOptions(tools, model, {
+  const gmailAgent = await initializeAgentExecutorWithOptions(tools, llm, {
     agentType: "structured-chat-zero-shot-react-description",
-    verbose: true,
+    verbose: false,
   });
 
-  const createInput = `Create a gmail draft for me to edit of a letter from the perspective of a sentient parrot who is looking to collaborate on some research with her estranged friend, a cat. Under no circumstances may you send the message, however.`;
+  // const query = `Create a gmail draft for me to edit of a letter from the perspective of a sentient parrot who is looking to collaborate on some research with her estranged friend, a cat. Under no circumstances may you send the message, however.`;
 
-  const createResult = await gmailAgent.invoke({ input: createInput });
+  const result = await gmailAgent.invoke({ input: query });
     // Create Result {
     //   output: 'I have created a draft email for you to edit. The draft Id is r5681294731961864018.'
     // }
-  console.log("Create Result", createResult);
+  console.log("Result", result);
 
-  const viewInput = `Could please fetch me the latest drafted email.`;
+  return {
+      finalResult: result,
+      "lastExecutedNode": "gmail_agent"
+  };
+}
 
-  const viewResult = await gmailAgent.invoke({ input: viewInput });
-  //   View Result {
-  //     output: "The latest email in your drafts is from hopefulparrot@gmail.com with the subject 'Collaboration Opportunity'. The body of the email reads: 'Dear [Friend], I hope this letter finds you well. I am writing to you in the hopes of rekindling our friendship and to discuss the possibility of collaborating on some research together. I know that we have had our differences in the past, but I believe that we can put them aside and work together for the greater good. I look forward to hearing from you. Sincerely, [Parrot]'"
-  //   }
-  console.log("View Result", viewResult);
+module.exports = {
+  gmail_agent
 }
 
 async function listMessages(query="", userId="me", maxResults=10, labelIds = [], includeSpamTrash = false){
@@ -448,14 +484,4 @@ async function getMessage(messageId, userId="me"){
   } else {
     console.log('No messages found.');
   }
-}
-
-async function sendMessage(){
-
-}
-
-module.exports = {
-	sendMail,
-	gmailAgent,
-  listMessages
 }

@@ -123,6 +123,12 @@ module.exports = {
       graph.addEdge("sql_query_node", "response_formatter_node");
       graph.setEntryPoint("sql_query_node");
       graph.setFinishPoint("response_formatter_node");
+    }else if(inputs.id === "Gmail Agent"){
+      graph.addNode("gmail_agent", toolsLib.gmail_agent);
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      graph.addEdge("gmail_agent", "response_formatter_node");
+      graph.setEntryPoint("gmail_agent");
+      graph.setFinishPoint("response_formatter_node");
     }else{
       // graph.addNode("extract_category_node", toolsLib.extractCategory);
       graph.addNode("get_apis_node", toolsLib.getApis);
