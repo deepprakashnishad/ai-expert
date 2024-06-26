@@ -117,8 +117,8 @@ module.exports = {
       graph.setFinishPoint("document_retriever");
 
     }else if(inputs.id === "Report Builder"){
-      graph.addNode("sql_query_node", toolsLib.sql_lang_graph_with_human_response);
-      // graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
+      // graph.addNode("sql_query_node", toolsLib.sql_lang_graph_with_human_response);
+      graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
       graph.addEdge("sql_query_node", "response_formatter_node");
       graph.setEntryPoint("sql_query_node");
