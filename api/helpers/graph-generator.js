@@ -136,10 +136,11 @@ module.exports = {
       graph.addNode("extract_params_node", toolsLib.extractParameters);
       graph.addNode("human_loop_node", toolsLib.requestParameters);
       graph.addNode("execute_request_node", toolsLib.createFetchRequest);
-
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
       // graph.addEdge("extract_category_node", "get_apis_node");
       graph.addEdge("get_apis_node", "select_api_node");
       graph.addEdge("select_api_node", "extract_params_node");
+      graph.addEdge("execute_request_node", "response_formatter_node");
 
       graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
 
@@ -154,7 +155,7 @@ module.exports = {
       }
       
       graph.setFinishPoint("human_loop_node");
-      graph.setFinishPoint("execute_request_node");
+      graph.setFinishPoint("response_formatter_node");
     }
     
 

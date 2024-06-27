@@ -64,7 +64,8 @@ async function createFetchRequest(state) {
 
     if (response) {
       return {
-        response,
+        "response": response,
+        "finalResult": response,
         "lastExecutedNode": "execute_request_node"
       };
     }
