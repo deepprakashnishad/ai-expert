@@ -60,7 +60,7 @@ async function document_retriever(state){
 	var messages = [
 		{
 			"role": "system",
-			"content": `Answer users question based on the info given below. Your answer should be in context to provided information and conversation going on only. Do not add inputs from your side. In case related information is not present in info provided below simply say "I am sorry, I don't know".\n
+			"content": `Answer users question based on the info given below. Your answer should be in context to provided information and conversation going on only. Do not add inputs from your side. In case related information is not present in info provided below simply say "I am sorry, I don't know". Your answer  must be contained in basic html tags so that it is presented to user in best possible user friendly way.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}
