@@ -18,20 +18,18 @@ async function initializeDB(llm){
 
 	var datasource;
 
-	console.log(sails.config.environment);
-
 	if(sails.config.environment === 'development'){
-		const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
+		// const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
 		pool = new Pool({
 		  user: sails.config.custom.SQL_DB.user,
 		  host: sails.config.custom.SQL_DB.host,
 		  database: sails.config.custom.SQL_DB.database,
 		  password: sails.config.custom.SQL_DB.password,
 		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
-		  ssl: {
+		  /*ssl: {
 		    rejectUnauthorized: true,
 		    ca: sslCert
-		  }
+		  }*/
 		});
 
 		datasource = new DataSource({
@@ -43,10 +41,10 @@ async function initializeDB(llm){
 		  database: sails.config.custom.SQL_DB.database,
 		  synchronize: false,
 		  logging: false,
-		  ssl: {
+		  /*ssl: {
 		    rejectUnauthorized: true,
 		    ca: sslCert
-		  }
+		  }*/
 		});	
 	}else{
 		//Specific to aws cert
@@ -95,19 +93,14 @@ async function execute_query(llm, query){
 		await initializeDB(llm);
 	}
 
-	console.log(db);
-
 	console.log(`Running query - ${query}`);
 	var res = await db.run(query);
 	console.log("Query result");
 	console.log(res);
 	res = JSON.parse(res);
-	console.log(res);
 	res = res
     	.flat()
     	.filter(el => el != null);
-	console.log("After flattening");
-	console.log(res);
   	return res;
 }
 
@@ -293,7 +286,7 @@ async function sql_lang_graph_db_query(state){
 			"role": "system",
 			"content": `Here is the database schema:
 						${formattedSchema}
-						Please construct an SQL query to answer user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct.`
+						Please construct an SQL query to answer user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query on provided database schema only.`
 		},
 		{
 			"role": "user",

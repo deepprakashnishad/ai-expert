@@ -108,7 +108,13 @@ module.exports = {
       channels: graphChannels,
     });
 
-    if(inputs.id === "Info Teller"){
+    if(inputs.id === "Document Generator"){
+      graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      graph.addEdge("sql_query_node", "pdfGenerator");
+      graph.setEntryPoint("sql_query_node");
+      graph.setFinishPoint("pdfGenerator");
+    }else if(inputs.id === "Info Teller"){
 
       graph.addNode("document_retriever", toolsLib.document_retriever);
       // graph.addNode("response_formatter_node", toolsLib.responseFormatter);

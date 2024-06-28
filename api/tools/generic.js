@@ -204,5 +204,62 @@ module.exports = {
 			"finalResult": response,
 			"response": response
 		};
+	},
+
+	pdfGenerator: async function(state){
+		const {llm, finalResult, query} = state;
+		const puppeteer = require("puppeteer");
+
+		var htmlContent = '<html><body><h1>List of Users</h1><ul><li><span>{{name}}</span><span style="margin-left:12px">{{email}}</span></li></ul></body></html>';
+		const outputPath = './../output.pdf';
+
+		var messages = [
+			{
+				"role": "system",
+				"content": `You are an intelligent html page designer who prepares html based on provided template. You will replace the values of the placeholder in template with the provided data. You have should replace values of placeholder with the appropriate values. Your replay should contain plain html and nothing else. This html will be written in pdf document. If you feel provided template doesn't fits for provided data then you decide your own template for giving a good look to the document. Also take users query into consideration to decide title and other formatting for html.
+					Extra information is document is printed in A4 size in portrait mode.
+				`
+			},
+			{
+				"role": "user",
+				"content": `Following is the html template and data provided in json format
+					{
+						"template": ${htmlContent},
+						"data": ${finalResult},
+						"query": ${query}
+					}
+
+					Please generate final html for above template and data
+				`
+			}
+		]
+
+		var result = await sails.helpers.callChatGpt.with({
+			"messages": messages, 
+			"max_tokens": 4096,
+			"temperature": 0,
+			"response_format": "text"
+		});
+
+		console.log(result);
+
+		var responseContent = result[0]["message"]['content'];
+
+		console.log(responseContent);
+
+		const browser = await puppeteer.launch();
+	    const page = await browser.newPage();
+	    await page.setContent(responseContent);
+	    var res = await page.pdf({ path: outputPath, format: 'A4' });
+	    console.log("Pdf Result")
+	    console.log(res);
+
+	    await browser.close();
+
+	    return {
+	    	"finalResult": "Pdf document is created successfully.",
+	    	"lastExecutedNode": "pdfGenerator"
+	    }
 	}
+
 } 

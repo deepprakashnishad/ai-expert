@@ -347,7 +347,7 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		var result = await toolLib.gmailAgent();
+		var result = await toolLib.pdfGenerator();
 		return res.json(result);
 	},
 }
