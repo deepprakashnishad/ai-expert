@@ -39,6 +39,12 @@ module.exports = {
     itt:{
       type: "string",
       defaultsTo: "text"
+    },
+    clientId: {
+      type: "string"
+    },
+    agent: {
+      type: "string"
     }
   },
 
@@ -73,7 +79,9 @@ module.exports = {
             md: inputs.chunks[i].metadata,
             cat: inputs.cat,
             itt: inputs.itt,
-            d: inputs.doc_id
+            d: inputs.doc_id,
+            cid: inputs.clientId,
+            aid: inputs.agent
           });
         }
         temp = [];

@@ -48,12 +48,19 @@ module.exports = {
 		  req.body.url
 		);
 
-		const mDoc = await UploadedDocument.create({"title": req.body.url, "type": "web_url"}).fetch();
+		const mDoc = await UploadedDocument.create({
+			"title": req.body.url, 
+			"type": "web_url",
+			"client": req.body.clientId,
+			"agent": req.body.agent
+		}).fetch();
 
 		var splits = await splitter(loader);
 		var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
 			chunks: splits,
-			doc_id: mDoc.id 
+			doc_id: mDoc.id,
+			agent: req.body.agent, 
+			clientId: req.body.clientId
 		})
 
 		/*const vectorStore = await PineconeStore.fromDocuments(splits,

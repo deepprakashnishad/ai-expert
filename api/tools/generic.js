@@ -210,7 +210,7 @@ module.exports = {
 		const {llm, finalResult, query} = state;
 		const puppeteer = require("puppeteer");
 
-		var htmlContent = '<html><body><h1>List of Users</h1><ul><li><span>{{name}}</span><span style="margin-left:12px">{{email}}</span></li></ul></body></html>';
+		var htmlContent = '<html><body></body></html>';
 		const outputPath = './../output.pdf';
 
 		var messages = [

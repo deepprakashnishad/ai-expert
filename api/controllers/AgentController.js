@@ -347,7 +347,110 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		var result = await toolLib.pdfGenerator();
+		var userInput = req.body.userInput;
+
+		/*{
+								"name": "get_apis_node",
+								"description": "This tool can fetch list of api's available from database"
+							},
+							{
+								"name": "select_api_node",
+								"description": "Makes a call to llm to determine best api  from list of the available apis"
+							},*/
+
+		var messages = [
+			{
+				"role": "system",
+				"content": `You are a workflow designer who prepares workflow containing nodes(tools, agents, function names), edges, conditional edges, start node and end node to find solution to user query. You are free to chose which nodes can be used and which can be dropped. You must make includes nodes from the list of nodes provided to you only. You will be provided with the list of nodes alongwith their description. You must not add nodes own your own. If you feel nodes provided are insufficient to solve the user query the provide in suggestion tools that should be added to resolve the query.
+					While designing the workflow keep in mind that user must get a well formatted result at the end.
+					You reply must be in json format as follows:
+
+					{
+						"nodes": [Array of nodes],
+						"edges": [
+							{start_node: 'node_name', end_node: 'node_name'}
+						],
+						"conditional_edges":[
+							{start_node: 'node_name', conditional_test: 'node_name'},
+						],
+						"entry_node": "node_name",
+						"finish_node": "node_name"
+					}
+				`
+			},
+			{
+				"role": "user",
+				"content": `Following is the user query and details of available node. Please design a workflow so that user query can be solved.
+					{
+						"query": ${userInput},
+						"nodes": [
+							{
+								"name": "get_apis_node",
+								"description": "This tool can fetch list of api's available from database"
+							},
+							{
+								"name": "select_api_node",
+								"description": "Makes a call to llm to determine best api  from list of the available apis"
+							},
+							{
+								"name": "extract_params_node",
+								"description": "Makes call to llm to extract parameters from user's statement"
+							},
+							{
+								"name": "human_loop_node",
+								"description": "This is used to interrupt execution and ask user for input. Question to be asked is designed by the llm"
+							},
+							{
+								"name": "execute_request_node",
+								"description": "Use this tool to make any kind of rest calls."
+							},
+							{
+								"name": "response_formatter_node",
+								"description": "Use this node to format any result in human readable format"
+							},
+							{
+								"name": "verifyParams",
+								"description": "Use this tool to ensure if all values are present of not execute a given tool"
+							},
+							{
+								"name": "extractCategory",
+								"description": "Use this node to categorize the problem from the available list of categories"
+							},
+							{
+								"name": "gmail_agent",
+								"description": "Use this tool to perform any activity related to Gmail. It is a complete agent with multiple Gmail related tools alongwith ability to search over internet."
+							},
+							{
+								"name": "sql_query_node",
+								"description": "Use this agent to construct an sql query using llm and execute it on database to get final result"
+							},
+							{
+								"name": "document_retriever",
+								"description": "This can extract information available from custom knowledge base. Whenever query specific to business this tool can be used so that user is not served with irrelevant information"
+							},
+							{
+								"name": "pdfGenerator",
+								"description": "This tool should be used when final result needs to be written to pdf document."
+							}
+						]						
+					}
+
+					Please generate workflow based on provided user query and node list.
+				`
+			}
+		]
+
+		var result = await sails.helpers.callChatGpt.with({
+			"messages": messages, 
+			"max_tokens": 4096,
+			"temperature": 0,
+			"response_format": "json_object"
+		});
+
+		var responseContent = result[0]["message"]['content'];
+
+		console.log(responseContent);
+
 		return res.json(result);
 	},
 }
