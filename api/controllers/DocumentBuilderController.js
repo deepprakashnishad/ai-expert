@@ -158,5 +158,10 @@ module.exports = {
 
 	excelReader: async function(req, res){
 		
+	},
+
+	getUploadedDocuments: async function(req, res){
+		var docs = await UploadedDocument.find();
+		return res.json(docs);
 	}
 }
