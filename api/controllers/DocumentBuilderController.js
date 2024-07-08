@@ -100,10 +100,6 @@ module.exports = {
 	},
 
 	pdfScrapper: async function(req, res){
-		/*var result = await sails.helpers.scrapPdf.with({path: "assets/uploads/gst.pdf"});
-
-		res.successResponse({data: result}, 200, null, true, "Website scrapped and information has been processed")*/
-
 		req.file('doc').upload({
 		  		dirname: require('path').resolve(sails.config.appPath, 'assets/uploads/pdfs')
 			},
@@ -134,26 +130,6 @@ module.exports = {
 	      		}
 	      	);
 	    });
-
-		/*const loader = new PDFLoader("assets/uploads/pdfs/Veritas-Technical-Support-Handbook.pdf", {
-		  parsedItemSeparator: "",
-		});*/
-
-		/*const docs = await loader.load();
-
-		var chunk_list = [];
-		for (var i = 0; i < docs.length; i++) {
-			var doc = docs[i];
-			const newChunks = await sails.helpers.getTextInChunks.with({"text": doc.pageContent});
-		    chunk_list = chunk_list.concat(...newChunks);
-		}
-	
-		var response = await sails.helpers.processRawChunksToEmbeddings.with(
-	 		{
-	 			chunks: chunk_list
-	 		}
- 		);*/
-		// return res.ok(200);
 	},
 
 	excelReader: async function(req, res){

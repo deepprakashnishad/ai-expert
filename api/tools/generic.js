@@ -10,6 +10,7 @@ const { TRIMMED_CORPUS_PATH } = require("./constants.js");
 const {findMissingParams} = require('./utils');
 
 const axios = require('axios');
+const puppeteer = require("puppeteer");
 
 module.exports = {
 	apiCaller: async function(method, url, queryParams={}, body={}, params=[], options={}){
@@ -153,14 +154,19 @@ module.exports = {
 	},
 
 	verifyParams: function(state) {
-	  const { bestApi, params } = state;
-	  if (!bestApi) {
+	  const { bestApi, params, next_node } = state;
+	  if (!bestApi || bestApi.length===0) {
 	    throw new Error("No best API found");
 	  }
-	  if (!params) {
+	  if (!params && bestApi.required_parameters.length>0) {
 	    console.log("NO PARAMS");
 	    return "human_loop_node";
 	  }
+
+	  if(bestApi.min_reqd_params && bestApi.min_reqd_params <= params.length){
+	  	return next_node? next_node: "execute_request_node";
+	  }
+
 	  const requiredParamsKeys = bestApi.required_parameters.map(
 	    ({ name }) => name
 	  );
@@ -172,7 +178,7 @@ module.exports = {
 	  if (missingKeys.length > 0) {
 	    return "human_loop_node";
 	  }
-	  return "execute_request_node";
+	  return next_node? next_node: "execute_request_node";
 	},
 
 	responseFormatter: async function(state){
@@ -208,10 +214,96 @@ module.exports = {
 
 	pdfGenerator: async function(state){
 		const {llm, finalResult, query} = state;
-		const puppeteer = require("puppeteer");
 
-		var htmlContent = '<html><body></body></html>';
-		const outputPath = './../output.pdf';
+		var htmlContent = `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+			    <meta charset="UTF-8">
+			    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+			    <title>Draft Invoice</title>
+			    <style>
+			        body {
+			            font-family: Arial, sans-serif;
+			            margin: 20px;
+			        }
+			        .invoice-container {
+			            border: 1px solid #000;
+			            padding: 20px;
+			            max-width: 800px;
+			            margin: auto;
+			        }
+			        .invoice-header, .invoice-footer {
+			            text-align: center;
+			            margin-bottom: 20px;
+			        }
+			        .invoice-body {
+			            margin-bottom: 20px;
+			        }
+			        .invoice-section {
+			            margin-bottom: 10px;
+			        }
+			        .invoice-table {
+			            width: 100%;
+			            border-collapse: collapse;
+			            margin-bottom: 20px;
+			        }
+			        .invoice-table th, .invoice-table td {
+			            border: 1px solid #000;
+			            padding: 8px;
+			            text-align: left;
+			        }
+			        .invoice-footer a {
+			            color: #000;
+			            text-decoration: none;
+			        }
+			    </style>
+			</head>
+			<body>
+			    <div class="invoice-container">
+			        <div class="invoice-header">
+			            <h1>Draft Customer Invoice</h1>
+			        </div>
+			        <div class="invoice-body">
+			            <div class="invoice-section">
+			                <p><strong>Untaxed Amount:</strong> {{untaxed_amount}}</p>
+			                <p><strong>Tax (18%):</strong> {{tax}}</p>
+			                <p><strong>Total:</strong> {{total}}</p>
+			            </div>
+			            <div class="invoice-section">
+			                <p><strong>Shipping Address:</strong></p>
+			                <p>{{shipping_address}}</p>
+			                <p>{{recipient_name}}</p>
+			            </div>
+			            <div class="invoice-section">
+			                <table class="invoice-table">
+			                    <thead>
+			                        <tr>
+			                            <th>Description</th>
+			                            <th>Quantity</th>
+			                            <th>Unit Price</th>
+			                            <th>Taxes</th>
+			                            <th>Amount</th>
+			                        </tr>
+			                    </thead>
+			                    <tbody>
+			                    </tbody>
+			                </table>
+			            </div>
+			            <div class="invoice-section">
+			                <p>Terms & Conditions: <a href="https://odoo-171419-0.cloudclusters.net/terms">https://odoo-171419-0.cloudclusters.net/terms</a></p>
+			            </div>
+			        </div>
+			        <div class="invoice-footer">
+			            <p><strong>Unique Corp</strong></p>
+			            <p>Address: 772 Raviwar Peth, Pune, Maharashtra - 411002 India.</p>
+			            <p>Phone No: +91-9822431229, +91-7350023007.</p>
+			            <p>Email: <a href="mailto:sales@uniqueequips.com">sales@uniqueequips.com</a></p>
+			            <p>GSTIN: 27AEEPD4000P1ZP.</p>
+			        </div>
+			    </div>
+			</body>
+			</html>`;
+		const outputPath = './../invoice.pdf';
 
 		var messages = [
 			{

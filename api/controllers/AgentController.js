@@ -295,6 +295,8 @@ module.exports = {
 		
 			stream = await graphApp.stream({
 							"llm": llm,
+							"next_node": lChatHistory.graphState.next_node,
+							"selected_apis": lChatHistory.graphState.selected_apis,
 							"query": lChatHistory.graphState.query,
 							"chatId": lChatHistory.graphState.chatId,
 							"categories": lChatHistory.graphState.categories,
@@ -346,17 +348,8 @@ module.exports = {
 		}
 	},
 
-	test: async function(req, res){
+	dynamicLangGraph: async function(req, res){
 		var userInput = req.body.userInput;
-
-		/*{
-								"name": "get_apis_node",
-								"description": "This tool can fetch list of api's available from database"
-							},
-							{
-								"name": "select_api_node",
-								"description": "Makes a call to llm to determine best api  from list of the available apis"
-							},*/
 
 		var messages = [
 			{
@@ -453,4 +446,9 @@ module.exports = {
 
 		return res.json(result);
 	},
+
+	test: async function(req, res){
+		var result = await toolLib.getFromOdoo('res.users', {ids: [1]});
+		return res.json(result);
+	}
 }

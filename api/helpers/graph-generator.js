@@ -61,6 +61,12 @@ module.exports = {
       llm: {
         value: null,
       },
+      selected_apis:{
+        value: null,
+      },
+      next_node: {
+        value: null,
+      },
       query: {
         value: null,
       },
@@ -108,7 +114,42 @@ module.exports = {
       channels: graphChannels,
     });
 
-    if(inputs.id === "Document Generator"){
+    if(inputs.id === "Odoo Agent"){
+      
+      graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
+      graph.addNode("select_api_node", toolsLib.selectApi);
+      graph.addNode("extract_params_node", toolsLib.extractParameters);
+      graph.addNode("human_loop_node", toolsLib.requestParameters);
+      graph.addNode("odooExecutor", toolsLib.odooExecutor);
+      graph.addNode("result_verifier", toolsLib.resultVerifier);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      // graph.addNode("nextActionDecisionMaker", toolsLib.nextActionDecisionMaker);
+
+      graph.addEdge("odooApiSelector", "select_api_node");
+      graph.addEdge("select_api_node", "extract_params_node");
+      graph.addEdge("odooExecutor", "result_verifier");
+      // graph.addEdge("result_verifier", "nextActionDecisionMaker");
+
+      graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
+
+      graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
+
+      graph.addConditionalEdges("result_verifier", toolsLib.nextActionDecisionMaker);      
+
+
+
+      if(inputs.state && inputs.state.lastExecutedNode){
+        console.log(`Last Executed Node - ${inputs.state.lastExecutedNode}`)
+        graph.setEntryPoint(inputs.state.lastExecutedNode);  
+      }else{
+        graph.setEntryPoint("odooApiSelector");  
+      }
+      
+      graph.setFinishPoint("human_loop_node");
+      graph.setFinishPoint("pdfGenerator");
+
+
+    } else if(inputs.id === "Document Generator"){
       graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       graph.addEdge("sql_query_node", "pdfGenerator");
