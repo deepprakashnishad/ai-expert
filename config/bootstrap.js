@@ -12,6 +12,9 @@
 var async = require('async');
 var nodepath = require('path'), seedInfo;
 
+const { MongoClient } = require("mongodb");
+
+
 function hasSeedInfo() {
     var seedPath = nodepath.resolve(sails.config.paths.config, 'env', sails.config.environment, 'seed');
     try {
@@ -110,7 +113,20 @@ function getPermissionIds(permissions) {
   return permissionIds;
 }
 
+async function getSearchIndexes(){
+  try {
+    const db = Person.getDatastore().manager;
+    const collection = db.collection("cvector");
+    // run the helper method
+    const result = await collection.listSearchIndexes().toArray();
+    console.log(result);
+  } finally {
+    // await client.close();
+  }
+}
+
 async function createIndices(){
+  // getSearchIndexes();
   sails.log.debug(("Creating indices").grey);
   db = Person.getDatastore().manager;
   var result = await db.collection(Person.tableName).createIndex( { n: 1, m: 1, e: 1 } );

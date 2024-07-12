@@ -448,7 +448,9 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		var result = await toolLib.getFromOdoo('res.users', {ids: [1]});
-		return res.json(result);
+		var data = await Cvector.find().limit(5);
+		return res.json(data);
+		// var result = await toolLib.getFromOdoo('res.users', {ids: [1]});
+		// return res.json(result);
 	}
 }

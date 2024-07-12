@@ -1,9 +1,9 @@
 // const host = "http://localhost:1337/";
-const host = "https://ai-expert.onrender.com/";
+const host = "http://ec2-3-22-209-20.us-east-2.compute.amazonaws.com:1337/";
 
 const chatGptTextCompletion = "ai/textCompletion";
 
-const customAIReplyEndpoint = "ai/customAIReply";
+const customAIReplyEndpoint = "agent/langGraphChat";
 
 const chatbotConversation = document.getElementById('chatbot-conversation')
 
@@ -15,10 +15,15 @@ const chatMainContainer = document.getElementById('chat-main-container');
 
 const chatBtn = document.getElementById('chat-btn');
 
-var messages = [{
-	"role": "system",
-	"content": "You are a chatbot who can chat in world's any language and helps people with their queries based on previous messages and information provided inside triple hash only. You reply to the question provided in triple backticks in context of conversation. If are not sure of the answer from the information provided simply say I don't know."
-}];
+var selectedChatId = undefined;
+
+var agentId = "Info Teller";
+
+if(!agentId){
+	console.log("Agent not set");
+}
+
+var messages = [];
 
 document.getElementById("submit-btn").addEventListener("click", (e)=>{
 	userInputSubmitted();
@@ -43,17 +48,21 @@ document.getElementById("close-btn").addEventListener("click", (e)=>{
 
 function userInputSubmitted(){
 	const userInput = document.getElementById('user-input');
-    messages.push({"role": "user", "content": userInput.value});
-    addNewBubble("user", userInput.value);
+    var message = userInput.value;
+    addNewBubble("user", message);
     userInput.value = "";
     toggleLoaderSendDisplay(true);
-	fetchBotReply(messages).then(response=>{
+	fetchBotReply(message).then(response=>{
 		toggleLoaderSendDisplay(false);
-		if(response[0] && response[0].message){
-			messages.push(response[0].message);
-			window.parent.postMessage({data: response[0].message}, "*");
+		console.log(response);
+		var serverMessage = typeof response === "string" ? response : JSON.stringify(response);
+		console.log(`Server Message - ${serverMessage}`);
+		if(serverMessage){
+			messages.push(serverMessage);
+			window.parent.postMessage({data: serverMessage}, "*");
 		}
-		addNewBubble(response[0].message.role, response[0].message.content);
+
+		addNewBubble("assistant", serverMessage);
 	}).catch((err)=>{
 		console.log(err);
 		toggleLoaderSendDisplay(false);
@@ -72,17 +81,18 @@ function addNewBubble(role, text){
     newSpeechBubble.classList.add('blinking-cursor');
     let i = 0;
     const interval = setInterval(() => {
-        newSpeechBubble.textContent += text.slice(i-1, i)
+        newSpeechBubble.innerHTML += text.slice(i-1, i)
         if (text.length === i) {
             clearInterval(interval)
             newSpeechBubble.classList.remove('blinking-cursor')
+            newSpeechBubble.innerHTML = text;
         }
         i++
         chatbotConversation.scrollTop = chatbotConversation.scrollHeight
-    }, 20);
+    }, 10);
 }
 
-async function fetchBotReply(messages) {
+async function fetchBotReply(message) {
 	try{
 		const response = await fetch(
 			host + customAIReplyEndpoint,
@@ -94,18 +104,23 @@ async function fetchBotReply(messages) {
 				mode:"cors",
 				cache: "no-cache",
 				body: JSON.stringify({
-					"messages": messages
+					"userInput": message,
+					"agentId": agentId,
+					"chatId": selectedChatId
 				})
 			}
 		);
 		var result = await response.json();
 
 		if(result.success){
-			return result.data;
+			selectedChatId = result.chatId; 
+			console.log(result);
+			console.log(result.result);
+			return result.result;
 		}else{
 			toggleLoaderSendDisplay(false);
 		}
-	  	return data;
+	  	return result;
 	}catch(err){
 		console.log(err);
 		toggleLoaderSendDisplay(false);

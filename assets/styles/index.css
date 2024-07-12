@@ -26,7 +26,7 @@ main {
 /* chatbot elements */
 
 .chatbot-container {
-    background-color: #16202C;
+    background-color: #a81a7b;
     width: 360px;
     min-height: 380px;
     border-radius: var(--border-rad-lg);
@@ -47,11 +47,27 @@ main {
     cursor: pointer;
 }
 
+.chatbot-header h1 {
+    font-size: 15px;
+
+    text-align: center;
+    /* Centering text */
+}
+
+.chatbot-header h2 {
+    font-size: 14px;
+
+    text-align: center;
+    /* Centering text */
+}
+
+
 .chatbot-header {
     display: flex!important;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    background-color: #770c77;
     /*display: grid;
     grid-template-areas: 'logo . .' 
                         'logo title supportId'
@@ -103,17 +119,19 @@ main {
 }
 
 .speech-ai {
-    background: #253b4b;
+    /*background: #253b4b;*/
+    background-color: #e4e6eb;
     border-top-left-radius: 0; 
 }
 
 .speech-human {
-    background: #24976f;
+    background: #a55da5;
     border-top-right-radius: 0; 
 }
 
 .chatbot-input-container {
     display: flex;
+    background-color: #770c77 !important;
 }
 
 input[type="text"], button{
@@ -124,7 +142,7 @@ input[type="text"], button{
 }
 
 input[type="text"] {
-    color: #fcfcfc;
+    color: #f7f2f2;
     width: 100%;
     border-right: 0; 
     border-top-right-radius: 0;

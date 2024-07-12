@@ -18,8 +18,6 @@ const res_verifier = require('./result_verifier.js');
 
 const {TavilySearchResults} = require("@langchain/community/tools/tavily_search");
 
-console.log(odoo);
-
 module.exports = {
   ...generic,
   ...module2,
