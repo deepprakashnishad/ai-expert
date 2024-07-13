@@ -9,13 +9,11 @@ const pineconeIndex = pinecone.Index('ragdoc');
 
 async function document_retriever(state){
 
-	const { llm, query, conversation } = state;
+	var { llm, query, conversation } = state;
 
 	var result = await sails.helpers.chatGptEmbedding.with({inputTextArray: [query]});
 
 	quesEmbeddingData = result[0].embedding;
-
-	console.log(quesEmbeddingData);
 
 	const cvectorColl = Cvector.getDatastore().manager.collection(Cvector.tableName);
 
@@ -55,37 +53,32 @@ async function document_retriever(state){
 
 	const matchedInfo = await vectorStore.similaritySearch(query, 5, {});*/
 
-	console.log(matchedInfo);
-
 	var messages = [
 		{
 			"role": "system",
-			"content": `You are an assistant chatbot named Celina. You should greet users, introduce yourself and tell them how can you help them when they say Hi, Hello etc. When they ask any question, you should answer users question based on the info given below. Your answer should be in context to provided information and conversation going on only. Do not add inputs from your side. In case related information is not present in info provided below simply say "I am sorry, I don't know". Your answer  must be contained in basic html tags so that it is presented to user in best possible user friendly way.\n
+			"content": `You are an assistant chatbot named Celina who can chat in many language of the world. You should greet users, introduce yourself and tell them how can you help them when they say Hi, Hello etc. When they ask any question, you should answer users question based on the info given below. Your answer should be in context of the provided information and conversation only. You should not add inputs from your side but you can translate, rephrase etc to provide the answer. In case related information is not present in info provided below or in past messages simply tell user that it is out of context or you don't have any idea of it or some similar reply. Your answer  must be contained in basic html tags so that it is presented to user in best possible user friendly way. Replace with newline character with <br> or <div> or <p> tags can be used, points should be return as ordered or unordered list.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}
 	]
 
-	if(!state['conversation']){
-		state['conversation'] = [];
+	if(!conversation){
+		conversation = [];
 	}else{
 		messages = messages.concat(conversation);
 	}
 
 	messages.push({"role": "user", "content": query});
 
-	console.log(messages);
-
 	var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
 
-	result = result[0]['message']['content']
-	console.log(result);
+	result = result[0]['message']['content'];
 
-	state['conversation'].push({"role":"user", "content": query});
-	state['conversation'].push({"role":"assistant", "content": result});
+	conversation.push({"role":"user", "content": query});
+	conversation.push({"role":"assistant", "content": result});
 
 	return {
-		conversation: state['conversation'],
+		conversation: conversation,
 		finalResult: result
 	}
 }
