@@ -9,7 +9,7 @@ const pineconeIndex = pinecone.Index('ragdoc');
 
 async function document_retriever(state){
 
-	var { llm, query, conversation } = state;
+	var { llm, query, conversation, chatId } = state;
 
 	var result = await sails.helpers.chatGptEmbedding.with({inputTextArray: [query]});
 
@@ -76,6 +76,10 @@ async function document_retriever(state){
 
 	conversation.push({"role":"user", "content": query});
 	conversation.push({"role":"assistant", "content": result});
+
+	state['conversation'] = conversation;
+
+	await ChatHistory.update({"id": chatId}, {"graphState": state});
 
 	return {
 		conversation: conversation,

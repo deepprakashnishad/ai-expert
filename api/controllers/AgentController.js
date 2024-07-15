@@ -283,11 +283,6 @@ module.exports = {
 		var stream;
 
 		if(lChatHistory.graphState){
-			/*const splitParams = query.split(":::");
-			splitParams.forEach((param) => {
-			    const [key, value] = param.split(",");
-			    lChatHistory.graphState.params[key] = value.trim();
-			});*/
 
 			lChatHistory.graphState.question = null;
 

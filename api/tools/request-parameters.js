@@ -95,12 +95,8 @@ async function requestParameters(state) {
 
   messages[1]['content'] = messages[1]['content'].replace("{params}", missingParamsString).replace("{query}", query);
 
-  console.log(messages);
-
   var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
   var res_params = JSON.parse(response[0]['message']['content']);
-
-  console.log(res_params);
 
   var question = "";
   Object.keys(res_params).forEach(key => {
