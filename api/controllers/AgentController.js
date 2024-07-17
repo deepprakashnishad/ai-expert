@@ -305,10 +305,12 @@ module.exports = {
 							"lastExecutedNode": lChatHistory.graphState.lastExecutedNode,
 						});
 		}else{
+			var conversation = [{"role": "user", "content": query}];
 			stream = await graphApp.stream({
-			    llm,
-			    query,
-			    chatId
+			    "llm": llm,
+			    "query": query,
+			    "chatId": chatId,
+			    "conversation": conversation
 			});	
 		}
 

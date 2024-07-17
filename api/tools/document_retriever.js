@@ -64,26 +64,26 @@ async function document_retriever(state){
 
 	if(!conversation){
 		conversation = [];
+		messages.push({"role": "user", "content": query});
 	}else{
 		messages = messages.concat(conversation);
 	}
 
-	messages.push({"role": "user", "content": query});
+	// messages.push({"role": "user", "content": query});
 
 	var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
 
 	result = result[0]['message']['content'];
 
-	conversation.push({"role":"user", "content": query});
+	// conversation.push({"role":"user", "content": query});
 	conversation.push({"role":"assistant", "content": result});
 
-	state['conversation'] = conversation;
+	// state['conversation'] = JSON.stringify(conversation);
 
 	await ChatHistory.update({"id": chatId}, {"graphState": state});
 
 	return {
-		conversation: conversation,
-		finalResult: result
+		"finalResult": result
 	}
 }
 
