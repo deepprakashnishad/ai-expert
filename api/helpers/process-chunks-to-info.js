@@ -24,7 +24,7 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     var infoArray = [];
-    for(let i=0;i < inputs.chunks.length-1; i++){
+    for(let i=0;i < inputs.chunks.length; i++){
       console.log(`Processing chunk ${i+1} out of ${inputs.chunks.length}`);
       var chunk = inputs.chunks[i];
       console.log(chunk);

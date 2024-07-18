@@ -44,7 +44,22 @@ module.exports = {
 			return res.successResponse({}, 200, null, true, "This url has been already scrapped");
 		}*/
 
-		const loader = new CheerioWebBaseLoader(
+		//Personal webscrapping
+
+		var rawChunks = await sails.helpers.scrapWeb.with({"url": req.body.url});
+
+		var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
+			chunks: rawChunks,
+			metadata: {
+				source: req.body.url,
+				type: "url"
+			},
+			clientId: req.body.clientId
+		});
+
+		//Lang chain webscrapping
+
+		/*const loader = new CheerioWebBaseLoader(
 		  req.body.url
 		);
 
@@ -61,7 +76,7 @@ module.exports = {
 			doc_id: mDoc.id,
 			agent: req.body.agent, 
 			clientId: req.body.clientId
-		})
+		})*/
 
 		/*const vectorStore = await PineconeStore.fromDocuments(splits,
 		  new OpenAIEmbeddings(), {
@@ -69,6 +84,7 @@ module.exports = {
 			  maxConcurrency: 5, // Maximum number of batch requests to allow at once. Each batch is 1000 vectors.
 			}
 		);*/
+
 		/*console.log(process.env.QDRANT_URL)
 		
 		const vectorStore = await QdrantVectorStore.fromDocuments(splits,

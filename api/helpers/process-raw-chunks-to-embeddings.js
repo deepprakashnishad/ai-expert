@@ -39,6 +39,9 @@ module.exports = {
     metadata: {
       type: "json"
     },
+    clientId: {
+      type: "string"
+    },
     data_key:{
       type: "string",
       defaultsTo: "pageContent"
@@ -69,19 +72,25 @@ module.exports = {
       }
 
       if((temp.join(",").length+inputText.length) >= inputs.maxEmbeddingInputLength || i===infoArray.length-1){
-        console.log(`Embedding completed for ${i+1}/${infoArray.length}`);
-        var embResult = await sails.helpers.chatGptEmbedding.with({inputTextArray: temp, userId: inputs.personId});   
-        for(var embedding of embResult){
-          embeddingData.push({p: inputs.personId, b:inputs.botId, it: temp[embedding.index], e: embedding.embedding, a: inputs.agentId, md: inputs.metadata});
+        if(temp.length===0 && inputText.length>0){
+          temp.push(inputText);
         }
+        if(temp.length>0){
+          var embResult = await sails.helpers.chatGptEmbedding.with({inputTextArray: temp, userId: inputs.personId});   
+          for(var embedding of embResult){
+            embeddingData.push({p: inputs.personId, b:inputs.botId, it: temp[embedding.index], e: embedding.embedding, a: inputs.agentId, md: inputs.metadata});
+          }  
+        }
+        
         temp = [];
       }else{
         temp.push(inputText);
       }
     }
-    console.log("Embeddings created");
-    await Cvector.createEach(embeddingData);
-    console.log("Embeddings saved to database");
+    if(embeddingData.length>0){
+      await Cvector.createEach(embeddingData);
+    }
+    
     return exits.success(infoArray);
   }
 };

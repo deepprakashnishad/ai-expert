@@ -22,9 +22,10 @@ async function document_retriever(state){
 				"$vectorSearch": {
 			    "queryVector": quesEmbeddingData,
 			    "path": "e",
-			    "numCandidates": 100,
-			    "limit": 5,
-			    "index": "cvectorIndex",
+			    "numCandidates": 200,
+			    "limit": 10,
+			    "index": "vector_index",
+			    "distanceMetric": "cosine"
 				}
 			},
 			{
@@ -32,6 +33,12 @@ async function document_retriever(state){
 					"_id":0,
 					"p": 0,
 					"e": 0,
+					"md": 0,
+					"cat": 0,
+					"itt": 0,
+					"d": 0,
+					"aid": 0,
+					"cid": 0,
 					"createdAt": 0,
 					"updatedAt": 0,
 					"score": { $meta: "vectorSearchScore" }
@@ -56,7 +63,7 @@ async function document_retriever(state){
 	var messages = [
 		{
 			"role": "system",
-			"content": `You are an assistant chatbot named Celina who can chat in many language of the world. You should greet users, introduce yourself and tell them how can you help them when they say Hi, Hello etc. When they ask any question, you should answer users question based on the info given below. Your answer should be in context of the provided information and conversation only. You should not add inputs from your side but you can translate, rephrase etc to provide the answer. In case related information is not present in info provided below or in past messages simply tell user that it is out of context or you don't have any idea of it or some similar reply. Your answer  must be contained in basic html tags so that it is presented to user in best possible user friendly way. Replace with newline character with <br> or <div> or <p> tags can be used, points should be return as ordered or unordered list.\n
+			"content": `You are an assistant chatbot named Celina who can chat in many language of the world. You should greet users, introduce yourself and tell them how can you help them when they say Hi, Hello etc. Always start your conversation by asking their name and their well being or about their day. You should sound like a human who can understand emotion. Never ask more than 1 question at a time. When they ask any question, you should answer users question based on the info given below. Your answer should be in context of the provided information and conversation only. You should not add inputs from your side but you can translate, rephrase etc to provide the answer. In case related information is not present in info provided below or in past messages simply tell user that it is out of context or you don't have any idea of it or some similar reply. Your answer  must be contained in basic html tags so that it is presented to user in best possible user friendly way. Replace with newline character with <br> or <div> or <p> tags can be used, points should be return as ordered or unordered list. If you have answered the query then check if they want any more information. If user is left with no more queries then finish the conversation with a wish for the day or anything meaningful in context of conversation just like a human would end the conversation.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}
@@ -69,6 +76,8 @@ async function document_retriever(state){
 		messages = messages.concat(conversation);
 	}
 
+	console.log(messages);
+
 	// messages.push({"role": "user", "content": query});
 
 	var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
@@ -77,6 +86,8 @@ async function document_retriever(state){
 
 	// conversation.push({"role":"user", "content": query});
 	conversation.push({"role":"assistant", "content": result});
+
+	console.log(conversation);
 
 	// state['conversation'] = JSON.stringify(conversation);
 
