@@ -54,7 +54,7 @@ module.exports = {
 				source: req.body.url,
 				type: "url"
 			},
-			clientId: req.body.clientId
+			clientId: req.body.appId
 		});
 
 		//Lang chain webscrapping
@@ -124,17 +124,17 @@ module.exports = {
 			        return res.serverError(err);
 			    }
 
-				console.log(files);	  
 				for(var file of files){
 					const loader = new PDFLoader(file['fd'], {
 					  parsedItemSeparator: "",
 					});	
-					const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf"}).fetch();
+					const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf", "clientId": req.body.appId}).fetch();
 
 					var splits = await splitter(loader);
 					var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
 						chunks: splits,
-						doc_id: mDoc.id 
+						doc_id: mDoc.id,
+						clientId: req.body.appId
 					})
 				}  	
 				

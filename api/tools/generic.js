@@ -163,7 +163,7 @@ module.exports = {
 	    return "human_loop_node";
 	  }
 
-	  if(bestApi.min_reqd_params && bestApi.min_reqd_params <= params.length){
+	  if(bestApi.min_reqd_params && bestApi.min_reqd_params <= Object.keys(params).length){
 	  	return next_node? next_node: "execute_request_node";
 	  }
 

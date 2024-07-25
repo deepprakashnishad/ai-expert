@@ -115,7 +115,7 @@ async function requestParameters(state) {
 
   await ChatHistory.update({"id": chatId}, {"graphState": state});  
 
-  return {"question": question, "conversation": conversation}
+  return {"question": question}
 }
 
 module.exports = {

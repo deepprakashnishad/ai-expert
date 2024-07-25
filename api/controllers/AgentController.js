@@ -282,6 +282,8 @@ module.exports = {
 
 		var stream;
 
+		console.log(lChatHistory.graphState)
+
 		if(lChatHistory.graphState){
 
 			lChatHistory.graphState.question = null;
@@ -310,7 +312,8 @@ module.exports = {
 			    "llm": llm,
 			    "query": query,
 			    "chatId": chatId,
-			    "conversation": conversation
+			    "conversation": conversation,
+			    "user": req.body.user
 			});	
 		}
 
@@ -445,9 +448,20 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		var data = await Cvector.find().limit(5);
-		return res.json(data);
-		// var result = await toolLib.getFromOdoo('res.users', {ids: [1]});
-		// return res.json(result);
+		var result = await toolLib.getFromOdoo('res.users', {ids: [1]});
+		return res.json(result);
+	},
+
+	invoiceGenerator: async function(req, res){
+		var mPrompt = `
+			{
+				"schema": [
+					{
+						"tablename": "account_move",
+						"description": "Table "
+					}
+				]
+			}
+		`;
 	}
 }

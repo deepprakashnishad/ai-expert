@@ -17,10 +17,12 @@ module.exports = {
         type: "string"
     },
     required_parameters: {
-        type: "json"
+        type: "json",
+        defaultsTo: []
     },
     optional_parameters: {
-        type: "json"
+        type: "json",
+        defaultsTo: []
     },
     method: {
         type: "string"

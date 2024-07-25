@@ -99,6 +99,18 @@ module.exports = {
       },
       chatId: {
         value: inputs.chatId?inputs.chatId: null
+      },
+      is_result_acceptable: {
+        value: null
+      },
+      prompt: {
+        value: null
+      },
+      tool: {
+        value: null
+      },
+      user: {
+        value: null
       }
     };
 

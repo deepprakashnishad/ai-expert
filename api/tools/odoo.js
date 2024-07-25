@@ -1,11 +1,14 @@
 var Odoo = require('./odoo/index.js');
+const axios = require('axios');
+
+var odooProtocol = "http";
 
 var odoo = new Odoo({
-  host: 'localhost',
-  port: 8069,
-  database: 'ecmps',
-  username: 'admin',
-  password: 'admin'
+  	host: 'localhost',
+	port: 8069,
+	database: 'ecmps',
+	username: 'admin',
+	password: 'admin'
 });
 
 async function connectToOdoo(){
@@ -177,7 +180,22 @@ async function rpc_call(endpoint, params){
 		if(!odoo.sid){
 			await connectToOdoo();	
 		}
-		const result = await new Promise((resolve, reject)=>{
+
+		var url = `${odooProtocol}://${odoo.host}:${odoo.port}${endpoint}`;
+		var headers = {
+			cookie: odoo.sid,
+			content: "application/json"
+		}
+
+		const result = await axios.post(url, {
+			"jsonrpc": "2.0",
+			"method":"call",
+			"params": params
+		}, {
+			"headers": headers
+		});
+
+		/*const result = await new Promise((resolve, reject)=>{
 			odoo.rpc_call(endpoint, params, function(err, result){
 				if (err) {
 		          reject(err);
@@ -185,9 +203,9 @@ async function rpc_call(endpoint, params){
 		          resolve(result);
 		        }
 			})
-		});
+		});*/
 
-		return result;
+		return result.data;
 	}catch(e){
 		console.log(e);
 	}
@@ -228,7 +246,7 @@ async function odooApiSelector(state){
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
   	var selectedApiNames = JSON.parse(response[0]['message']['content']);
 
-  	var selected_apis = apis.filter(ele => selectedApiNames.index(ele.name) > -1);
+  	var selected_apis = apis.filter(ele => selectedApiNames.apis.indexOf(ele.name) > -1);
 
   	console.log(selected_apis);
 
@@ -243,13 +261,29 @@ async function odooApiSelector(state){
 async function odooExecutor(state){
 	const {query, llm, bestApi, params} = state;
 
+	var data = [];
+
+	if(typeof params['args'] === "object"){
+		for (var key of Object.keys(params)) {
+			if(Array.isArray(params[key])){
+				data.push([key, 'in', params[key]])	
+			}else if(typeof params[key] === 'string' || 
+				typeof params[key] === 'number' || 
+				typeof params[key] === 'boolean'){
+				data.push([key, '=', params[key]])
+			}
+		}
+	}else if(!Array.isArray(variable)){
+		return {status: false, 'msg': "Invalid params"};
+	}
+
 	var result = await rpc_call(bestApi.endpoint, {
 		kwargs: {
 	      context: odoo.context
 	    },
 	    model: bestApi.model,
 	    method: bestApi.method,
-	    args: [params]
+	    args: params
 	})
 
 	return {
