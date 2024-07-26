@@ -1,5 +1,7 @@
-// const host = "http://localhost:1337/";
-const host = "http://ec2-3-22-209-20.us-east-2.compute.amazonaws.com:1337/";
+const host = "http://localhost:1337/";
+// const host = "http://ec2-3-15-23-46.us-east-2.compute.amazonaws.com:1337/";
+// const host = "https://ai-expert.onrender.com/";
+
 
 const chatGptTextCompletion = "ai/textCompletion";
 
@@ -15,12 +17,26 @@ const chatMainContainer = document.getElementById('chat-main-container');
 
 const chatBtn = document.getElementById('chat-btn');
 
+document.getElementById('frm-submit-btn').addEventListener('click', submitForm);
+
 var selectedChatId = undefined;
+
+var mInterval = -1;
+
+var formDataObj = {};    // ccc
 
 var agentId = "Info Teller";
 
 if(!agentId){
-	console.log("Agent not set");
+	alert("Agent Id not set");
+}
+
+var appId = "5";
+
+if(!appId){
+	alert("App Id not set");
+}else{
+	formDataObj['appId'] = appId;
 }
 
 var messages = [];
@@ -45,7 +61,6 @@ document.getElementById("close-btn").addEventListener("click", (e)=>{
 	chatMainContainer.classList.add("hidden");
 });
 
-
 function userInputSubmitted(){
 	const userInput = document.getElementById('user-input');
     var message = userInput.value;
@@ -63,6 +78,9 @@ function userInputSubmitted(){
 		}
 
 		addNewBubble("assistant", serverMessage);
+
+		scrollToBottomOfDiv('chatbot-conversation');  //////
+
 	}).catch((err)=>{
 		console.log(err);
 		toggleLoaderSendDisplay(false);
@@ -77,19 +95,26 @@ function addNewBubble(role, text){
 		newSpeechBubble.classList.add('speech', 'speech-ai')
 	}
     chatbotConversation.appendChild(newSpeechBubble);
-
-    newSpeechBubble.classList.add('blinking-cursor');
     let i = 0;
-    const interval = setInterval(() => {
-        newSpeechBubble.innerHTML += text.slice(i-1, i)
-        if (text.length === i) {
-            clearInterval(interval)
-            newSpeechBubble.classList.remove('blinking-cursor')
-            newSpeechBubble.innerHTML = text;
-        }
-        i++
-        chatbotConversation.scrollTop = chatbotConversation.scrollHeight
-    }, 10);
+    if(mInterval==-1){
+    	newSpeechBubble.innerHTML = text;
+    	chatbotConversation.scrollTop = chatbotConversation.scrollHeight
+    }else{
+    	newSpeechBubble.classList.add('blinking-cursor');
+    	const interval = setInterval(() => {
+		    newSpeechBubble.innerHTML += text.slice(i-1, i)
+		    if (text.length === i) {
+		        clearInterval(interval)
+		        newSpeechBubble.classList.remove('blinking-cursor')
+		        newSpeechBubble.innerHTML = text;
+		    }
+		    i++
+		    chatbotConversation.scrollTop = chatbotConversation.scrollHeight
+		}, mInterval);
+    }
+
+	
+	scrollToBottomOfDiv('chatbot-conversation');   
 }
 
 async function fetchBotReply(message) {
@@ -106,7 +131,8 @@ async function fetchBotReply(message) {
 				body: JSON.stringify({
 					"userInput": message,
 					"agentId": agentId,
-					"chatId": selectedChatId
+					"chatId": selectedChatId,
+					"user": formDataObj // Include form data here
 				})
 			}
 		);
@@ -114,8 +140,6 @@ async function fetchBotReply(message) {
 
 		if(result.success){
 			selectedChatId = result.chatId; 
-			console.log(result);
-			console.log(result.result);
 			return result.result;
 		}else{
 			toggleLoaderSendDisplay(false);
@@ -141,4 +165,33 @@ function toggleLoaderSendDisplay(isShowLoader){
 		sendIcon.classList.add('show');
 		loaderIcon.classList.remove('show');
 	}
+}
+
+function scrollToBottomOfDiv(divId) {
+    var div = document.getElementById(divId);
+    div.scrollTop = div.scrollHeight;
+}
+
+function submitForm(event) {
+	event.preventDefault(); // Prevent default form submission
+
+	// Get form data
+	var inputUserName = document.getElementById('username');
+	var inputUserEmail = document.getElementById('useremail');
+
+	formDataObj['name'] = inputUserName.value;
+	formDataObj['email'] = inputUserEmail.value;
+	// Example: Send formDataObj to the backend for storage in a table
+	// Replace this with your actual backend endpoint or database operation
+	console.log('Form data:', formDataObj);
+
+	inputUserName.value = ""
+	inputUserName.value = "";
+
+	// Hide the form after submission
+	document.getElementById('form').style.display = 'none';
+
+	// Enable chat input and send button
+    document.getElementById('user-input').disabled = false;
+    document.getElementById('submit-btn').disabled = false;
 }

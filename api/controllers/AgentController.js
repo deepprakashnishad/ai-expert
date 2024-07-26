@@ -305,6 +305,7 @@ module.exports = {
 							"finalResult": lChatHistory.graphState.finalResult,
 							"conversation": lChatHistory.graphState.conversation,
 							"lastExecutedNode": lChatHistory.graphState.lastExecutedNode,
+							"user": lChatHistory.graphState.user
 						});
 		}else{
 			var conversation = [{"role": "user", "content": query}];

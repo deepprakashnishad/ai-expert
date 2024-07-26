@@ -1,0 +1,39 @@
+<main class="main-container hidden" id="chat-main-container">  
+  <section class="chatbot-container">
+    <div class="chatbot-header">
+      <img src="images/logo.avif" class="logo">
+      <div>
+        <h1>KnowIt All</h1>
+        <h2>Ask me anything!</h2>
+      </div>
+      <!-- <p class="supportId">User ID: 2344</p> -->
+      <img  class="close-btn"
+        id="close-btn"
+        src="images/close.png"
+      />
+    </div>
+    <div class="chatbot-conversation-container" id="chatbot-conversation">
+      <div class="speech speech-ai">
+        How can I help you?
+      </div>
+    </div>
+    <div id="form" class="chatbot-input-container">
+      <input name="user-input" type="text" id="user-input" required>
+      <button id="submit-btn" class="submit-btn">
+        <img 
+          src="images/send.jpg" 
+          class="send-btn-icon show"
+          id="send-btn-icon"
+        >
+        <img
+          src="images/loading.svg" 
+          class="send-btn-loader hidden"  
+          id="loader-btn-icon"
+        >
+      </button>
+    </div>
+  </section>  
+</main>     
+<div class="chat-icon" id="chat-btn">
+  <img src="images/chat.png" class="logo">
+</div>

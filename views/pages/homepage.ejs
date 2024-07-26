@@ -1,39 +1,65 @@
-<main class="main-container hidden" id="chat-main-container">  
-  <section class="chatbot-container">
-    <div class="chatbot-header">
-      <img src="images/logo.avif" class="logo">
-      <div>
-        <h1>KnowIt All</h1>
-        <h2>Ask me anything!</h2>
-      </div>
-      <!-- <p class="supportId">User ID: 2344</p> -->
-      <img  class="close-btn"
-        id="close-btn"
-        src="images/close.png"
-      />
-    </div>
-    <div class="chatbot-conversation-container" id="chatbot-conversation">
-      <div class="speech speech-ai">
-        How can I help you?
-      </div>
-    </div>
-    <div id="form" class="chatbot-input-container">
-      <input name="user-input" type="text" id="user-input" required>
-      <button id="submit-btn" class="submit-btn">
-        <img 
-          src="images/send.jpg" 
-          class="send-btn-icon show"
-          id="send-btn-icon"
-        >
-        <img
-          src="images/loading.svg" 
-          class="send-btn-loader hidden"  
-          id="loader-btn-icon"
-        >
-      </button>
-    </div>
-  </section>  
-</main>     
+<main class="main-container hidden" id="chat-main-container">
+	<section class="chatbot-container" style="background-color: #ffffff;">
+		<div class="chatbot-header" style="background-color: #06038d; color: #ffffff">
+
+			<div class="image-container">
+
+				<img src="/images/users/avatar17.png" class="circular_image">
+			</div>
+			<div
+				style="display: flex; flex-direction: column; justify-content: center;align-items: center; margin-left: 40%;">
+
+				<div class="header" style="color: #ffffff;">Bharti</div>
+				<div class="tagline" style="color: #ffffff;">
+					Your AI Assistant</div>
+			</div>
+
+			<!-- <p class="supportId">User ID: 2344</p> -->
+			<img class="close-btn" id="close-btn" src="/images/close.png" />
+		</div>
+
+
+
+		<div class="chatbot-conversation-container" id="chatbot-conversation">
+
+			<div class="speech speech-ai">
+				Hi!! I am hear to assist you. I need to know, with whom I am interacting.
+			</div>
+
+
+			<div id="form" class="speech">
+				<h4>Fill the form to start chatting with our agent</h4>
+				<div id="user-form">
+					<label for="name">Name:</label>
+					<input type="text" id="username" name="name" required><br><br>
+
+					<label for="email">Email:</label>
+					<input type="email" id="useremail" name="email" required><br><br>
+
+					<button id="frm-submit-btn" class="submit-btn">
+						Submit
+					</button>
+				</div>
+
+			</div>
+		</div>
+
+
+		
+		<div id="form" class="chatbot-input-container">
+			
+			<input name="user-input" type="text" id="user-input" required disabled>
+			
+			<button id="submit-btn" class="submit-btn" disabled>
+				<img src="/images/send.jpg" class="send-btn-icon show" id="send-btn-icon">
+				<img src="/images/loading.svg" class="send-btn-loader hidden"
+					id="loader-btn-icon">
+			</button>
+		</div>
+
+
+	</section>
+</main>
 <div class="chat-icon" id="chat-btn">
-  <img src="images/chat.png" class="logo">
+	<img src="/images/chat.png" class="logo">
 </div>
