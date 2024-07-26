@@ -1,4 +1,6 @@
 require('ts-node/register');
+require('@babel/polyfill');
+
 /**
  * app.js
  *

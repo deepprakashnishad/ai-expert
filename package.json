@@ -5,6 +5,8 @@
   "description": "a Sails application",
   "keywords": [],
   "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "@babel/preset-env": "^7.24.8",
     "@google-cloud/local-auth": "^3.0.1",
     "@langchain/community": "^0.0.56",
     "@langchain/langgraph": "^0.0.10",
