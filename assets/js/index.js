@@ -1,6 +1,6 @@
-const host = "http://localhost:1337/";
+// const host = "http://localhost:1337/";
 // const host = "http://ec2-3-15-23-46.us-east-2.compute.amazonaws.com:1337/";
-// const host = "https://ai-expert.onrender.com/";
+const host = "https://ai-expert.onrender.com/";
 
 
 const chatGptTextCompletion = "ai/textCompletion";
@@ -25,13 +25,19 @@ var mInterval = -1;
 
 var formDataObj = {};    // ccc
 
-var agentId = "Info Teller";
+const iframe = document.getElementById('myIframe');
+const urlString = iframe ? iframe.src : window.location.href;
+
+const urlParams = new URLSearchParams(urlString.split('?')[1]);
+
+console.log(urlParams.get('appId'));
+
+var agentId = urlParams.get('agentId');
+var appId = urlParams.get('appId');
 
 if(!agentId){
-	alert("Agent Id not set");
+	agentId="Info Teller";
 }
-
-var appId = "5";
 
 if(!appId){
 	alert("App Id not set");
