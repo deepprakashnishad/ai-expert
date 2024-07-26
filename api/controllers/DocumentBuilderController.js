@@ -178,5 +178,13 @@ module.exports = {
 	getUploadedDocuments: async function(req, res){
 		var docs = await UploadedDocument.find();
 		return res.json(docs);
+	},
+
+	deleteUploadedDocuments: async function(req, res){
+		await Cvector.destroy({d: req.body.docId, cid: req.body.appId});
+		await UploadedDocument.destroy({id: req.body.docId, clientId: req.body.appId});
+
+		var docs = await UploadedDocument.find({clientId: req.body.appId});
+		return res.json(docs);
 	}
 }

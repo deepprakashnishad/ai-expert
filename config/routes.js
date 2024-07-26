@@ -39,6 +39,7 @@ module.exports.routes = {
   'POST /document/uploadFile': { controller: 'DocumentBuilder', action: "uploadFile" },
   'POST /document/updateClientId': { controller: 'DocumentBuilder', action: "updateClientId" },
   'GET /document/getUploadedDocuments': { controller: 'DocumentBuilder', action: "getUploadedDocuments" },
+  'POST /document/deleteUploadedDocuments': { controller: 'DocumentBuilder', action: "deleteUploadedDocuments"},
 
   'POST /RocketChat': { controller: 'RocketChat', action: "recieveUserMessage"},
   'POST /RocketChat/authenticate': { controller: 'RocketChat', action: "authenticate"},
