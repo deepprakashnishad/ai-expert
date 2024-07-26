@@ -67,14 +67,17 @@ document.getElementById("close-btn").addEventListener("click", (e)=>{
 	chatMainContainer.classList.add("hidden");
 });
 
-function userInputSubmitted(){
+async function userInputSubmitted(){
 	const userInput = document.getElementById('user-input');
     var message = userInput.value;
     addNewBubble("user", message);
     userInput.value = "";
     toggleLoaderSendDisplay(true);
-	fetchBotReply(message).then(response=>{
-		toggleLoaderSendDisplay(false);
+
+    try{
+    	var response = await fetchBotReply(message);
+
+	    toggleLoaderSendDisplay(false);
 		console.log(response);
 		var serverMessage = typeof response === "string" ? response : JSON.stringify(response);
 		console.log(`Server Message - ${serverMessage}`);
@@ -85,12 +88,11 @@ function userInputSubmitted(){
 
 		addNewBubble("assistant", serverMessage);
 
-		scrollToBottomOfDiv('chatbot-conversation');  //////
-
-	}).catch((err)=>{
-		console.log(err);
-		toggleLoaderSendDisplay(false);
-	});
+		scrollToBottomOfDiv('chatbot-conversation');
+	
+    }
+    catch(e){console.log(e)}
+    finally{toggleLoaderSendDisplay(false);}
 }
 
 function addNewBubble(role, text){
