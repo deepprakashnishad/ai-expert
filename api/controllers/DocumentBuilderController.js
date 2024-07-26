@@ -46,6 +46,12 @@ module.exports = {
 
 		//Personal webscrapping
 
+		const mDoc = await UploadedDocument.create({
+			"title": req.body.url, 
+			"type": "url", 
+			"clientId": req.body.appId
+		}).fetch();
+
 		var rawChunks = await sails.helpers.scrapWeb.with({"url": req.body.url});
 
 		var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
@@ -54,6 +60,7 @@ module.exports = {
 				source: req.body.url,
 				type: "url"
 			},
+			doc_id: mDoc.id,
 			clientId: req.body.appId
 		});
 
@@ -123,8 +130,19 @@ module.exports = {
 			    if (err){
 			        return res.serverError(err);
 			    }
+			    var file = files[0];
+			    const loader = new PDFLoader(file['fd'], {
+				  parsedItemSeparator: "",
+				});	
+				const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf", "clientId": req.body.appId}).fetch();
 
-				for(var file of files){
+				var splits = await splitter(loader);
+				var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
+					chunks: splits,
+					doc_id: mDoc.id,
+					clientId: req.body.appId
+				})
+				/*for(var file of files){
 					const loader = new PDFLoader(file['fd'], {
 					  parsedItemSeparator: "",
 					});	
@@ -136,16 +154,21 @@ module.exports = {
 						doc_id: mDoc.id,
 						clientId: req.body.appId
 					})
-				}  	
-				
-
+				}*/  	
 
 		        return res.json({
 			        message: files.length + ' file(s) uploaded successfully!',
-			        files: files
+			        files: files,
+			        doc_id: mDoc.id
 	      		}
 	      	);
 	    });
+	},
+
+	updateClientId: async function(req, res){
+		await Cvector.update({'d': req.body.doc_id}).set({'cid': req.body.appId});
+		await UploadedDocument.update({'id': req.body.doc_id}).set({'clientId': req.body.appId});
+		return res.ok(200);
 	},
 
 	excelReader: async function(req, res){

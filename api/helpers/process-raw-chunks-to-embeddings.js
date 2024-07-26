@@ -45,6 +45,10 @@ module.exports = {
     data_key:{
       type: "string",
       defaultsTo: "pageContent"
+    },
+    doc_id:{
+      type: "string",
+      required: true
     }
   },
 
@@ -78,7 +82,16 @@ module.exports = {
         if(temp.length>0){
           var embResult = await sails.helpers.chatGptEmbedding.with({inputTextArray: temp, userId: inputs.personId});   
           for(var embedding of embResult){
-            embeddingData.push({p: inputs.personId, b:inputs.botId, it: temp[embedding.index], e: embedding.embedding, a: inputs.agentId, md: inputs.metadata});
+            embeddingData.push({
+              p: inputs.personId, 
+              b:inputs.botId, 
+              it: temp[embedding.index], 
+              e: embedding.embedding, 
+              a: inputs.agentId, 
+              md: inputs.metadata,
+              cid: inputs.clientId,
+              d: inputs.doc_id
+            });
           }  
         }
         

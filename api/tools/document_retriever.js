@@ -9,7 +9,7 @@ const pineconeIndex = pinecone.Index('ragdoc');
 
 async function document_retriever(state){
 
-	var { llm, query, conversation, chatId } = state;
+	var { llm, query, conversation, chatId, user } = state;
 
 	var result = await sails.helpers.chatGptEmbedding.with({inputTextArray: [query]});
 
@@ -21,10 +21,15 @@ async function document_retriever(state){
 			{
 				"$vectorSearch": {
 			    "queryVector": quesEmbeddingData,
+			    "filter": {
+				    "cid": {
+				      "$eq": user.appId.toString() // Filter by the category ID
+				    }
+				},
 			    "path": "e",
 			    "numCandidates": 200,
 			    "limit": 10,
-			    "index": "vector_index",
+			    "index": "cvectorIndex",
 			    "distanceMetric": "cosine"
 				}
 			},

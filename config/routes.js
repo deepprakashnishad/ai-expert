@@ -37,6 +37,7 @@ module.exports.routes = {
   'POST /document/webScrapper': { controller: 'DocumentBuilder', action: "webScrapper" },
   'POST /document/pdfScrapper': { controller: 'DocumentBuilder', action: "pdfScrapper" },
   'POST /document/uploadFile': { controller: 'DocumentBuilder', action: "uploadFile" },
+  'POST /document/updateClientId': { controller: 'DocumentBuilder', action: "updateClientId" },
   'GET /document/getUploadedDocuments': { controller: 'DocumentBuilder', action: "getUploadedDocuments" },
 
   'POST /RocketChat': { controller: 'RocketChat', action: "recieveUserMessage"},
