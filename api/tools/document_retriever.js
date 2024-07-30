@@ -28,7 +28,7 @@ async function document_retriever(state){
 				},
 			    "path": "e",
 			    "numCandidates": 200,
-			    "limit": 10,
+			    "limit": 3,
 			    "index": "cvectorIndex",
 			    "distanceMetric": "cosine"
 				}
