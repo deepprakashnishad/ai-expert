@@ -22,7 +22,7 @@ module.exports = {
     },
     logicalDelimeters:{
       type:"json",
-      defaultsTo: ["\n\n", "\n"]
+      defaultsTo: "\n+"
     }
   },
 
@@ -35,8 +35,8 @@ module.exports = {
 
 
   fn: async function (inputs, exits) {
-
-    var babyChunks = inputs.text.split(inputs.logicalDelimeters);
+    let delimiterRegex = new RegExp(inputs.logicalDelimeters);
+    var babyChunks = inputs.text.split(delimiterRegex);
     var result = [];
     var tempText = "";
 
