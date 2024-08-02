@@ -253,17 +253,17 @@ async function odooApiSelector(state){
   	return {
   		bestApi: selected_apis[0],
   		selected_apis: selected_apis,
-  		apis: selected_apis,
+  		apis: apis,
   		next_node: "odooExecutor"
   	}
 }
 
 async function odooExecutor(state){
-	const {query, llm, bestApi, params} = state;
+	var {query, llm, bestApi, params, toolUsed} = state;
 
 	var data = [];
 
-	if(typeof params['args'] === "object"){
+	if(typeof params === "object"){
 		for (var key of Object.keys(params)) {
 			if(Array.isArray(params[key])){
 				data.push([key, 'in', params[key]])	
@@ -273,26 +273,80 @@ async function odooExecutor(state){
 				data.push([key, '=', params[key]])
 			}
 		}
-	}else if(!Array.isArray(variable)){
+	}/*else if(!Array.isArray(params['args'])){
 		return {status: false, 'msg': "Invalid params"};
+	}*/
+	if(bestApi.method==="search_read"){
+		var result = await rpc_call(bestApi.endpoint, {
+			kwargs: {
+		      context: odoo.context
+		    },
+		    model: bestApi.model,
+		    method: bestApi.method,
+		    domain: data
+		})
+	}else{
+		var result = await rpc_call(bestApi.endpoint, {
+			kwargs: {
+		      context: odoo.context
+		    },
+		    model: bestApi.model,
+		    method: bestApi.method,
+		    args: data
+		})
 	}
 
-	var result = await rpc_call(bestApi.endpoint, {
-		kwargs: {
-	      context: odoo.context
-	    },
-	    model: bestApi.model,
-	    method: bestApi.method,
-	    args: params
-	})
+	if(!toolUsed){
+		toolUsed = []	
+	}
+	toolUsed.push({"tool": bestApi, "result": result['result']['records']})
+	
 
 	return {
 		lastExecutedNode: "odooExecutor",
-		finalResult: result
+		toolUsed: toolUsed,
+		finalResult: result['result']['records']
+	}
+}
+
+async function setInvoiceGenerator(state){
+	var api = await Tool.findOne({"name": "Odoo Invoice Summary Retriever"});
+	return {
+		bestApi: api,
+		next_node: "odooExecutor"
+	}
+}
+
+async function getCompleteInvoiceDetail(state){
+	var {finalResult} = state;
+
+	if(finalResult[0]['line_ids']){
+		var invoiceApi = await Tool.findOne({"name": "Odoo Invoice Detail Retriever"});
+
+		var result = await rpc_call(invoiceApi.endpoint, {
+			kwargs: {
+		      context: odoo.context
+		    },
+		    model: invoiceApi.model,
+		    method: invoiceApi.method,
+		    args: [
+		    	finalResult[0]['line_ids'],
+		    	["sequence","product_id","name","quantity","product_uom_category_id","product_uom_id","price_unit","discount","tax_ids","price_subtotal","partner_id","currency_id","company_id","company_currency_id","display_type"]
+	    	]
+		});
+	}
+
+	return {
+		finalResult: {
+			"invoice": finalResult[0],
+			"itemDetails": result['result']
+		}
 	}
 }
 
 module.exports = {
 	odooApiSelector,	
-	odooExecutor
+	odooExecutor,
+	setInvoiceGenerator,
+	getCompleteInvoiceDetail
 }

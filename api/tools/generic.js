@@ -12,7 +12,33 @@ const {findMissingParams} = require('./utils');
 const axios = require('axios');
 const puppeteer = require("puppeteer");
 
+function generateObjectId() {
+    const timestamp = Math.floor(Date.now() / 1000).toString(16); // 4-byte timestamp
+    const machineId = Math.floor(Math.random()*100000); // Placeholder for 5-byte machine identifier
+    const pid = Math.floor(Math.random()*1000);; // Placeholder for 3-byte process identifier
+    const increment = ('000000' + Math.floor(Math.random() * 0xFFFFFF).toString(16)).slice(-6); // 3-byte counter
+
+    return timestamp + machineId + pid + increment;
+}
+
 module.exports = {
+
+	getApiByName: async function(){
+		var api = await Tool.findOne({"name": "Odoo Invoice Summary Retriever"});
+		// var api2 = await Tool.findOne({"name": "Odoo Invoice Detail Retriever"});
+		return {
+			bestApi: api
+		}
+	},
+
+	predefinedWorkFlowExecutor: async function(){
+		var graphPlan = {
+			
+		};
+
+
+	},
+
 	apiCaller: async function(method, url, queryParams={}, body={}, params=[], options={}){
 		if(method==="GET"){
 			if(params){
@@ -213,7 +239,11 @@ module.exports = {
 	},
 
 	pdfGenerator: async function(state){
-		const {llm, finalResult, query} = state;
+		var {llm, finalResult, query} = state;
+
+		if(typeof finalResult === "object"){
+			finalResult = JSON.stringify(finalResult);
+		}
 
 		var htmlContent = `<!DOCTYPE html>
 			<html lang="en">
@@ -303,7 +333,9 @@ module.exports = {
 			    </div>
 			</body>
 			</html>`;
-		const outputPath = './../invoice.pdf';
+
+		var path = `generatedDocs/${generateObjectId()}.pdf`;
+		const outputPath = path.join(sails.config.paths.assets, path);
 
 		var messages = [
 			{
@@ -349,7 +381,10 @@ module.exports = {
 	    await browser.close();
 
 	    return {
-	    	"finalResult": "Pdf document is created successfully.",
+	    	"finalResult": `
+	    		<p>Pdf document is created successfully.</p>
+	    		<a href="${process.env.BASE_URL}${path}">${process.env.BASE_URL}${path}</a>
+    		`,
 	    	"lastExecutedNode": "pdfGenerator"
 	    }
 	}

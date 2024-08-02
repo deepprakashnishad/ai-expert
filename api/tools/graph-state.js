@@ -17,7 +17,8 @@ class GraphState {
       is_result_acceptable = null,
       prompt = null,
       tool = null,
-      user = null
+      user = null,
+      toolUsed = null
   ) {
     this.llm = llm;
     this.query = query;
@@ -37,6 +38,7 @@ class GraphState {
     this.prompt = prompt;
     this.tool = tool;
     this.user = user;
+    this.toolUsed = toolUsed;
   }
 }
 

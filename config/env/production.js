@@ -394,7 +394,7 @@ module.exports = {
   *                                                                         *
   ***************************************************************************/
   custom: {
-    baseUrl: 'https://example.com',
+    baseUrl: 'https://ai-expert.onrender.com',
     internalEmailAddress: 'support@example.com',
 
     SQL_DB:{

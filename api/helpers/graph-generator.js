@@ -111,6 +111,9 @@ module.exports = {
       },
       user: {
         value: null
+      },
+      toolUsed: {
+        value: null
       }
     };
 
@@ -126,7 +129,32 @@ module.exports = {
       channels: graphChannels,
     });
 
-    if(inputs.id === "Odoo Agent"){
+    if(inputs.id === "Invoice Generator"){
+      graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);
+      graph.addNode("extract_params_node", toolsLib.extractParameters);
+      graph.addNode("human_loop_node", toolsLib.requestParameters);
+      graph.addNode("odooExecutor", toolsLib.odooExecutor)
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      graph.addNode("getCompleteInvoiceDetail", toolsLib.getCompleteInvoiceDetail);
+
+      graph.addEdge("setInvoiceGenerator", "extract_params_node");
+      graph.addEdge("odooExecutor", "getCompleteInvoiceDetail");
+      graph.addEdge("getCompleteInvoiceDetail", "pdfGenerator");
+
+      graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
+
+      graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
+
+      if(inputs.state && inputs.state.lastExecutedNode){
+        graph.setEntryPoint(inputs.state.lastExecutedNode);  
+      }else{
+        graph.setEntryPoint("setInvoiceGenerator");  
+      }
+      
+      graph.setFinishPoint("human_loop_node");
+      graph.setFinishPoint("pdfGenerator");
+    }
+    else if(inputs.id === "Odoo Agent"){
       
       graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
       graph.addNode("select_api_node", toolsLib.selectApi);

@@ -1,14 +1,13 @@
 async function resultVerifier(state){
-	const {llm, query, finalResult, apis} = state;
+	const {llm, query, finalResult, apis, toolUsed} = state;
 
 	var messages = [
 		{
 			"role": "system",
-			"content": `You are intelligent supervisor whose task is to verify if the user query has been served or not. To determine this you should analyze finalResults and if that is not sufficient then use resultHistory to form a result. If you think user query cannot be served by both means then you should determine the next tool to use to fulfill the user's request. You may suggest prompt for the next step or parameters that should be used.
+			"content": `You are intelligent supervisor whose task is to verify if the user query has been served or not. To determine this you should analyze toolUsed which contains name of tool used alongwith the result it has obtained. Using the results provided for each toolUsed construct a final result. If you think user query cannot be served by both means then you should determine the next tool to use to fulfill the user's request. You may suggest prompt for the next step or parameters that should be used.
 
 				{
-					finalResult: ${JSON.stringify(finalResult)},
-					resultHistory: [],
+					toolUsed: ${JSON.stringify(toolUsed)},
 					tools: ${JSON.stringify(apis)},
 					query: ${query}
 				}
@@ -27,7 +26,8 @@ async function resultVerifier(state){
 							.
 							.
 							param_n_name: param_n_value,
-						}
+						},
+					"finalResult": "Final constructed result. Leave it blank if final result cannot be constructed"
 				}
 			`
 		}
@@ -42,7 +42,8 @@ async function resultVerifier(state){
 		"is_result_acceptable": response['is_result_acceptable'],
 		"prompt": response['prompt'],
 		"tool": response['tool'],
-		"next_node": response['tool']['name']
+		"next_node": response['tool']['name'],
+		"finalResult": result['finalResult']
 	}
 }
 

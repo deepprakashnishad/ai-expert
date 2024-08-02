@@ -17,6 +17,15 @@ var chatHistories = {};
 var chatHistory = [];
 var agents = {};
 
+function generateObjectId() {
+    const timestamp = Math.floor(Date.now() / 1000).toString(16); // 4-byte timestamp
+    const machineId = Math.floor(Math.random()*100000); // Placeholder for 5-byte machine identifier
+    const pid = Math.floor(Math.random()*1000);; // Placeholder for 3-byte process identifier
+    const increment = ('000000' + Math.floor(Math.random() * 0xFFFFFF).toString(16)).slice(-6); // 3-byte counter
+
+    return timestamp + machineId + pid + increment;
+}
+
 module.exports = {
 
 	create: async function(req, res){
@@ -256,6 +265,20 @@ module.exports = {
 	},
 
 	langGraphChat: async function(req, res){
+		var path = `uploads/pdfs/test.pdf`;
+		var x = `
+	    		<a href="${sails.config.custom.baseUrl}/${path}" target="_blank">
+	    			<i class="fa-duotone fa-solid fa-file-pdf fa-beat fa-2xl" style="--fa-primary-color: #ff3300; --fa-secondary-color: #1e00ff;"></i>
+	    		</a>
+	    		<div style="margin-top:15px">Document Title</div>
+		        <div class="doc-actions" style="text-align: right">
+		            <a href="${sails.config.custom.baseUrl}/${path}" target="_blank"><i class="fas fa-eye"></i></a>
+		            <a href="${sails.config.custom.baseUrl}/${path}" download target="_blank"><i class="fas fa-download"></i></a>
+		        </div>
+    		`;
+	    return res.successResponse({result: x, chatId: "iasdfoim3jrwfasifn39r"}, 200, null, true, "Processing Completed");	
+
+
 		var lChatHistory = {ch: []};
 
 		if(!req.body.chatId){
@@ -305,7 +328,8 @@ module.exports = {
 							"finalResult": lChatHistory.graphState.finalResult,
 							"conversation": lChatHistory.graphState.conversation,
 							"lastExecutedNode": lChatHistory.graphState.lastExecutedNode,
-							"user": lChatHistory.graphState.user
+							"user": lChatHistory.graphState.user,
+							"toolUsed": lChatHistory.graphState.toolUsed
 						});
 		}else{
 			var conversation = [{"role": "user", "content": query}];
@@ -449,8 +473,12 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		var result = await toolLib.getFromOdoo('res.users', {ids: [1]});
-		return res.json(result);
+		var path = `generatedDocs/${generateObjectId()}.pdf`;
+		var finalResult = `
+	    		<p>Pdf document is created successfully.</p>
+	    		<a href="${process.env.BASE_URL}${path}">${process.env.BASE_URL}${path}</a>
+    		`;
+	    return res.successResponse({result: finalResult, chatId: "iasdfoim3jrwfasifn39r"}, 200, null, true, "Processing Completed");	
 	},
 
 	invoiceGenerator: async function(req, res){
