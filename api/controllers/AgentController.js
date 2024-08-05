@@ -265,7 +265,7 @@ module.exports = {
 	},
 
 	langGraphChat: async function(req, res){
-		var path = `uploads/pdfs/test.pdf`;
+		/*var path = `uploads/pdfs/test.pdf`;
 		var x = `
 	    		<a href="${sails.config.custom.baseUrl}/${path}" target="_blank">
 	    			<i class="fa-duotone fa-solid fa-file-pdf fa-beat fa-2xl" style="--fa-primary-color: #ff3300; --fa-secondary-color: #1e00ff;"></i>
@@ -276,7 +276,7 @@ module.exports = {
 		            <a href="${sails.config.custom.baseUrl}/${path}" download target="_blank"><i class="fas fa-download"></i></a>
 		        </div>
     		`;
-	    return res.successResponse({result: x, chatId: "iasdfoim3jrwfasifn39r"}, 200, null, true, "Processing Completed");	
+	    return res.successResponse({result: x, chatId: "iasdfoim3jrwfasifn39r"}, 200, null, true, "Processing Completed");	*/
 
 
 		var lChatHistory = {ch: []};

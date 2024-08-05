@@ -11,6 +11,7 @@ const {findMissingParams} = require('./utils');
 
 const axios = require('axios');
 const puppeteer = require("puppeteer");
+const path = require('path');
 
 function generateObjectId() {
     const timestamp = Math.floor(Date.now() / 1000).toString(16); // 4-byte timestamp
@@ -334,8 +335,8 @@ module.exports = {
 			</body>
 			</html>`;
 
-		var path = `generatedDocs/${generateObjectId()}.pdf`;
-		const outputPath = path.join(sails.config.paths.assets, path);
+		var mPath = `generatedDocs/${generateObjectId()}.pdf`;
+		const outputPath = path.join(sails.config.paths.assets, mPath);
 
 		var messages = [
 			{
@@ -382,8 +383,14 @@ module.exports = {
 
 	    return {
 	    	"finalResult": `
-	    		<p>Pdf document is created successfully.</p>
-	    		<a href="${process.env.BASE_URL}${path}">${process.env.BASE_URL}${path}</a>
+	    		<a href="${sails.config.custom.baseUrl}/${mPath}" target="_blank">
+	    			<i class="fa-duotone fa-solid fa-file-pdf fa-beat fa-2xl" style="--fa-primary-color: #ff3300; --fa-secondary-color: #1e00ff;"></i>
+	    		</a>
+	    		<div style="margin-top:15px">Document Title</div>
+		        <div class="doc-actions" style="text-align: right">
+		            <a href="${sails.config.custom.baseUrl}/${mPath}" target="_blank"><i class="fas fa-eye"></i></a>
+		            <a href="${sails.config.custom.baseUrl}/${mPath}" download target="_blank"><i class="fas fa-download"></i></a>
+		        </div>
     		`,
 	    	"lastExecutedNode": "pdfGenerator"
 	    }

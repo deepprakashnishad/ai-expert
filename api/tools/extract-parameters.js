@@ -25,13 +25,26 @@ Optional parameters: {optionalParams}`,
     ["human", `Query: {query}`],
   ]);*/
 
-  const messages = 
+  /*const messages = 
     [
       {
         "role": "system",
         "content": `You are an expert software engineer. You are provided with list of parameters whose values need to be extracted from the conversation provided between user and assistant. 
         Your task is to extract values of the parameters from the conversation provided. Also ensure that value matches the type of the parameter provided. In case you do NOT find value for a parameter then skip it and do not include in your result untill a default value is provided in the parameter list. Return an empty object if values for none of the parameters are found. Also DO  NOT INSERT parameters on your own and do not introduce any values of parameters on your own. Response must be in json format.
             Parameters: [{params}]`
+      },
+      {
+        "role": "user",
+        "content": `{query}`
+      }
+  ];*/
+
+  const messages = 
+    [
+      {
+        "role": "system",
+        "content": `Given a conversation and a list of parameters with types, extract and return parameter values as a JSON object. Omit parameters without values or mismatched types.
+          Parameters: [{params}]`
       },
       {
         "role": "user",

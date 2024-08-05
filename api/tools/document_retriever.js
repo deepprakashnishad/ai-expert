@@ -28,7 +28,7 @@ async function document_retriever(state){
 				},
 			    "path": "e",
 			    "numCandidates": 200,
-			    "limit": 3,
+			    "limit": 2,
 			    "index": "cvectorIndex",
 			    "distanceMetric": "cosine"
 				}
@@ -76,7 +76,7 @@ async function document_retriever(state){
 		}
 	]*/
 
-	var messages = [
+	/*var messages = [
 		{
 			"role": "system",
 			"content": `You are an assistant bot who can chat in any language of the world. You should greet users, introduce yourself and tell them how can you help them when they say Hi, Hello etc. User may ask queries in any language. Understand the user's query and then answer in his language by extracting relevant information from the provided info.
@@ -84,6 +84,15 @@ async function document_retriever(state){
 				Your answer should be in context of the provided info and conversation in progress only. You should not add inputs from your side but you understand the info provided and try to answer the query in this context. Answer in as much detail as possible. In case related information is not present in info provided below or in past messages simply tell user that you don't have any idea of it or some similar reply.
 
 				Your answer  must be contained in basic html tags so that it is presented to user in best possible user friendly way. Replace with newline character with <br> or <div> or <p> tags can be used, points should be return as ordered or unordered list.\n
+				{info: ${JSON.stringify(matchedInfo)}}
+			`
+		}
+	]*/
+
+	var messages = [
+		{
+			"role": "system",
+			"content": `Be a multilingual assistant. Greet users, introduce yourself, and offer help. Respond to user queries in their language using provided info. If lacking info, suggest helpful actions. Format answers using HTML tags for clarity.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}
