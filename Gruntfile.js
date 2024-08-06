@@ -19,5 +19,4 @@ module.exports = function(grunt) {
   // Load Grunt task configurations (from `tasks/config/`) and Grunt
   // task registrations (from `tasks/register/`).
   loadGruntTasks(__dirname, grunt);
-
 };
