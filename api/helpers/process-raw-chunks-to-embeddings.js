@@ -96,10 +96,29 @@ module.exports = {
         }
         
         temp = [];
+        temp.push(inputText);
       }else{
         temp.push(inputText);
+        inputText="";
       }
     }
+    
+    if(temp.length>0){
+      var embResult = await sails.helpers.chatGptEmbedding.with({inputTextArray: temp, userId: inputs.personId});   
+      for(var embedding of embResult){
+        embeddingData.push({
+          p: inputs.personId, 
+          b:inputs.botId, 
+          it: temp[embedding.index], 
+          e: embedding.embedding, 
+          a: inputs.agentId, 
+          md: inputs.metadata,
+          cid: inputs.clientId,
+          d: inputs.doc_id
+        });
+      }
+    }
+
     if(embeddingData.length>0){
       await Cvector.createEach(embeddingData);
     }

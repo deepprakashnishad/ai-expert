@@ -17,18 +17,20 @@ async function document_retriever(state){
 
 	const cvectorColl = Cvector.getDatastore().manager.collection(Cvector.tableName);
 
+	console.log(quesEmbeddingData);
+
 	var matchedInfo = await cvectorColl.aggregate([
 			{
 				"$vectorSearch": {
 			    "queryVector": quesEmbeddingData,
-			    "filter": {
+			    /*"filter": {
 				    "cid": {
 				      "$eq": user.appId.toString() // Filter by the category ID
 				    }
-				},
+				},*/
 			    "path": "e",
 			    "numCandidates": 200,
-			    "limit": 2,
+			    "limit": 10,
 			    "index": "cvectorIndex",
 			    "distanceMetric": "cosine"
 				}
@@ -48,9 +50,18 @@ async function document_retriever(state){
 					"updatedAt": 0,
 					"score": { $meta: "vectorSearchScore" }
 				}
-			}
-		]).toArray()
+			},
+			{
+		        "$sort": {
+		            "score": -1 // Sort by score in descending order
+		        }
+		    },
+		    {
+		        "$limit": 5 // Limit the results to 5
+		    }
+		]).toArray();
 
+	console.log(matchedInfo);
 	/*const matchedInfo = await pineconeIndex.query({
 		topK: 5,
 		vector: quesEmbeddingData,
@@ -92,7 +103,7 @@ async function document_retriever(state){
 	var messages = [
 		{
 			"role": "system",
-			"content": `Be a multilingual assistant. Greet users, introduce yourself, and offer help. Respond to user queries in their language using provided info. If lacking info, suggest helpful actions. Format answers using HTML tags for clarity.\n
+			"content": `Be an chatbot assistant. You must only respond to user queries in the user's language using provided info only. If lacking info, suggest helpful actions. Format answers using HTML tags like <p>, <ul>, <li>, <h2>, <div> etc.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}
@@ -105,20 +116,11 @@ async function document_retriever(state){
 		messages = messages.concat(conversation);
 	}
 
-	console.log(messages);
-
-	// messages.push({"role": "user", "content": query});
-
 	var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
 
 	result = result[0]['message']['content'];
 
-	// conversation.push({"role":"user", "content": query});
 	conversation.push({"role":"assistant", "content": result});
-
-	console.log(conversation);
-
-	// state['conversation'] = JSON.stringify(conversation);
 
 	await ChatHistory.update({"id": chatId}, {"graphState": state});
 

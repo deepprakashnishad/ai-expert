@@ -22,11 +22,10 @@ const pinecone = new Pinecone({apiKey: sails.config.custom.PINECONE_API_KEY});
 
 const pineconeIndex = pinecone.Index('ragdoc');
 
-async function splitter(loader){
+async function splitter(loader, delimeter){
 	const docs = await loader.load();
-	console.log(docs);
-	var splits = await sails.helpers.getTextInChunks.with({"text": docs[0].pageContent});
-
+	var splits = await sails.helpers.getTextInChunks.with({"text": docs[0].pageContent, "logicalDelimeters": loader.parsedItemSeparator});
+	console.log(splits);
 	/*const textSplitter = new RecursiveCharacterTextSplitter({
 	  chunkSize: 1000,
 	  chunkOverlap: 200,
@@ -134,12 +133,10 @@ module.exports = {
 			    }
 			    var file = files[0];
 			    const loader = new PDFLoader(file['fd'], {
-				  parsedItemSeparator: "\n",
+				  parsedItemSeparator: '\n\n\n',
 				});	
 				const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf", "clientId": req.body.appId}).fetch();
-
 				var result = await splitter(loader);
-				return res.json(result);
 				var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
 					chunks: result.rawChunks,
 					metadata: {
@@ -168,7 +165,7 @@ module.exports = {
 						doc_id: mDoc.id,
 						clientId: req.body.appId
 					})
-				}*/  	
+				}  	*/
 
 		        return res.json({
 			        message: files.length + ' file(s) uploaded successfully!',
