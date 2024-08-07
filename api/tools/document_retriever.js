@@ -11,13 +11,13 @@ async function document_retriever(state){
 
 	var { llm, query, conversation, chatId, user } = state;
 
-	var result = await sails.helpers.chatGptEmbedding.with({inputTextArray: [query]});
+	var userQuery = conversation[conversation.length-1]['content'];
+
+	var result = await sails.helpers.chatGptEmbedding.with({inputTextArray: [userQuery]});
 
 	quesEmbeddingData = result[0].embedding;
 
 	const cvectorColl = Cvector.getDatastore().manager.collection(Cvector.tableName);
-
-	console.log(quesEmbeddingData);
 
 	var matchedInfo = await cvectorColl.aggregate([
 			{
@@ -30,7 +30,7 @@ async function document_retriever(state){
 				},*/
 			    "path": "e",
 			    "numCandidates": 200,
-			    "limit": 10,
+			    "limit": 5,
 			    "index": "cvectorIndex",
 			    "distanceMetric": "cosine"
 				}
@@ -55,9 +55,6 @@ async function document_retriever(state){
 		        "$sort": {
 		            "score": -1 // Sort by score in descending order
 		        }
-		    },
-		    {
-		        "$limit": 5 // Limit the results to 5
 		    }
 		]).toArray();
 
@@ -111,7 +108,7 @@ async function document_retriever(state){
 
 	if(!conversation){
 		conversation = [];
-		messages.push({"role": "user", "content": query});
+		messages.push({"role": "user", "content": userQuery});
 	}else{
 		messages = messages.concat(conversation);
 	}
