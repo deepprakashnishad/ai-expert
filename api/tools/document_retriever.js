@@ -100,7 +100,7 @@ async function document_retriever(state){
 	var messages = [
 		{
 			"role": "system",
-			"content": `Be an chatbot assistant. You must only respond to user queries in the user's language using provided info only. If lacking info, suggest helpful actions. Format answers using HTML tags like <p>, <ul>, <li>, <h2>, <div> etc.\n
+			"content": `Be an chatbot assistant. You must only respond to user queries in the user's language using provided info only. If lacking info, suggest helpful actions, never use word 'Sorry' or never say you don't have the information rather use some positive statements to engage the user. Format answers using HTML tags like <p>, <ul>, <li>, <h2>, <div> etc.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}
