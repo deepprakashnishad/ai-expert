@@ -23,11 +23,11 @@ async function document_retriever(state){
 			{
 				"$vectorSearch": {
 			    "queryVector": quesEmbeddingData,
-			    /*"filter": {
+			    "filter": {
 				    "cid": {
 				      "$eq": user.appId.toString() // Filter by the category ID
 				    }
-				},*/
+				},
 			    "path": "e",
 			    "numCandidates": 200,
 			    "limit": 5,
