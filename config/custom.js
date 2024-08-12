@@ -45,6 +45,22 @@ module.exports.custom = {
     port: 5432, // default PostgreSQL port
   },
 
+  // ODOO: {
+  //   host: 'localhost',
+  //   port: 8069,
+  //   db: 'ecmps',
+  //   username: 'admin',
+  //   password: 'admin'
+  // },
+
+  ODOO: {
+    https: true,
+    host: 'odoo-164786-0.cloudclusters.net',
+    db: 'eCPMS',
+    username: 'vipin@astratechsystems.com',
+    password: 't0cCmj7x'
+  },
+
   ROCKET_CHAT: {
 
     USERNAME: "deepnishad",

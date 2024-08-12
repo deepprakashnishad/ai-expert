@@ -19,6 +19,32 @@ var Odoo = function (config) {
   this.password = config.password;
 };
 
+Odoo.prototype.connectRestApi = async function(){
+  var url = `${this.host}:${this.port}/web/session/authenticate`;
+  var params = {
+    "jsonrpc": "2.0",
+    "method": "call",
+    "params": {
+        "db": this.database,
+        "login": this.username,
+        "password": this.password
+    }
+  };
+  var headers = {
+    content: "application/json"
+  }
+
+  const result = await axios.post(url, {
+    "jsonrpc": "2.0",
+    "method":"call",
+    "params": params
+  }, {
+    "headers": headers
+  });
+
+  console.log(result);
+};
+
 // Connect
 Odoo.prototype.connect = async function (cb) {
   var params = {

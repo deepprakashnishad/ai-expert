@@ -242,6 +242,16 @@ module.exports = {
 	pdfGenerator: async function(state){
 		var {llm, finalResult, query} = state;
 
+		if(!finalResult){
+			return {
+		    	"finalResult": `
+		    		<p>No result obtained for the given details</p>
+	    		`,
+		    	"lastExecutedNode": "pdfGenerator"
+		    }	
+		}
+		
+
 		if(typeof finalResult === "object"){
 			finalResult = JSON.stringify(finalResult);
 		}

@@ -24,8 +24,11 @@ const pineconeIndex = pinecone.Index('ragdoc');
 
 async function splitter(loader, delimeter){
 	const docs = await loader.load();
-	var splits = await sails.helpers.getTextInChunks.with({"text": docs[0].pageContent, "logicalDelimeters": loader.parsedItemSeparator});
-	console.log(splits);
+	var splits = [];
+	for(var doc of docs){
+		var temp = await sails.helpers.getTextInChunks.with({"text": doc.pageContent, "logicalDelimeters": loader.parsedItemSeparator});
+		splits = splits.concat(temp);
+	}
 	/*const textSplitter = new RecursiveCharacterTextSplitter({
 	  chunkSize: 1000,
 	  chunkOverlap: 200,
@@ -135,8 +138,10 @@ module.exports = {
 			    const loader = new PDFLoader(file['fd'], {
 				  parsedItemSeparator: '\n\n\n',
 				});	
+				// const mDoc = {id: "temp.pdf"};
 				const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf", "clientId": req.body.appId}).fetch();
 				var result = await splitter(loader);
+				// return res.successResponse({data: result}, 200, null, true, "Website scrapped and information has been processed");
 				var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
 					chunks: result.rawChunks,
 					metadata: {

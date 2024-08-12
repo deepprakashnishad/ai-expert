@@ -1,14 +1,15 @@
 var Odoo = require('./odoo/index.js');
 const axios = require('axios');
 
-var odooProtocol = "http";
+var odooProtocol = sails.config.custom.ODOO.https? "https": "http";
 
 var odoo = new Odoo({
-  	host: 'localhost',
-	port: 8069,
-	database: 'ecmps',
-	username: 'admin',
-	password: 'admin'
+	https: sails.config.custom.ODOO.https,
+  	host: sails.config.custom.ODOO.host,
+	port: sails.config.custom.ODOO.port,
+	database: sails.config.custom.ODOO.db,
+	username: sails.config.custom.ODOO.username,
+	password: sails.config.custom.ODOO.password
 });
 
 async function connectToOdoo(){
@@ -299,13 +300,17 @@ async function odooExecutor(state){
 	if(!toolUsed){
 		toolUsed = []	
 	}
-	toolUsed.push({"tool": bestApi, "result": result['result']['records']})
-	
+
+	if(result['result']){
+		toolUsed.push({"tool": bestApi, "result": result['result']['records']})
+	}else{
+		toolUsed.push({"tool": bestApi, "result": undefined})
+	}	
 
 	return {
 		lastExecutedNode: "odooExecutor",
 		toolUsed: toolUsed,
-		finalResult: result['result']['records']
+		finalResult: result['result']? result['result']['records']: undefined
 	}
 }
 
@@ -319,6 +324,12 @@ async function setInvoiceGenerator(state){
 
 async function getCompleteInvoiceDetail(state){
 	var {finalResult} = state;
+
+	if(!finalResult){
+		return {
+			finalResult: undefined
+		}
+	}
 
 	if(finalResult[0]['line_ids']){
 		var invoiceApi = await Tool.findOne({"name": "Odoo Invoice Detail Retriever"});
@@ -348,5 +359,6 @@ module.exports = {
 	odooApiSelector,	
 	odooExecutor,
 	setInvoiceGenerator,
-	getCompleteInvoiceDetail
+	getCompleteInvoiceDetail,
+	connectToOdoo
 }

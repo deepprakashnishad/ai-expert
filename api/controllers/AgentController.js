@@ -473,12 +473,8 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		var path = `generatedDocs/${generateObjectId()}.pdf`;
-		var finalResult = `
-	    		<p>Pdf document is created successfully.</p>
-	    		<a href="${process.env.BASE_URL}${path}">${process.env.BASE_URL}${path}</a>
-    		`;
-	    return res.successResponse({result: finalResult, chatId: "iasdfoim3jrwfasifn39r"}, 200, null, true, "Processing Completed");	
+		toolLib.connectToOdoo();
+	    return res.ok(200);	
 	},
 
 	invoiceGenerator: async function(req, res){
