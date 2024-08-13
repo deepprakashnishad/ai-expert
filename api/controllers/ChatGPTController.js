@@ -95,9 +95,9 @@ module.exports = {
 			embeddingData[embedding.index] = {p: req.body.personId, it: req.body.data[embedding.index], e: embedding.embedding};
 		}
 
-		await Cvector.createEach(embeddingData);
+		// await Cvector.createEach(embeddingData);
 	
-		return res.successResponse({}, 200, null, true, "Embeddings created");
+		return res.successResponse({"embedding": result}, 200, null, true, "Embeddings created");
 	},
 
 	genStrengthWeakness: async function(req, res){
