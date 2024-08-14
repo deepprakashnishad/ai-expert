@@ -29,20 +29,33 @@ module.exports.custom = {
 
   RAGDOC: "55Ggb3N3rYT4GdUb370qJmH1Nlfm_o169Udjjjl6ESSZRn1tW4hUzg",
 
-  /*SQL_DB:{
-    user: 'postgres',
-    host: 'ecpms.cbsugemiw2rk.us-east-2.rds.amazonaws.com',
-    database: 'ecpms',
-    password: 'A2mw0bdod#1',
-    port: 5432, // default PostgreSQL port
-  },*/
+  // SQL_DB:{
+  //   dbType: "mysql",
+  //   user: 'sql12725872',
+  //   host: 'sql12.freesqldatabase.com',
+  //   database: 'sql12725872',
+  //   password: 'Xf2UVZYtmS',
+  //   port: 3306, // default PostgreSQL port
+  // },
 
+  // SQL_DB:{
+  //   dbType: "postgres",
+  //   user: 'demo',
+  //   host: 'localhost',
+  //   database: 'ecmps',
+  //   password: 'demo',
+  //   port: 5432, // default PostgreSQL port
+  // },
+
+  // postgresql://demo123:GuVym45v3yt2Uss53IwLzyHuU9qd3Y06@dpg-cqu9i4jv2p9s73d3mtdg-a.singapore-postgres.render.com/testdb_2wby
   SQL_DB:{
-    user: 'demo',
-    host: 'localhost',
-    database: 'ecmps',
-    password: 'demo',
+    dbType: "postgres",
+    user: 'demo123',
+    host: 'dpg-cqu9i4jv2p9s73d3mtdg-a.singapore-postgres.render.com',
+    database: 'testdb_2wby',
+    password: 'GuVym45v3yt2Uss53IwLzyHuU9qd3Y06',
     port: 5432, // default PostgreSQL port
+    is_ssl: true
   },
 
   // ODOO: {
@@ -59,6 +72,18 @@ module.exports.custom = {
     db: 'eCPMS',
     username: 'vipin@astratechsystems.com',
     password: 't0cCmj7x'
+  },
+
+  SHOPIFY: {
+    shop_name: "6cdc10-40",
+
+    admin_token: "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",
+
+    store_token: "81a53db4b8b9d2840d8c445c486a9bdb",
+
+    api_key: "33a12bf566722a928ad9e777d51ac463",
+
+    api_secret_key: "d7b3305c15a02b90f9b6fbac2122b7b6"
   },
 
   ROCKET_CHAT: {

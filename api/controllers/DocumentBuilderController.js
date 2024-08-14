@@ -141,7 +141,6 @@ module.exports = {
 				// const mDoc = {id: "temp.pdf"};
 				const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf", "clientId": req.body.appId}).fetch();
 				var result = await splitter(loader);
-				// return res.successResponse({data: result}, 200, null, true, "Website scrapped and information has been processed");
 				var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
 					chunks: result.rawChunks,
 					metadata: {
@@ -151,8 +150,6 @@ module.exports = {
 					doc_id: mDoc.id,
 					clientId: req.body.appId
 				});
-				return res.successResponse({data: vectorStore}, 200, null, true, "Website scrapped and information has been processed");
-
 				/*var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
 					chunks: splits,
 					doc_id: mDoc.id,
@@ -192,7 +189,7 @@ module.exports = {
 	},
 
 	getUploadedDocuments: async function(req, res){
-		var docs = await UploadedDocument.find();
+		var docs = await UploadedDocument.find({cid: req.query.appId});
 		return res.json(docs);
 	},
 

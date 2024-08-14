@@ -19,21 +19,20 @@ async function initializeDB(llm){
 	var datasource;
 
 	if(sails.config.environment === 'development'){
-		// const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
 		pool = new Pool({
 		  user: sails.config.custom.SQL_DB.user,
 		  host: sails.config.custom.SQL_DB.host,
 		  database: sails.config.custom.SQL_DB.database,
 		  password: sails.config.custom.SQL_DB.password,
 		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
-		  /*ssl: {
-		    rejectUnauthorized: true,
-		    ca: sslCert
-		  }*/
+		  ssl: {
+		    rejectUnauthorized: sails.config.custom.SQL_DB.is_ssl,
+		    // ca: sslCert
+		  }
 		});
 
 		datasource = new DataSource({
-		  type: "postgres",
+		  type: sails.config.custom.SQL_DB.dbType,
 		  host: sails.config.custom.SQL_DB.host,
 		  port: sails.config.custom.SQL_DB.port,
 		  username: sails.config.custom.SQL_DB.user,
@@ -41,10 +40,10 @@ async function initializeDB(llm){
 		  database: sails.config.custom.SQL_DB.database,
 		  synchronize: false,
 		  logging: false,
-		  /*ssl: {
-		    rejectUnauthorized: true,
-		    ca: sslCert
-		  }*/
+		  ssl: {
+		    rejectUnauthorized: sails.config.custom.SQL_DB.is_ssl,
+		    // ca: sslCert
+		  }
 		});	
 	}else{
 		//Specific to aws cert
@@ -62,7 +61,7 @@ async function initializeDB(llm){
 		});
 
 		datasource = new DataSource({
-		  type: "postgres",
+		  type: sails.config.custom.SQL_DB.dbType,
 		  host: sails.config.custom.SQL_DB.host,
 		  port: sails.config.custom.SQL_DB.port,
 		  username: sails.config.custom.SQL_DB.user,
@@ -89,6 +88,7 @@ async function initializeDB(llm){
 }
 
 async function execute_query(llm, query){
+	console.log("Initializing DB");
 	if(!db){
 		await initializeDB(llm);
 	}
@@ -257,16 +257,16 @@ async function sql_lang_graph_with_human_response(state){
 
 
 async function sql_lang_graph_db_query(state){
-	const {query, llm} = state;
+	const {llm, chatId, conversation} = state;
 
 	if(!sqlToolKit){	
 		await initializeDB(llm);
 	}
 
+	var query = conversation[conversation.length-1]['content'];
+
 	const schema = await get_schema();
 	const {tables} = schema;
-
-	console.log("SQL query node execution initiated");
 
 	var messages = [{"role": "system", "content":`Find list of useful tables from the provided list of tables for the given user query. Your response must be in json format as {useful_tables: array_of_table_names}. Given tables:
 		${tables.join("\n")}`},
@@ -275,8 +275,6 @@ async function sql_lang_graph_db_query(state){
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
 
 	var useful_tables = JSON.parse(response[0]['message']['content']);
-
-	console.log(`Useful tables are:\n ${useful_tables}`);
 
   	const formattedSchema = formatSchema(schema, useful_tables['useful_tables']);
 
@@ -301,19 +299,14 @@ async function sql_lang_graph_db_query(state){
 		state['conversation'] = [];
 	}
 
-	state.conversation.push({"role": "user", "content": query});
-	state.conversation.push({"role": "assistant", "content": response2['sql_query']});
-
-
-	console.log(`User Query: ${query}`);
-	console.log(`SQL from model: ${response2['sql_query']}`);
 	var final_query_result = await execute_query(llm, response2['sql_query']);
-	console.log(final_query_result);
 	state.conversation.push({"role": "assistant", "content": JSON.stringify(final_query_result)});
+
+	await ChatHistory.update({"id": chatId}, {"graphState": state});
+	
 	return {
 		lastExecutedNode: "sql_query_node",
-		finalResult: final_query_result,
-		conversation: state['conversation']
+		finalResult: final_query_result
 	}
 }
 

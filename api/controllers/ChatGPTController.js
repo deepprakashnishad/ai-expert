@@ -15,7 +15,14 @@ module.exports = {
 		        "content": "I'm researching WhatsApp for Business accounts. If I provide you a mobile number will you be able to help me determine if it is a business account."
 		    }
 		]
-		var result = await sails.helpers.callChatGpt.with({"messages": messages});
+		if(req.body.llm==="openai"){
+			var result = await sails.helpers.callChatGpt.with({"messages": messages});	
+		}else if(req.body.llm==="gemini"){
+			var result = await sails.helpers.callGemini.with({"messages": messages});	
+		}else if(req.body.llm==="anthropy"){
+			var result = await sails.helpers.callAnthropy.with({"messages": messages});	
+		}
+		
 		res.successResponse({data:result, "tempo": "high"}, 200, null, true, "Record found");
 	},
 

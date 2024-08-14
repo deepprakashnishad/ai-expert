@@ -397,21 +397,31 @@ module.exports = {
     baseUrl: 'https://ai-expert.onrender.com',
     internalEmailAddress: 'support@example.com',
 
-    SQL_DB:{
+    /*SQL_DB:{
       user: 'postgres',
       host: 'ecpms.cbsugemiw2rk.us-east-2.rds.amazonaws.com',
       database: 'ecpms',
       password: 'A2mw0bdod#1',
       port: 5432, // default PostgreSQL port
+    },*/
+
+    SQL_DB:{
+      dbType: "postgres",
+      user: 'demo123',
+      host: 'dpg-cqu9i4jv2p9s73d3mtdg-a.singapore-postgres.render.com',
+      database: 'testdb_2wby',
+      password: 'GuVym45v3yt2Uss53IwLzyHuU9qd3Y06',
+      port: 5432, // default PostgreSQL port
+      is_ssl: true
     },
 
-   ODOO: {
-    https: true,
-    host: 'odoo-164786-0.cloudclusters.net',
-    db: 'eCPMS',
-    username: 'vipin@astratechsystems.com',
-    password: 't0cCmj7x'
-  },
+    ODOO: {
+      https: true,
+      host: 'odoo-164786-0.cloudclusters.net',
+      db: 'eCPMS',
+      username: 'vipin@astratechsystems.com',
+      password: 't0cCmj7x'
+    },
 
     // sendgridSecret: 'SG.fake.3e0Bn0qSQVnwb1E4qNPz9JZP5vLZYqjh7sn8S93oSHU',
     // stripeSecret: 'sk_prod__fake_Nfgh82401348jaDa3lkZ0d9Hm',

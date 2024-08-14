@@ -291,8 +291,6 @@ module.exports = {
 
 		var stream;
 
-		console.log(lChatHistory.graphState)
-
 		if(lChatHistory.graphState){
 
 			lChatHistory.graphState.question = null;
@@ -459,8 +457,13 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		toolLib.connectToOdoo();
-	    return res.ok(200);	
+		const llm = new ChatOpenAI({
+		    modelName: "gpt-4-turbo-preview",
+		    temperature: 0,
+		});
+
+		var result = await toolLib.execute_query(llm, "SELECT * FROM customer LIMIT 10");
+	    return res.json(result);	
 	},
 
 	invoiceGenerator: async function(req, res){
