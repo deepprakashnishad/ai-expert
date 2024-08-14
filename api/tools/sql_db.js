@@ -56,7 +56,7 @@ async function initializeDB(llm){
 		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
 		  ssl: {
 		    rejectUnauthorized: true,
-		    ca: sslCert
+		    // ca: sslCert
 		  }
 		});
 
@@ -71,7 +71,7 @@ async function initializeDB(llm){
 		  logging: false,
 		  ssl: {
 		    rejectUnauthorized: true,
-		    ca: sslCert
+		    // ca: sslCert
 		  }
 		});	
 	}
