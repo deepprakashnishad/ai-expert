@@ -47,7 +47,7 @@ async function initializeDB(llm){
 		});	
 	}else{
 		//Specific to aws cert
-		const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
+		// const sslCert = fs.readFileSync('rds-combined-ca-bundle.pem').toString();
 		pool = new Pool({
 		  user: sails.config.custom.SQL_DB.user,
 		  host: sails.config.custom.SQL_DB.host,
