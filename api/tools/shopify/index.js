@@ -20,6 +20,10 @@ const shopifyOptions = {
 	autoLimit: true
 }
 
+console.log("From my code")
+
+console.log(shopifyOptions);
+
 const shopify = new Shopify(shopifyOptions);
 
 async function fetchProducts(){
