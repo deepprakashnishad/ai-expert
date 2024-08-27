@@ -11,8 +11,8 @@ const {GetCustomerOrders} = require("./get_customer_orders.js");
 
 const shopifyOptions = {
 	shopName: sails.config.custom.SHOPIFY.shop_name,
-	apiKey: sails.config.custom.SHOPIFY.api_key,
-	password: sails.config.custom.SHOPIFY.api_secret_key,
+	// apiKey: sails.config.custom.SHOPIFY.api_key,
+	// password: sails.config.custom.SHOPIFY.api_secret_key,
 	accessToken: sails.config.custom.SHOPIFY.admin_token,
 	remaining: 30,
 	current: 10,

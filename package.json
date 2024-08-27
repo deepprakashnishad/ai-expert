@@ -45,7 +45,7 @@
     "sails-hook-orm": "^4.0.0",
     "sails-hook-sockets": "^2.0.0",
     "sails-mongo": "^2.1.1",
-    "shopify-api-node": "^3.13.4",
+    "shopify-api-node": "^3.14.0",
     "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2",
     "typeorm": "^0.3.20",
