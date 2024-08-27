@@ -131,6 +131,7 @@ module.exports = {
 
     if(inputs.id === "Invoice Generator"){
       graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);
+      // graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
       graph.addNode("extract_params_node", toolsLib.extractParameters);
       graph.addNode("human_loop_node", toolsLib.requestParameters);
       graph.addNode("odooExecutor", toolsLib.odooExecutor)
@@ -144,6 +145,7 @@ module.exports = {
       graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
 
       graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
+      // graph.addConditionalEdges("odooExecutor", toolsLib.getNextNode);
 
       if(inputs.state && inputs.state.lastExecutedNode){
         graph.setEntryPoint(inputs.state.lastExecutedNode);  

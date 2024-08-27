@@ -189,7 +189,7 @@ module.exports = {
 	},
 
 	getUploadedDocuments: async function(req, res){
-		var docs = await UploadedDocument.find({cid: req.query.appId});
+		var docs = await UploadedDocument.find({clientId: req.query.appId});
 		return res.json(docs);
 	},
 

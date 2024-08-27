@@ -249,8 +249,6 @@ async function odooApiSelector(state){
 
   	var selected_apis = apis.filter(ele => selectedApiNames.apis.indexOf(ele.name) > -1);
 
-  	console.log(selected_apis);
-
   	return {
   		bestApi: selected_apis[0],
   		selected_apis: selected_apis,
@@ -301,7 +299,7 @@ async function odooExecutor(state){
 		toolUsed = []	
 	}
 
-	if(result['result']){
+	if(result && result['result']){
 		toolUsed.push({"tool": bestApi, "result": result['result']['records']})
 	}else{
 		toolUsed.push({"tool": bestApi, "result": undefined})
@@ -311,6 +309,20 @@ async function odooExecutor(state){
 		lastExecutedNode: "odooExecutor",
 		toolUsed: toolUsed,
 		finalResult: result['result']? result['result']['records']: undefined
+	}
+}
+
+async function getNextNode(state){
+	const {finalResult, next_node, bestApi} = state;
+
+	if(!finalResult){
+		return 'pdfGenerator';
+	}else if(next_node){
+		return next_node;
+	}else if(bestApi['next_node']){
+		return bestApi['next_node'];
+	}else{
+		return 'pdfGenerator';
 	}
 }
 
@@ -325,11 +337,13 @@ async function setInvoiceGenerator(state){
 async function getCompleteInvoiceDetail(state){
 	var {finalResult} = state;
 
-	if(!finalResult){
+	if(!finalResult || finalResult.length === 0){
 		return {
 			finalResult: undefined
 		}
 	}
+
+	console.log(finalResult);
 
 	if(finalResult[0]['line_ids']){
 		var invoiceApi = await Tool.findOne({"name": "Odoo Invoice Detail Retriever"});

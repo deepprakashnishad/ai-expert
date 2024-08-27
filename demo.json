@@ -1,4 +1,0 @@
-[{"prompt":"write a function to add 2 numbers\n\n","completion":"function addNumbers(num1, num2) {\n  return num1 + num2;\n}"},
-{"prompt":"write a function to substract 2 numbers","completion":"function subtractNumbers(num1, num2) {\n  return num1 - num2;\n}"},
-{"prompt":"Write a function to multiply 2 numbers","completion":"function multiplyNumbers(num1, num2) {\n  return num1 * num2;\n}"},
-{"prompt":"write a function to divide two numbers","completion":"function divideNumbers(dividend, divisor) {\n  // Check if divisor is not zero to avoid division by zero error\n  if (divisor === 0) {\n    throw new Error('Cannot divide by zero');\n  }\n  return dividend / divisor;\n}"}]

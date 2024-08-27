@@ -341,7 +341,6 @@ module.exports = {
 		      // console.log("Value(s): ", Object.values(event)[0]);
 		    }
 		}
-
 		if(finalResult.question){
 			res.successResponse({result: finalResult['question'], chatId: chatId}, 200, null, true, "Information required");	
 		}else if(finalResult.finalResult){
@@ -457,13 +456,13 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		const llm = new ChatOpenAI({
+		/*const llm = new ChatOpenAI({
 		    modelName: "gpt-4-turbo-preview",
 		    temperature: 0,
-		});
-
-		var result = await toolLib.execute_query(llm, "SELECT * FROM customer LIMIT 10");
-	    return res.json(result);	
+		});*/
+		response = await toolLib.mShopifyAgent(req.body.query);
+		
+	    return res.json(response);	
 	},
 
 	invoiceGenerator: async function(req, res){

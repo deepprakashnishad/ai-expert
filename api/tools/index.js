@@ -15,6 +15,7 @@ const document_retriever = require('./document_retriever.js');
 const { DynamicTool, DynamicStructuredTool } = require("@langchain/core/tools");
 const odoo = require('./odoo.js');
 const res_verifier = require('./result_verifier.js');
+const shopify = require('./shopify/index.js');
 
 const {TavilySearchResults} = require("@langchain/community/tools/tavily_search");
 
@@ -33,6 +34,7 @@ module.exports = {
   ...gmail,
   ...odoo,
   ...res_verifier,
+  ...shopify,
   // Include other modules similarly
 
   toolGeneratorFactory: async function(llm, tool){
