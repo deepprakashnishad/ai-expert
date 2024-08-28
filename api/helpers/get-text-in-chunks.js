@@ -13,12 +13,12 @@ module.exports = {
       required: true
     },
     chunkMaxLength: {
-    	type: "string",
-    	defaultsTo: "1000"
+    	type: "number",
+    	defaultsTo: 1000
     },
     overlapSize: {
       type: "number",
-      defaultsTo: 100
+      defaultsTo: 200
     },
     logicalDelimeters:{
       type:"json",
@@ -45,7 +45,7 @@ module.exports = {
 
       if((tempText.length + mChunk.length)>= inputs.chunkMaxLength && tempText.length>0){
         result.push(tempText);
-        tempText = "";
+        tempText = tempText.slice(-1*inputs.overlapSize);
       }
 
       if(mChunk.trim().length>0){
@@ -54,7 +54,7 @@ module.exports = {
     }
     if(tempText.length>0){
       result.push(tempText);
-      tempText = "";  
+      tempText = tempText.slice(-1*inputs.overlapSize);  
     }
     return exits.success(result);
   }

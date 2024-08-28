@@ -29,7 +29,9 @@ class GetCustomerOrders extends ShopifyBaseTool {
     }
 
     async _call(arg) {
-        const response = await this.shopify.customer.orders(arg);
+        var customer_id = arg['customer_id'];
+        delete arg['customer_id'];
+        const response = await this.shopify.customer.orders(customer_id, arg);
         return JSON.stringify(response);
     }
 }

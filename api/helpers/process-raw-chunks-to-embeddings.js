@@ -49,6 +49,10 @@ module.exports = {
     doc_id:{
       type: "string",
       required: true
+    },
+    chunksToInfoFlag: {
+      type: "boolean",
+      defaultsTo: true
     }
   },
 
@@ -62,7 +66,11 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     console.log("Converting raw data to useful information");
-    var infoArray = await sails.helpers.processChunksToInfo.with({chunks: inputs.chunks});
+    var infoArray = inputs.chunks;
+    if(inputs.chunksToInfoFlag){
+      infoArray = await sails.helpers.processChunksToInfo.with({chunks: inputs.chunks});
+    }
+    
     console.log("Useful information retrieved");
     var temp = [];
     var embeddingData = [];

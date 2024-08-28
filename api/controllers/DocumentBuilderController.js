@@ -25,10 +25,13 @@ const pineconeIndex = pinecone.Index('ragdoc');
 async function splitter(loader, delimeter){
 	const docs = await loader.load();
 	var splits = [];
+	var temp = "";
 	for(var doc of docs){
-		var temp = await sails.helpers.getTextInChunks.with({"text": doc.pageContent, "logicalDelimeters": loader.parsedItemSeparator});
-		splits = splits.concat(temp);
+		var temp = temp + doc.pageContent;
+		// splits = splits.concat(temp);
 	}
+
+	splits = await sails.helpers.getTextInChunks.with({"text": temp, "logicalDelimeters": loader.parsedItemSeparator});
 	/*const textSplitter = new RecursiveCharacterTextSplitter({
 	  chunkSize: 1000,
 	  chunkOverlap: 200,
@@ -148,27 +151,9 @@ module.exports = {
 						type: "pdf"
 					},
 					doc_id: mDoc.id,
-					clientId: req.body.appId
+					clientId: req.body.appId,
+					chunksToInfoFlag: false
 				});
-				/*var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
-					chunks: splits,
-					doc_id: mDoc.id,
-					clientId: req.body.appId
-				})*/
-				/*for(var file of files){
-					const loader = new PDFLoader(file['fd'], {
-					  parsedItemSeparator: "",
-					});	
-					const mDoc = await UploadedDocument.create({"title": file['filename'], "type": "pdf", "clientId": req.body.appId}).fetch();
-
-					var splits = await splitter(loader);
-					var vectorStore = await sails.helpers.processChunksToEmbeddings.with({
-						chunks: splits,
-						doc_id: mDoc.id,
-						clientId: req.body.appId
-					})
-				}  	*/
-
 		        return res.json({
 			        message: files.length + ' file(s) uploaded successfully!',
 			        files: files,

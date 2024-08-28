@@ -52,11 +52,6 @@ async function document_retriever(state){
 				}
 			},
 			{
-		        "$match": {
-		            "score": { "$gte": 0.80 } // Filter scores greater than or equal to 0.91
-		        }
-		    },
-			{
 		        "$sort": {
 		            "score": -1 // Sort by score in descending order
 		        }

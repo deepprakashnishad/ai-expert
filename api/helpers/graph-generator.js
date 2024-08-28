@@ -128,8 +128,17 @@ module.exports = {
     graph = new StateGraph({
       channels: graphChannels,
     });
+    if(inputs.id.toLowerCase() === "shopify"){
+      graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
+      graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
 
-    if(inputs.id === "Invoice Generator"){
+      graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
+      graph.addEdge("shopifyAgent", "response_formatter_node");
+      graph.setEntryPoint("getShopifyCustomerDetails");  
+      graph.setFinishPoint("response_formatter_node");
+    }
+    else if(inputs.id === "Invoice Generator"){
       graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);
       // graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
       graph.addNode("extract_params_node", toolsLib.extractParameters);
