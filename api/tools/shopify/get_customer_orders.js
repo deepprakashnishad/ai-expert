@@ -28,11 +28,40 @@ class GetCustomerOrders extends ShopifyBaseTool {
         });
     }
 
+    extractOrders(orders){
+        var fOrders = [];
+        for(var order of orders){
+            var temp = {};
+            temp["contact_email"] = order['contact_email'];
+            temp['created_at'] = order['created_at'];
+            temp['currency'] = order['currency'];
+            temp['subtotal_price'] = order['current_subtotal_price'];
+            temp['total_additional_fees_set'] = order['current_total_additional_fees_set'];
+            temp['total_discounts'] = order['current_total_discounts'];
+            temp['total_price'] = order['current_total_price'];
+            temp['total_tax'] = order['current_total_tax'];
+            temp['discount_codes'] = order['discount_codes'];
+            temp['email'] = order['email'];
+            temp['financial_status'] = order['financial_status'];
+            temp['fulfillment_status'] = order['fulfillment_status'];
+            temp['order_number'] = order['order_number'];
+            temp['order_status_url'] = order['order_status_url'];
+            temp['phone'] = order['phone'];
+            temp['tax_lines'] = order['tax_lines'];
+            temp['billing_address'] = order['billing_address'];
+            temp['line_items'] = order['line_items'];
+            temp['shipping_address'] = order['shipping_address'];
+            fOrders.push(temp);
+        }
+        return fOrders;
+    }
+
     async _call(arg) {
         var customer_id = arg['customer_id'];
         delete arg['customer_id'];
         const response = await this.shopify.customer.orders(customer_id, arg);
-        return JSON.stringify(response);
+        const orders = this.extractOrders(response);
+        return JSON.stringify(orders);
     }
 }
  

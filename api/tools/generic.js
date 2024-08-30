@@ -211,14 +211,31 @@ module.exports = {
 	responseFormatter: async function(state){
 		const {llm, query, finalResult} = state;
 
-		const prompt = `
+		/*const prompt = `
 			User Query: ${query}
 
 			Final Result: ${typeof finalResult==="string"? finalResult: JSON.stringify(finalResult)}
 
 			Please format this information into a well-structured response for a human to read. You should not add any information from your side. Just based on the user query and provided Final Result only you must produce the response. Make sure that response doesn't contains any type of json object and is in the form of html which can be displayed in best way to user.
 			For example any array of json can be displayed in html table, paragraph can be returned in <p> tags, Points can formatted using li tag etc.
-			`;
+			`;*/
+
+		/*const prompt = `Please format the following information into a well-structured HTML response for human readability. Ensure that the output is detailed and does not include any JSON objects and is presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
+
+			User Query: ${query}
+			Final Result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}`;*/
+
+		const prompt = `Please format the following information into a well-structured HTML response for human readability. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. 
+
+			User Query: ${query}
+			Final Result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
+
+			Output must be in following json format only:
+			{
+				html: "formatted_html_string",
+				is_pdf: true/false
+			}`;
+			
 
 		var messages = [
 			{
@@ -227,16 +244,36 @@ module.exports = {
 			}
 		]
 		console.log(messages)
-		var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
-		response = response[0]['message']['content'];
+		var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
+		response = JSON.parse(response[0]['message']['content']);
+		if(response['is_pdf']){
+			return {
+				"finalResult": response['html'],
+				"response": response['html'],
+				"next_node": "pdfGenerator"
+			};
+		}else{
+			return {
+				"finalResult": response['html'],
+				"response": response['html']
+			};
+		}
+		
 
 		// Call the language model
 		// const response = await llm.call(prompt);
 
-		return {
-			"finalResult": response,
-			"response": response
-		};
+		
+	},
+
+	isNextNode: function(state){
+		const {next_node} = state;
+
+		if(next_node){
+			return next_node;
+		}else{
+			return "__end__";
+		}
 	},
 
 	pdfGenerator: async function(state){
@@ -346,7 +383,7 @@ module.exports = {
 			</html>`;
 
 		var mPath = `generatedDocs/${generateObjectId()}.pdf`;
-		const outputPath = path.join(sails.config.paths.assets, mPath);
+		const outputPath = path.join(sails.config.paths.public, mPath);
 
 		var messages = [
 			{
@@ -376,19 +413,12 @@ module.exports = {
 			"response_format": "text"
 		});
 
-		console.log(result);
-
 		var responseContent = result[0]["message"]['content'];
-
-		console.log(responseContent);
 
 		const browser = await puppeteer.launch();
 	    const page = await browser.newPage();
 	    await page.setContent(responseContent);
 	    var res = await page.pdf({ path: outputPath, format: 'A4' });
-	    console.log("Pdf Result")
-	    console.log(res);
-
 	    await browser.close();
 
 	    return {

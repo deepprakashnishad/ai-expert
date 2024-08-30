@@ -132,11 +132,13 @@ module.exports = {
       graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
       graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
 
       graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
       graph.addEdge("shopifyAgent", "response_formatter_node");
-      graph.setEntryPoint("getShopifyCustomerDetails");  
-      graph.setFinishPoint("response_formatter_node");
+      graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
+      graph.setEntryPoint("getShopifyCustomerDetails"); 
+      graph.setFinishPoint("pdfGenerator"); 
     }
     else if(inputs.id === "Invoice Generator"){
       graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);

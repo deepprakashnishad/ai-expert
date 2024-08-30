@@ -34,6 +34,26 @@ class ShopifyGetProducts extends ShopifyBaseTool {
         });
     }
 
+    extractProduct(products){
+        var fProducts = [];
+        for(var prod of products){
+            var temp = {};
+            temp['id'] = prod['id'];
+            temp['title'] = prod['title'];
+            temp['body_html'] = prod['body_html'];
+            temp['vendor'] = prod['vendor'];
+            temp['product_type'] = prod['product_type'];
+            temp['status'] = prod['status'];
+            temp['variants'] = prod['variants'];
+            temp['options'] = prod['options'];
+            temp['image'] = prod['image'] && prod['image']['src']? prod['image']['src']:undefined;
+
+            fProducts.push(temp);
+        }
+
+        return fProducts;
+    }
+
     async _call(arg) {
         try{
             const response = await this.shopify.product.list(arg);

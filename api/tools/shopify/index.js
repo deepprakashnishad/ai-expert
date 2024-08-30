@@ -27,18 +27,20 @@ console.log(shopifyOptions);
 const shopify = new Shopify(shopifyOptions);
 
 async function fetchProducts(query){
-	try{
-		const response = await shopify.customer.orders(6831207317581, {"status": "any"});
+	var response;
+	/*try{
+		response = await shopify.customer.orders(6831207317581, {"status": "any"});
 
 		console.log(response);
 	}catch(e){
 		console.log(e);
-	}
+	}*/
 	
-	// var response = await shopify.customer.list();
-	// var response = await shopify.customer.search({email: query});
-	/*var response = await shopify.product
+	// response = await shopify.customer.list();
+	// response = await shopify.customer.search({email: query});
+	/*response = await shopify.product
 	  	.list({ limit: 5, "status": "active", "published_status": "published" });*/
+  	response = await shopify.collectionListing.list();
   	return response;
 }
 
