@@ -283,7 +283,7 @@ module.exports = {
 		var graphApp = await sails.helpers.graphGenerator.with({state: lChatHistory.graphState, id: req.body.agentId});
 
 		const llm = new ChatOpenAI({
-		    modelName: "gpt-4-turbo-preview",
+		    modelName: "gpt-3.5-turbo-0125", //"gpt-4-turbo-preview",
 		    temperature: 0,
 		});
 
@@ -460,7 +460,7 @@ module.exports = {
 		    modelName: "gpt-4-turbo-preview",
 		    temperature: 0,
 		});*/
-		response = await toolLib.fetchProducts(req.body.query);
+		response = await toolLib.mShopifyAgent(req.body.query);
 		
 	    return res.json(response);	
 	},

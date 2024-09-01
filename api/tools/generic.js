@@ -211,15 +211,6 @@ module.exports = {
 	responseFormatter: async function(state){
 		const {llm, query, finalResult} = state;
 
-		/*const prompt = `
-			User Query: ${query}
-
-			Final Result: ${typeof finalResult==="string"? finalResult: JSON.stringify(finalResult)}
-
-			Please format this information into a well-structured response for a human to read. You should not add any information from your side. Just based on the user query and provided Final Result only you must produce the response. Make sure that response doesn't contains any type of json object and is in the form of html which can be displayed in best way to user.
-			For example any array of json can be displayed in html table, paragraph can be returned in <p> tags, Points can formatted using li tag etc.
-			`;*/
-
 		/*const prompt = `Please format the following information into a well-structured HTML response for human readability. Ensure that the output is detailed and does not include any JSON objects and is presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
 
 			User Query: ${query}

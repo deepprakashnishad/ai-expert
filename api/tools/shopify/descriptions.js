@@ -1,64 +1,24 @@
-const GET_SOPIFY_ORDER_DESCRIPTION = `A tool for fetching orders in shopify.
+const GET_SOPIFY_ORDER_DESCRIPTION = `A tool for fetching orders in shopify.`;
 
-	INPUT example:
-	{
-	  "limit": 10,
-	  "status": "open"
-	}
+const GET_SOPIFY_PRODUCT_LIST_DESCRIPTION = `A tool for fetching products in shopify.`;
 
-	OUTPUT:
-	The output is a list of orders for the given condition.
-`;
+const GET_CUSTOMER_LIST = `A tool for fetching list of customers`;
 
-const GET_SOPIFY_PRODUCT_LIST_DESCRIPTION = `A tool for fetching products in shopify.
+const GET_CUSTOMER_DETAIL = `A tool for retrieving single customer`;
 
-	INPUT example:
-	{
-	  "limit": 10
-	}
+const GET_CUSTOMER_ORDERS = `A tool for retrieving orders of a customer`;
 
-	OUTPUT:
-	The output is a list of products for the given condition.
-`;
+const SEARCH_CUSTOMER = `A tool to search a customer for the given query`;
 
-const GET_CUSTOMER_LIST = `A tool for fetching list of customers
-	INPUT example:
-	{
-	  "limit": 10
-	}
+const CANCEL_ORDER = `A tool to cancel customer order`;
 
-	OUTPUT:
-	The output is a list of products for the given condition.
-`;
+const GET_REFUNDS = `This tool retrieves all refunds related to an order`;
 
-const GET_CUSTOMER_DETAIL = `A tool for retrieving single customer
-	INPUT example:
-	{
-	  "customer_id": 10
-	}
+const CALCULATE_REFUND = `This tool calculates refund for the given orderId`;
 
-	OUTPUT:
-	The output is a details of the customer whose id is provived. Output must be in json format
-`;
+const GET_PRODUCT_VARIANTS = `This tool fetch variants of the given product id`;
 
-const GET_CUSTOMER_ORDERS = `A tool for retrieving orders of a customer
-	INPUT example:
-	{
-	  "customer_id": 10,
-	  "status": "open"
-	}
-
-	OUTPUT: List of orders for the given customer.
-`;
-
-const SEARCH_CUSTOMER = `A tool to search a customer for the given query
-	INPUT example:
-	{
-	  "limit": 10
-	}
-
-	OUTPUT: List of orders for the given customer.
-`;
+const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order.`;
 
 module.exports = {
 	GET_SOPIFY_ORDER_DESCRIPTION,
@@ -66,5 +26,10 @@ module.exports = {
 	GET_CUSTOMER_LIST,
 	GET_CUSTOMER_DETAIL,
 	GET_CUSTOMER_ORDERS,
-	SEARCH_CUSTOMER
+	SEARCH_CUSTOMER,
+	CANCEL_ORDER,
+	GET_REFUNDS,
+	CALCULATE_REFUND,
+	GET_PRODUCT_VARIANTS,
+	GET_ORDER_FULFILLMENT
 }

@@ -74,11 +74,9 @@ async function document_retriever(state){
 			"role": "system",
 			"content": `Be a chatbot assistant. Use the following guidelines to chat:
 
-			1. Detect language of the user's query.
-			2. Ensure your response is clear, accurate, and directly addresses the user's query from the provided info only.
-			3. If the provided info is not sufficient, suggest helpful actions or next steps. Do not use the word "Sorry" or express regret. NEVER add information from your side.
-			4. Translate your response to user's language detected in step 1.
-			5. Use HTML tags like <p>, <ul>, <li>, <h2>, <div>, etc., to format your answers properly.\n
+			1. Ensure your response is clear, accurate, and directly addresses the user's query from the provided info only.
+			2. If the provided info is not sufficient, suggest helpful actions or next steps. Do not use the word "Sorry" or express regret. NEVER add information from your side.
+			3. Use HTML tags like <p>, <ul>, <li>, <h2>, <div>, etc., to format your answers properly.\n
 				{info: ${JSON.stringify(matchedInfo)}}
 			`
 		}

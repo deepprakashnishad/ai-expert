@@ -12,6 +12,12 @@ class ShopifyGetProducts extends ShopifyBaseTool {
             writable: true,
             value: "retrieve_shopify_products"
         });
+        Object.defineProperty(this, "description", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: GET_SOPIFY_PRODUCT_LIST_DESCRIPTION
+        });
         Object.defineProperty(this, "schema", {
             enumerable: true,
             configurable: true,
@@ -26,12 +32,6 @@ class ShopifyGetProducts extends ShopifyBaseTool {
                 ids: z.string().array().optional(),
             })
         });
-        Object.defineProperty(this, "description", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: GET_SOPIFY_PRODUCT_LIST_DESCRIPTION
-        });
     }
 
     extractProduct(products){
@@ -42,6 +42,8 @@ class ShopifyGetProducts extends ShopifyBaseTool {
             temp['title'] = prod['title'];
             temp['body_html'] = prod['body_html'];
             temp['vendor'] = prod['vendor'];
+            temp['handle'] = prod['handle'];
+            temp['link'] = `${this.baseUrl}products/${temp['handle']}`;
             temp['product_type'] = prod['product_type'];
             temp['status'] = prod['status'];
             temp['variants'] = prod['variants'];
@@ -57,7 +59,6 @@ class ShopifyGetProducts extends ShopifyBaseTool {
     async _call(arg) {
         try{
             const response = await this.shopify.product.list(arg);
-            console.log(response);
             return JSON.stringify(response);    
         }catch(ex){
             console.log(ex);

@@ -6,6 +6,7 @@ const { getEnvironmentVariable } = require("@langchain/core/utils/env");
 class ShopifyBaseTool extends StructuredTool {
     constructor(fields) {
         super(...arguments);
+        this.baseUrl = fields['baseUrl'];
         Object.defineProperty(this, "CredentialsSchema", {
             enumerable: true,
             configurable: true,
@@ -43,6 +44,12 @@ class ShopifyBaseTool extends StructuredTool {
             writable: true,
             value: "A tool to perform operations related to shopify"
         });
+        Object.defineProperty(this, "baseUrl", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: fields['baseUrl']
+        })
         this.shopify = this.getShopify(this.CredentialsSchema.parse(fields));
     }
 

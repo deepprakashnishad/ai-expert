@@ -2,12 +2,17 @@ const Shopify = require('shopify-api-node');
 const {ChatOpenAI} = require("@langchain/openai");
 // export {ShopifyGetOrders} from './get_order.js';
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
-const {ShopifyGetOrders} = require("./get_order.js");
+const {ShopifyGetOrders} = require("./get_order_list.js");
 const {ShopifyGetProducts} = require("./get_product_list.js");
 const {GetCustomerDetail} = require("./get_customer_detail.js");
 const {GetCustomerList} = require("./get_customer_list.js");
 const {SearchCustomers} = require("./get_customers_by_query.js");
 const {GetCustomerOrders} = require("./get_customer_orders.js");
+const {ShopifyGetOrderFulfillment} = require("./get_order_fulfillment.js");
+const {ShopifyCancelOrder} = require("./cancel_order.js");
+const {ShopifyGetProductVariants} = require("./get_product_variants.js");
+const {ShopifyGetRefunds} = require("./get_refunds.js")
+const {ShopifyCalculateRefund} = require("./calculate_refund.js")
 
 const shopifyOptions = {
 	shopName: sails.config.custom.SHOPIFY.shop_name,
@@ -17,7 +22,8 @@ const shopifyOptions = {
 	remaining: 30,
 	current: 10,
 	max: 40,
-	autoLimit: true
+	autoLimit: true,
+	baseUrl: "https://6cdc10-40.myshopify.com/"
 }
 
 console.log("From my code")
@@ -28,6 +34,13 @@ const shopify = new Shopify(shopifyOptions);
 
 async function fetchProducts(query){
 	var response;
+	try{
+		response = await shopify.order.fulfillmentOrders(1003);
+
+		console.log(response);
+	}catch(e){
+		console.log(e);
+	}
 	/*try{
 		response = await shopify.customer.orders(6831207317581, {"status": "any"});
 
@@ -40,7 +53,7 @@ async function fetchProducts(query){
 	// response = await shopify.customer.search({email: query});
 	/*response = await shopify.product
 	  	.list({ limit: 5, "status": "active", "published_status": "published" });*/
-  	response = await shopify.collectionListing.list();
+  	// response = await shopify.collectionListing.list();
   	return response;
 }
 
@@ -79,16 +92,34 @@ async function shopifyAgent(state){
 	var getProductListTool = new ShopifyGetProducts(shopifyOptions);
 	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
 	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
-	var searchCustomersTool = new SearchCustomers(shopifyOptions);
+	var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
+	var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
+	var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
+	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
+	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
 
-	const tools = [getProductListTool, getCustomerDetailTool, getCustomerOrderTool];
+	const tools = [
+		getProductListTool, 
+		getCustomerDetailTool, 
+		getCustomerOrderTool, 
+		getOrderFulfillment,
+		calculateRefund,
+		cancelOrder,
+		getProductVariants,
+		getRefunds
+	];
 
 	const shopifyAgent = await initializeAgentExecutorWithOptions(tools, llm, {
 	    agentType: "structured-chat-zero-shot-react-description",
 	    verbose: true,
 	});
 
-	userQuery = `${userQuery}. Customer id is ${user.id}. Note: Do not modify the output. Simply return what you receive from the tool.`;
+	if(user && user.id){
+		userQuery = `${userQuery}. Customer id is ${user.id}. Note: Do not modify the output. Simply return what you receive from the tool.`;	
+	}else{
+		userQuery = `${userQuery}. Note: Do not modify the output. Simply return what you receive from the tool.`;	
+	}
+	
 
 	const result = await shopifyAgent.invoke({ input: userQuery });
 
@@ -99,18 +130,32 @@ async function shopifyAgent(state){
 
 async function mShopifyAgent(query){
 	const llm = new ChatOpenAI({
-	    modelName: "gpt-4-turbo-preview",
+	    modelName: "gpt-3.5-turbo-0125",//"gpt-4-turbo-preview",
 	    temperature: 0,
 	});
 
-	var getOrderListTool = new ShopifyGetOrders(shopifyOptions);
+	var customerSearchTool = new SearchCustomers(shopifyOptions);
 	var getProductListTool = new ShopifyGetProducts(shopifyOptions);
-	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
-	var getCustomerListTool = new GetCustomerList(shopifyOptions);
+	// var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
 	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
-	var searchCustomersTool = new SearchCustomers(shopifyOptions);
+	var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
+	var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
+	var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
+	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
+	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
 
-	const tools = [getOrderListTool, getProductListTool, getCustomerDetailTool, getCustomerListTool, getCustomerOrderTool, searchCustomersTool];
+	const tools = [
+		getProductListTool, 
+		// getCustomerDetailTool, 
+		getCustomerOrderTool, 
+		getOrderFulfillment,
+		getOrderFulfillment,
+		calculateRefund,
+		cancelOrder,
+		getProductVariants,
+		getRefunds,
+		customerSearchTool
+	];
 
 	const shopifyAgent = await initializeAgentExecutorWithOptions(tools, llm, {
 	    agentType: "structured-chat-zero-shot-react-description",
