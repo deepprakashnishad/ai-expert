@@ -14,6 +14,8 @@ const {ShopifyGetProductVariants} = require("./get_product_variants.js");
 const {ShopifyGetRefunds} = require("./get_refunds.js")
 const {ShopifyCalculateRefund} = require("./calculate_refund.js")
 
+const tools = require('./../core/tool.js');
+
 const shopifyOptions = {
 	shopName: sails.config.custom.SHOPIFY.shop_name,
 	// apiKey: sails.config.custom.SHOPIFY.api_key,
@@ -26,11 +28,24 @@ const shopifyOptions = {
 	baseUrl: "https://6cdc10-40.myshopify.com/"
 }
 
-console.log("From my code")
-
-console.log(shopifyOptions);
-
 const shopify = new Shopify(shopifyOptions);
+
+const axios = require('axios')
+
+async function cancelOrder(){
+	var arg = {"orderId":1006,"customer_id":"6831207317581","cancellation_reason":"customer"};
+
+	var response = await axios.get(`${shopifyOptions.baseUrl}admin/api/orders/${arg['orderId']}.json`,
+		{
+			"headers": {
+				"X-Shopify-Access-Token": shopifyOptions.accessToken
+			}
+		}
+	);
+
+	console.log(response);
+	return response.data;
+}
 
 async function fetchProducts(query){
 	var response;
@@ -84,6 +99,37 @@ async function getShopifyCustomerDetails(state){
 	}
 }
 
+/*Custom agent to introduce human node*/
+async function customShopifyAgent(state){
+
+	var getProductListTool = new ShopifyGetProducts(shopifyOptions);
+	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
+	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
+	var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
+	// var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
+	var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
+	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
+	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
+
+	const tools = [
+		getProductListTool, 
+		getCustomerDetailTool, 
+		getCustomerOrderTool, 
+		getOrderFulfillment,
+		cancelOrder,
+		getProductVariants,
+		getRefunds
+	];
+
+	state['apis'] = tools;
+
+	var result = await tools.bestToolSelector(state);
+
+	return result;
+}
+
+
+/*langchain ReAct agent to be used in langgraph*/
 async function shopifyAgent(state){
 	const {llm, conversation, user} = state;
 
@@ -128,6 +174,7 @@ async function shopifyAgent(state){
 	}
 }
 
+/*Standalone langchain ReAct agent*/
 async function mShopifyAgent(query){
 	const llm = new ChatOpenAI({
 	    modelName: "gpt-3.5-turbo-0125",//"gpt-4-turbo-preview",
@@ -175,6 +222,7 @@ async function mShopifyAgent(query){
 
 module.exports = {
 	fetchOrders,
+	cancelOrder,
 	fetchProducts,
 	getMetafields,
 	mShopifyAgent,

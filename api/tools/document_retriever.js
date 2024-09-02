@@ -58,8 +58,6 @@ async function document_retriever(state){
 		    }
 		]).toArray();
 
-	console.log(matchedInfo);
-
 	/*var messages = [
 		{
 			"role": "system",
