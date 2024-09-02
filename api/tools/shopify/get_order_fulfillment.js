@@ -16,7 +16,9 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             configurable: true,
             writable: true,
             value: z.object({
-                order_id: z.number()
+                orderId: z.number().optional(),
+                customer_id: z.number().optional(),
+                customer_email: z.string().optional()
             })
         });
         Object.defineProperty(this, "description", {
@@ -27,40 +29,43 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
         });
     }
 
-    extractOrders(orders){
-        var fOrders = [];
-        for(var order of orders){
-            var temp = {};
-            temp["contact_email"] = order['contact_email'];
-            temp['created_at'] = order['created_at'];
-            temp['currency'] = order['currency'];
-            temp['subtotal_price'] = order['current_subtotal_price'];
-            temp['total_additional_fees_set'] = order['current_total_additional_fees_set'];
-            temp['total_discounts'] = order['current_total_discounts'];
-            temp['total_price'] = order['current_total_price'];
-            temp['total_tax'] = order['current_total_tax'];
-            temp['discount_codes'] = order['discount_codes'];
-            temp['email'] = order['email'];
-            temp['financial_status'] = order['financial_status'];
-            temp['fulfillment_status'] = order['fulfillment_status'];
-            temp['order_number'] = order['order_number'];
-            temp['order_status_url'] = order['order_status_url'];
-            temp['phone'] = order['phone'];
-            temp['tax_lines'] = order['tax_lines'];
-            temp['billing_address'] = order['billing_address'];
-            temp['line_items'] = order['line_items'];
-            temp['shipping_address'] = order['shipping_address'];
-            fOrders.push(temp);
+    extractFulfillments(fulfillments){
+        var mFulfillments = [];
+        for(var fulfillment of fulfillments){
+            var temp = fulfillment;
+            
+            mFulfillments.push(temp);
         }
-        return fOrders;
+        return mFulfillments;
     }
 
     async _call(arg) {
         var response;
         try{
-            response = await shopify.order.fulfillmentOrders(arg['order_id']);
-            // response = await this.shopify.fulfillment.list(arg['order_id']);
-            // const fulfillment = this.extractOrders(response);
+            if(!arg['orderId']){
+                if(!arg['customer_id']){
+                    if(!arg['customer_email']){
+                        return "Need orderId or customer email or customer id to get refund details."
+                    }else{
+                        var customers = await this.shopify.customer.search({email: arg['customer_email']});
+                        if(customers.length === 0){
+                            return "Shopify account for given email doesn't exist"
+                        }
+
+                        arg['customer_id'] = customers[0].id;
+                    }
+                }
+                const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "open"});
+                if(orders.length === 0){
+                    return "No cancelled order found!!!"
+                }
+                var order = {};
+                order['id'] = orders[0]['id'];
+                var fulfillments = this.extractFulfillments(orders[0].fulfillments);
+                order['fulfillments'] = fulfillments;
+                return JSON.stringify(order);
+            }
+            response = await shopify.order.fulfillmentOrders(arg['orderId']);
             return JSON.stringify(response);    
         }catch(e){
             console.log(e)

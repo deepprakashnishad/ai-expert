@@ -12,7 +12,9 @@ const SEARCH_CUSTOMER = `A tool to search a customer for the given query`;
 
 const CANCEL_ORDER = `A tool to cancel customer order`;
 
-const GET_REFUNDS = `This tool retrieves all refunds related to an order`;
+const GET_REFUNDS = `This tool retrieves list refunds related to an order or for last order for a given customer_id or customer_email
+	Output must be list of refunds in json.
+`;
 
 const CALCULATE_REFUND = `This tool calculates refund for the given orderId`;
 

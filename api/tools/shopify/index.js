@@ -93,7 +93,7 @@ async function shopifyAgent(state){
 	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
 	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
 	var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
-	var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
+	// var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
 	var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
 	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
 	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
@@ -103,19 +103,19 @@ async function shopifyAgent(state){
 		getCustomerDetailTool, 
 		getCustomerOrderTool, 
 		getOrderFulfillment,
-		calculateRefund,
 		cancelOrder,
 		getProductVariants,
 		getRefunds
 	];
 
 	const shopifyAgent = await initializeAgentExecutorWithOptions(tools, llm, {
-	    agentType: "structured-chat-zero-shot-react-description",
+	    // agentType: "structured-chat-zero-shot-react-description",
+	    agentType: "openai-functions",
 	    verbose: true,
 	});
 
 	if(user && user.id){
-		userQuery = `${userQuery}. Customer id is ${user.id}. Note: Do not modify the output. Simply return what you receive from the tool.`;	
+		userQuery = `${userQuery}. Customer id is ${user.id}. You must return tool output as it is without any modification.`;	
 	}else{
 		userQuery = `${userQuery}. Note: Do not modify the output. Simply return what you receive from the tool.`;	
 	}
