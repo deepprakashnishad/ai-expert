@@ -6,7 +6,7 @@ const GET_CUSTOMER_LIST = `A tool for fetching list of customers`;
 
 const GET_CUSTOMER_DETAIL = `A tool for retrieving single customer`;
 
-const GET_CUSTOMER_ORDERS = `A tool for retrieving orders of a customer`;
+const GET_CUSTOMER_ORDERS = `A tool for retrieving orders of a customer or for generating invoice`;
 
 const SEARCH_CUSTOMER = `A tool to search a customer for the given query`;
 

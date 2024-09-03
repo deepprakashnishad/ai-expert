@@ -30,8 +30,9 @@ class ShopifyGetProductVariants extends ShopifyBaseTool {
 
     async _call(arg) {
         try{
-            const response = await this.shopify.order.cancel(arg['productId']);
-            return JSON.stringify(response);    
+
+            // const response = await this.shopify.order.cancel(arg['productId']);
+            return "Tool not implemented";    
         }catch(ex){
             console.log(ex);
         }

@@ -65,7 +65,7 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
                 order['fulfillments'] = fulfillments;
                 return JSON.stringify(order);
             }
-            response = await shopify.order.fulfillmentOrders(arg['orderId']);
+            response = await this.shopify.order.fulfillmentOrders(arg['orderId']);
             return JSON.stringify(response);    
         }catch(e){
             console.log(e)
