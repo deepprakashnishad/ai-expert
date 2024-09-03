@@ -54,7 +54,6 @@ class ShopifyBaseTool extends StructuredTool {
     }
 
     getShopify(credentials) {
-        console.log(credentials);
         const shopify = new Shopify(credentials);
         return shopify;
     }

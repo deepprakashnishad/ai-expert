@@ -184,5 +184,43 @@ module.exports = {
 
 		var docs = await UploadedDocument.find({clientId: req.body.appId});
 		return res.json(docs);
+	},
+
+	getDataEntries: async function(req, res){
+		var mLimit = req.query.limit || 2000;
+		var mOffset = req.query.offset || 0;
+		var cvectors = await Cvector.find({select: ['md', 'cat', 'it', 'd'], where: {cid: req.query.appId}})
+		.populate("d")
+		.limit(mLimit)
+		.skip(mOffset);
+		return res.json(cvectors);
+	},
+
+	saveDataEntry: async function(req, res){
+
+		var mDoc = req.body.doc;
+		if(mDoc && !mDoc.id){
+			mDoc = await UploadedDocument.create({
+				"title": mDoc.title, 
+				"type": mDoc.type, 
+				"clientId": req.body.appId
+			}).fetch();	
+		}
+		
+
+		var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
+			chunks: [req.body.infoText],
+			metadata: req.body.metadata,
+			doc_id: mDoc && mDoc.id ? mDoc.id : undefined,
+			clientId: req.body.appId,
+			cvectorId: req.body.id
+		});
+
+		return res.json({"success": true});
+	},
+
+	deleteDataEntry: async function(req, res){
+		await Cvector.destroy({id: req.body.id, cid: req.body.appId});
+		return res.json({success: true});
 	}
 }

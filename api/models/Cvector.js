@@ -1,4 +1,5 @@
 module.exports = {
+  schema: true,
   attributes: {
   	cid: {type: "string"}, // Client Id
   	aid: {model: "Agent"}, // agent id

@@ -17,7 +17,7 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
             configurable: true,
             writable: true,
             value: z.object({
-                orderId: z.number(),
+                orderId: z.number().optional(),
                 customer_email: z.string().optional(),
                 customer_id: z.string().optional(),
                 cancellation_reason: z.string().default("customer")
@@ -34,9 +34,17 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
     async _call(arg) {
         try{
             var orders = await this.shopify.customer.orders(arg['customer_id']);
+            
+            if(!arg['orderId'] && orders.length > 1){
+                var orderNumberList = orders.map(ele => ele.order_number);
+                var orderNumbers = orderNumberList.join(", ");
+                return `Multiple orders present with following numbers ${orderNumbers}. Which order you want to cancel?`
+            }
+
             var selectedOrder;
+
             for(var order of orders){
-                if(order.id === arg['orderId'] || order.order_number===arg['orderId']){
+                if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===arg['orderId'])){
                     selectedOrder = order;
                 }
             }

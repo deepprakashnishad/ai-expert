@@ -40,6 +40,9 @@ module.exports.routes = {
   'POST /document/updateClientId': { controller: 'DocumentBuilder', action: "updateClientId" },
   'GET /document/getUploadedDocuments': { controller: 'DocumentBuilder', action: "getUploadedDocuments" },
   'POST /document/deleteUploadedDocuments': { controller: 'DocumentBuilder', action: "deleteUploadedDocuments"},
+  'GET /document/getDataEntries': {controller: 'DocumentBuilder', action: "getDataEntries"},
+  'POST /document/saveDataEntry': {controller: 'DocumentBuilder', action: "saveDataEntry"},
+  'POST /document/deleteDataEntry': {controller: 'DocumentBuilder', action: "deleteDataEntry"},
 
   'POST /RocketChat': { controller: 'RocketChat', action: "recieveUserMessage"},
   'POST /RocketChat/authenticate': { controller: 'RocketChat', action: "authenticate"},

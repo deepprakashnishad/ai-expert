@@ -18,7 +18,7 @@ const GET_REFUNDS = `This tool retrieves list refunds related to an order or for
 
 const CALCULATE_REFUND = `This tool calculates refund for the given orderId`;
 
-const GET_PRODUCT_VARIANTS = `This tool fetch variants of the given product id`;
+const GET_PRODUCT_VARIANTS = `This tool fetch variants of the given product id or product title`;
 
 const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order.`;
 

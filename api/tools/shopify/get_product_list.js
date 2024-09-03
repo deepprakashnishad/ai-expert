@@ -43,11 +43,12 @@ class ShopifyGetProducts extends ShopifyBaseTool {
             temp['body_html'] = prod['body_html'];
             temp['vendor'] = prod['vendor'];
             temp['handle'] = prod['handle'];
-            temp['link'] = `${this.baseUrl}products/${temp['handle']}`;
+            temp['product_url'] = `${this.baseUrl}products/${temp['handle']}`;
             temp['product_type'] = prod['product_type'];
             temp['status'] = prod['status'];
             temp['variants'] = prod['variants'];
             temp['options'] = prod['options'];
+            temp['currency'] = prod['currency'] || "INR";
             temp['image'] = prod['image'] && prod['image']['src']? prod['image']['src']:undefined;
 
             fProducts.push(temp);

@@ -52,7 +52,10 @@ module.exports = {
     },
     chunksToInfoFlag: {
       type: "boolean",
-      defaultsTo: true
+      defaultsTo: false
+    },
+    cvectorId: {
+      type: "string"
     }
   },
 
@@ -128,7 +131,11 @@ module.exports = {
     }
 
     if(embeddingData.length>0){
-      await Cvector.createEach(embeddingData);
+      if(embeddingData.length>1 || (embeddingData.length===1 && !inputs.cvectorId)){
+        await Cvector.createEach(embeddingData);
+      } else if(embeddingData.length===1 && inputs.cvectorId){
+        await Cvector.updateOne({id: inputs.cvectorId}).set(embeddingData[0]);
+      }
     }
     
     return exits.success(infoArray);
