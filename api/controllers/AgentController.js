@@ -561,7 +561,9 @@ module.exports = {
 		var mPath = `generatedDocs/${generateObjectId()}.pdf`;
 		const outputPath = path.join(sails.config.paths.public, mPath);
 
-		const browser = await puppeteer.launch();
+		const browser = await puppeteer.launch({
+			args: ['--no-sandbox', '--disable-setuid-sandbox']
+		});
 	    const page = await browser.newPage();
 	    await page.setContent(htmlContent);
 	    await page.pdf({ path: outputPath, format: 'A4' });
