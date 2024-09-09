@@ -58,14 +58,14 @@ module.exports.custom = {
     is_ssl: true
   },
 
-  /*ODOO: {
+  ODOO: {
     host: 'localhost',
     port: 8069,
     db: 'ecmps',
     username: 'admin',
     password: 'admin'
   },
-*/
+
   /*ODOO: {
     https: true,
     host: 'odoo-164786-0.cloudclusters.net',
@@ -74,13 +74,13 @@ module.exports.custom = {
     password: 't0cCmj7x'
   },*/
 
-  ODOO: {
+  /*ODOO: {
     https: true,
     host: 'odoo-171419-0.cloudclusters.net',
     db: 'admin',
     username: 'vipin@astratechsystems.com',
     password: 'C7n20RxR'
-  },
+  },*/
 
   SHOPIFY: {
     shop_name: "6cdc10-40",

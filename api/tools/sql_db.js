@@ -254,8 +254,6 @@ async function sql_lang_graph_with_human_response(state){
 	};
 }
 
-
-
 async function sql_lang_graph_db_query(state){
 	const {llm, chatId, conversation} = state;
 

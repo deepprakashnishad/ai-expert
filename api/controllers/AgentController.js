@@ -460,7 +460,7 @@ module.exports = {
 		    modelName: "gpt-4-turbo-preview",
 		    temperature: 0,
 		});*/
-		response = await toolLib.cancelOrder();
+		response = await toolLib.fetchProducts();
 		
 	    return res.json(response);	
 	},

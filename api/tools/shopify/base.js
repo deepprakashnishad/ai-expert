@@ -54,7 +54,18 @@ class ShopifyBaseTool extends StructuredTool {
     }
 
     getShopify(credentials) {
-        const shopify = new Shopify(credentials);
+        const shopify = new Shopify({
+            shopName: credentials.shopName,
+            accessToken: credentials.accessToken,
+            remaining: credentials.remaining,
+            current: credentials.current,
+            max: credentials.max,
+            autoLimit: credentials.autoLimit,
+            baseUrl: credentials.baseUrl
+        });
+        /*this.shopifyStore = new Shopify({
+
+        });*/
         return shopify;
     }
 }

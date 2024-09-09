@@ -1,4 +1,6 @@
 const Shopify = require('shopify-api-node');
+const {createStorefrontApiClient} = require('@shopify/storefront-api-client');
+
 const {ChatOpenAI} = require("@langchain/openai");
 // export {ShopifyGetOrders} from './get_order.js';
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
@@ -18,17 +20,28 @@ const tools = require('./../core/tool.js');
 
 const shopifyOptions = {
 	shopName: sails.config.custom.SHOPIFY.shop_name,
-	// apiKey: sails.config.custom.SHOPIFY.api_key,
-	// password: sails.config.custom.SHOPIFY.api_secret_key,
+	apiKey: sails.config.custom.SHOPIFY.api_key,
+	password: sails.config.custom.SHOPIFY.api_secret_key,
 	accessToken: sails.config.custom.SHOPIFY.admin_token,
+	storeToken: sails.config.custom.SHOPIFY.store_token,
 	remaining: 30,
 	current: 10,
 	max: 40,
 	autoLimit: true,
+	adminAPIVersion: '2024-07',
+	storeAPIVersion: '2023-10',
 	baseUrl: "https://6cdc10-40.myshopify.com/"
 }
 
-const shopify = new Shopify(shopifyOptions);
+const shopify = new Shopify({
+	shopName: shopifyOptions.shopName,
+    accessToken: shopifyOptions.accessToken,
+    remaining: shopifyOptions.remaining,
+    current: shopifyOptions.current,
+    max: shopifyOptions.max,
+    autoLimit: shopifyOptions.autoLimit,
+    baseUrl: shopifyOptions.baseUrl
+});
 
 const axios = require('axios')
 
@@ -47,15 +60,39 @@ async function cancelOrder(){
 	return response.data;
 }
 
-async function fetchProducts(query){
+async function fetchProducts(){
 	var response;
-	try{
+	const client = createStorefrontApiClient({
+	  storeDomain: shopifyOptions.baseUrl,
+	  apiVersion: shopifyOptions.storeAPIVersion,
+	  publicAccessToken: shopifyOptions.storeToken,
+	});
+
+	const productQuery = `
+	  query ProductQuery($handle: String) {
+	    product(handle: $handle) {
+	      id
+	      title
+	      handle
+	    }
+	  }
+	`;
+	const {data, errors, extensions} = await client.request(productQuery, {
+	  variables: {
+	    handle: 'bag-3',
+	  },
+	});
+
+	console.log(data);
+
+	return data;
+	/*try{
 		response = await shopify.order.fulfillmentOrders(1003);
 
 		console.log(response);
 	}catch(e){
 		console.log(e);
-	}
+	}*/
 	/*try{
 		response = await shopify.customer.orders(6831207317581, {"status": "any"});
 
