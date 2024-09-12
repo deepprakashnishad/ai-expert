@@ -42,17 +42,32 @@ class SearchProductByQuery extends ShopifyBaseTool {
         
 
         const productQuery = `
-          query ProductQuery($handle: String) {
-            product(handle: $handle) {
-              id
-              title
-              handle
+        query searchProducts($query: String!, $first: Int) {
+            search(query: $query, first: $first, types: PRODUCT) {
+              edges {
+                node {
+                  ... on Product {
+                    id
+                    title
+                    handle
+                    descriptionHtml
+                    images(first: 1) {
+                        edges {
+                          node {
+                            originalSrc
+                            altText
+                          }
+                        }
+                    }
+                  }
+                }
+              }
             }
-          }
-        `;
+        }`;
         const {data, errors, extensions} = await this.storefrontClient.request(productQuery, {
           variables: {
-            handle: arg['query'],
+            query: arg['query'],
+            first: arg['result_count'],
           },
         });
         if(!errors){
