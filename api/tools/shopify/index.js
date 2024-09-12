@@ -15,10 +15,11 @@ const {ShopifyCancelOrder} = require("./cancel_order.js");
 const {ShopifyGetProductVariants} = require("./get_product_variants.js");
 const {ShopifyGetRefunds} = require("./get_refunds.js")
 const {ShopifyCalculateRefund} = require("./calculate_refund.js")
+const {SearchProductByQuery} = require("./search_product_by_query.js");
 
 const tools = require('./../core/tool.js');
 
-const shopifyOptions = {
+/*const shopifyOptions = {
 	shopName: sails.config.custom.SHOPIFY.shop_name,
 	apiKey: sails.config.custom.SHOPIFY.api_key,
 	password: sails.config.custom.SHOPIFY.api_secret_key,
@@ -41,7 +42,7 @@ const shopify = new Shopify({
     max: shopifyOptions.max,
     autoLimit: shopifyOptions.autoLimit,
     baseUrl: shopifyOptions.baseUrl
-});
+});*/
 
 const axios = require('axios')
 
@@ -86,27 +87,6 @@ async function fetchProducts(){
 	console.log(data);
 
 	return data;
-	/*try{
-		response = await shopify.order.fulfillmentOrders(1003);
-
-		console.log(response);
-	}catch(e){
-		console.log(e);
-	}*/
-	/*try{
-		response = await shopify.customer.orders(6831207317581, {"status": "any"});
-
-		console.log(response);
-	}catch(e){
-		console.log(e);
-	}*/
-	
-	// response = await shopify.customer.list();
-	// response = await shopify.customer.search({email: query});
-	/*response = await shopify.product
-	  	.list({ limit: 5, "status": "active", "published_status": "published" });*/
-  	// response = await shopify.collectionListing.list();
-  	return response;
 }
 
 async function fetchOrders(){
@@ -124,6 +104,29 @@ async function getMetafields(){
 
 async function getShopifyCustomerDetails(state){
 	var {user} = state;
+
+	var shopifyOptions = await AppData.findOne({cid: user.appId, type: "shopify"});
+	if(shopifyOptions){
+		shopifyOptions = shopifyOptions.data;
+	}else{
+		throw new Error("Shopify credentials not found"); 
+	}
+	shopifyOptions.current ??= 10;
+	shopifyOptions.max ??= 40;
+	shopifyOptions.autoLimit ??= true;
+	shopifyOptions.adminAPIVersion ??= '2024-07';
+	shopifyOptions.storeAPIVersion ??= '2023-10';
+	shopifyOptions.remaining ??= 30;
+
+	const shopify = new Shopify({
+		shopName: shopifyOptions.shopName,
+	    accessToken: shopifyOptions.accessToken,
+	    remaining: shopifyOptions.remaining,
+	    current: shopifyOptions.current,
+	    max: shopifyOptions.max,
+	    autoLimit: shopifyOptions.autoLimit,
+	    baseUrl: shopifyOptions.baseUrl
+	});
 
 	const response = await shopify.customer.search({email: user.email});
 
@@ -168,9 +171,24 @@ async function customShopifyAgent(state){
 
 /*langchain ReAct agent to be used in langgraph*/
 async function shopifyAgent(state){
-	const {llm, conversation, user} = state;
+	var {llm, conversation, user, extraData} = state;
 
 	var userQuery = conversation[conversation.length-1]['content'];
+
+	var shopifyOptions = await AppData.findOne({appId: user.appId, type: "shopify"});
+	if(shopifyOptions){
+		shopifyOptions = shopifyOptions.data;
+	}else{
+		throw new Error("Shopify credentials not found"); 
+	}
+	shopifyOptions.current ??= 10;
+	shopifyOptions.max ??= 40;
+	shopifyOptions.remaining ??= 30;
+	shopifyOptions.autoLimit ??= true;
+	shopifyOptions.adminAPIVersion ??= '2024-07';
+	shopifyOptions.storeAPIVersion ??= '2023-10';
+	shopifyOptions.currency = user.currency?user.currency:"INR";
+
 
 	var getProductListTool = new ShopifyGetProducts(shopifyOptions);
 	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
@@ -180,6 +198,7 @@ async function shopifyAgent(state){
 	var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
 	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
 	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
+	var searchProductByQuery = new SearchProductByQuery(shopifyOptions);
 
 	const tools = [
 		getProductListTool, 
@@ -188,7 +207,8 @@ async function shopifyAgent(state){
 		getOrderFulfillment,
 		cancelOrder,
 		getProductVariants,
-		getRefunds
+		getRefunds,
+		searchProductByQuery
 	];
 
 	const shopifyAgent = await initializeAgentExecutorWithOptions(tools, llm, {
@@ -202,12 +222,19 @@ async function shopifyAgent(state){
 	}else{
 		userQuery = `${userQuery}. Note: Do not modify the output. Simply return what you receive from the tool.`;	
 	}
-	
 
 	const result = await shopifyAgent.invoke({ input: userQuery });
 
+	if(!extraData){
+		extraData = {};
+	}	
+	if(result['output'] && result['output']['template_name']){
+		extraData['template_name'] = result['output']['template_name'];		
+	}
+
 	return {
-		finalResult: result['output']
+		finalResult: result['output']['data']?result['output']['data']:result['output'],
+		extraData: extraData
 	}
 }
 

@@ -2,6 +2,8 @@ const Shopify = require('shopify-api-node');
 const { z } = require("zod");
 const { StructuredTool } = require("@langchain/core/tools");
 const { getEnvironmentVariable } = require("@langchain/core/utils/env");
+const {createStorefrontApiClient} = require('@shopify/storefront-api-client');
+
 
 class ShopifyBaseTool extends StructuredTool {
     constructor(fields) {
@@ -30,6 +32,9 @@ class ShopifyBaseTool extends StructuredTool {
                 current: z.number().default(10),
                 max: z.number().default(30),
                 autoLimit: z.boolean().default(true),
+                baseUrl: z.string(),
+                storeAPIVersion: z.string(),
+                storeToken: z.string()
             })
         });
         Object.defineProperty(this, "name", {
@@ -44,13 +49,15 @@ class ShopifyBaseTool extends StructuredTool {
             writable: true,
             value: "A tool to perform operations related to shopify"
         });
-        Object.defineProperty(this, "baseUrl", {
+        /*Object.defineProperty(this, "baseUrl", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: fields['baseUrl']
-        })
+        })*/
         this.shopify = this.getShopify(this.CredentialsSchema.parse(fields));
+
+        this.storefrontClient = this.getStorefrontClient(this.CredentialsSchema.parse(fields));
     }
 
     getShopify(credentials) {
@@ -67,6 +74,16 @@ class ShopifyBaseTool extends StructuredTool {
 
         });*/
         return shopify;
+    }
+
+    getStorefrontClient(credentials){
+        const client = createStorefrontApiClient({
+          storeDomain: credentials.baseUrl,
+          apiVersion: credentials.storeAPIVersion,
+          publicAccessToken: credentials.storeToken,
+        });
+
+        return client;
     }
 }
 

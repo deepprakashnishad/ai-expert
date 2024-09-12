@@ -46,6 +46,7 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
             for(var order of orders){
                 if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===arg['orderId'])){
                     selectedOrder = order;
+                    break;
                 }
             }
             if(!selectedOrder){

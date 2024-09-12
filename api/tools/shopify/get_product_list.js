@@ -60,7 +60,8 @@ class ShopifyGetProducts extends ShopifyBaseTool {
     async _call(arg) {
         try{
             const response = await this.shopify.product.list(arg);
-            return JSON.stringify(response);    
+            var products = this.extractProduct(response);
+            return JSON.stringify({"template_name": "product_list_template", result: products});    
         }catch(ex){
             console.log(ex);
         }

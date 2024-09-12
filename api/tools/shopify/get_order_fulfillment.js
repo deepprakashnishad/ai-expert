@@ -42,31 +42,36 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
     async _call(arg) {
         var response;
         try{
-            if(!arg['orderId']){
-                if(!arg['customer_id']){
-                    if(!arg['customer_email']){
-                        return "Need orderId or customer email or customer id to get refund details."
-                    }else{
-                        var customers = await this.shopify.customer.search({email: arg['customer_email']});
-                        if(customers.length === 0){
-                            return "Shopify account for given email doesn't exist"
-                        }
-
-                        arg['customer_id'] = customers[0].id;
+            if(!arg['customer_id']){
+                if(!arg['customer_email']){
+                    return "Need orderId or customer email or customer id to get refund details."
+                }else{
+                    var customers = await this.shopify.customer.search({email: arg['customer_email']});
+                    if(customers.length === 0){
+                        return "Shopify account for given email doesn't exist"
                     }
+
+                    arg['customer_id'] = customers[0].id;
                 }
-                const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "open"});
-                if(orders.length === 0){
-                    return "No cancelled order found!!!"
-                }
-                var order = {};
-                order['id'] = orders[0]['id'];
-                var fulfillments = this.extractFulfillments(orders[0].fulfillments);
-                order['fulfillments'] = fulfillments;
-                return JSON.stringify(order);
             }
-            response = await this.shopify.order.fulfillmentOrders(arg['orderId']);
-            return JSON.stringify(response);    
+            const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "any"});
+            if(orders.length === 0){
+                return "No order found!!!";
+            }
+            var selectedOrder = {};
+            for(var order of orders){
+                if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===arg['orderId'])){
+                    selectedOrder = order;
+                    break;
+                }
+            }
+            if(!selectedOrder){
+                return "No order found!!!";
+            }
+            // order['id'] = orders[0]['id'];
+            var fulfillments = this.extractFulfillments(selectedOrder.fulfillments);
+            // order['fulfillments'] = fulfillments;
+            return JSON.stringify(fulfillments);
         }catch(e){
             console.log(e)
         }

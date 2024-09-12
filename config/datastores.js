@@ -49,8 +49,8 @@ module.exports.datastores = {
     *                                                                          *
     ***************************************************************************/
     adapter: 'sails-mongo',
-    // url: 'mongodb://localhost:27017/openai',
-    url: 'mongodb+srv://vipinrama:8u2hoz2os6iKy0y4@cluster0.7zyyod3.mongodb.net/openai?retryWrites=true&w=majority'
+    url: 'mongodb://localhost:27017/openai',
+    // url: 'mongodb+srv://vipinrama:8u2hoz2os6iKy0y4@cluster0.7zyyod3.mongodb.net/openai?retryWrites=true&w=majority'
     // url: 'mongodb+srv://deepprakashnishad:xeN4lBNogCRIkpI7@clustermum.q6xzhsn.mongodb.net/openai?retryWrites=true&w=majority'
   },
 };

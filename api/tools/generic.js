@@ -209,13 +209,13 @@ module.exports = {
 	},
 
 	responseFormatter: async function(state){
-		const {llm, query, finalResult} = state;
+		const {llm, query, finalResult, extraData, user} = state;
 
 		/*const prompt = `Please format the following information into a well-structured HTML response for human readability. Ensure that the output is detailed and does not include any JSON objects and is presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
 
 			User Query: ${query}
 			Final Result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}`;*/
-
+		
 		const prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
 
 			query: ${query}
@@ -226,7 +226,21 @@ module.exports = {
 				html: "formatted_html_string",
 				is_pdf: true/false
 			}`;
-			
+
+		if(extraData['template']){
+			var mTemplate = await AppData.findOne({cid: user.appId, type: extraData['template']});
+			prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Use provided format to generate your response. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
+
+			query: ${query}
+			final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
+
+			Output must be in following json format only:
+			{
+				html: "formatted_html_string",
+				is_pdf: true/false,
+				format: ${mTemplate['data']['format']}
+			}`;
+		}			
 
 		var messages = [
 			{

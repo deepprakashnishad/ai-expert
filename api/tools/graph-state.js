@@ -18,7 +18,8 @@ class GraphState {
       prompt = null,
       tool = null,
       user = null,
-      toolUsed = null
+      toolUsed = null,
+      extraData = null
   ) {
     this.llm = llm;
     this.query = query;
@@ -39,6 +40,7 @@ class GraphState {
     this.tool = tool;
     this.user = user;
     this.toolUsed = toolUsed;
+    this.extraData = extraData;
   }
 }
 

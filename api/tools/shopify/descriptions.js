@@ -1,6 +1,7 @@
 const GET_SOPIFY_ORDER_DESCRIPTION = `A tool for fetching orders in shopify.`;
 
-const GET_SOPIFY_PRODUCT_LIST_DESCRIPTION = `A tool for fetching products in shopify.`;
+const GET_SOPIFY_PRODUCT_LIST_DESCRIPTION = `A tool for fetching products in shopify.\n
+Output: List of product with complete details alongwith the template name required to display the products`;
 
 const GET_CUSTOMER_LIST = `A tool for fetching list of customers`;
 
@@ -22,6 +23,8 @@ const GET_PRODUCT_VARIANTS = `This tool fetch variants of the given product id o
 
 const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order.`;
 
+const SEARCH_PRODUCT_BY_QUERY = `This is tool fetches or searches or retrieves list of products currently available in the store`;
+
 module.exports = {
 	GET_SOPIFY_ORDER_DESCRIPTION,
 	GET_SOPIFY_PRODUCT_LIST_DESCRIPTION,
@@ -33,5 +36,6 @@ module.exports = {
 	GET_REFUNDS,
 	CALCULATE_REFUND,
 	GET_PRODUCT_VARIANTS,
-	GET_ORDER_FULFILLMENT
+	GET_ORDER_FULFILLMENT,
+	SEARCH_PRODUCT_BY_QUERY
 }

@@ -2,30 +2,6 @@ const { END, StateGraph }  = require("@langchain/langgraph");
 
 const toolsLib = require("./../tools");
 
-/*const graphChannels = {
-  llm: {
-    value: null,
-  },
-  query: {
-    value: null,
-  },
-  categories: {
-    value: null,
-  },
-  apis: {
-    value: null,
-  },
-  bestApi: {
-    value: null,
-  },
-  params: {
-    value: null,
-  },
-  response: {
-    value: null,
-  },
-};*/
-
 module.exports = {
 
 
@@ -113,6 +89,9 @@ module.exports = {
         value: null
       },
       toolUsed: {
+        value: null
+      },
+      extraData: {
         value: null
       }
     };
