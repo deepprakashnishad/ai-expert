@@ -68,7 +68,8 @@ module.exports = {
 				type: "url"
 			},
 			doc_id: mDoc.id,
-			clientId: req.body.appId
+			clientId: req.body.appId,
+			chunksToInfoFlag: false
 		});
 
 		//Lang chain webscrapping

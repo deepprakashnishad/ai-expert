@@ -71,7 +71,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
           },
         });
         if(!errors){
-            return JSON.stringify(data);    
+            return JSON.stringify({"template_name": "product_list_template", "data": data});    
         }else{
             return JSON.stringify(errors);
         }        

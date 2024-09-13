@@ -190,7 +190,7 @@ async function shopifyAgent(state){
 	shopifyOptions.currency = user.currency?user.currency:"INR";
 
 
-	var getProductListTool = new ShopifyGetProducts(shopifyOptions);
+	// var getProductListTool = new ShopifyGetProducts(shopifyOptions);
 	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
 	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
 	var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
@@ -201,7 +201,7 @@ async function shopifyAgent(state){
 	var searchProductByQuery = new SearchProductByQuery(shopifyOptions);
 
 	const tools = [
-		getProductListTool, 
+		// getProductListTool, 
 		getCustomerDetailTool, 
 		getCustomerOrderTool, 
 		getOrderFulfillment,
@@ -218,9 +218,9 @@ async function shopifyAgent(state){
 	});
 
 	if(user && user.id){
-		userQuery = `${userQuery}. Customer id is ${user.id}. You must return tool output as it is without any modification.`;	
+		userQuery = `${userQuery}. Customer id is ${user.id}. Get template name along with data.`;	
 	}else{
-		userQuery = `${userQuery}. Note: Do not modify the output. Simply return what you receive from the tool.`;	
+		userQuery = `${userQuery}. Note: Do not modify the output. Get template name along with data`;	
 	}
 
 	const result = await shopifyAgent.invoke({ input: userQuery });

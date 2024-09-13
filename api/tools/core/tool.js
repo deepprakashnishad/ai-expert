@@ -22,7 +22,7 @@ module.exports = {
 
 		var messages = [
 			{role: "system",
-						content: `Choose a tool from the given list of tools which could possibly solve the given user query
+						content: `Choose a tool from the given list of tools which could possibly resolve the given user query
 							query: ${userQuery},
 							tools: ${JSON.stringify(toolDescList)}
 			
