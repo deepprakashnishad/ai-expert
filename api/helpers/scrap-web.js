@@ -45,7 +45,7 @@ module.exports = {
       var html = await rp(inputs.url);*/
 
       const text = convert(html, options);
-      if(text.isEmpty()){
+      if(text.length===0){
         return exits.success([]);
       }
       
