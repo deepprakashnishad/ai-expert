@@ -24,7 +24,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
                     price: z.object({
                         max: z.number().optional(),
                         min: z.number().optional()
-                    }),
+                    }).optional(),
                     type: z.string().optional(),
                     tag: z.string().optional()
                 }).optional()

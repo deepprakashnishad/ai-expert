@@ -107,7 +107,10 @@ module.exports = {
     graph = new StateGraph({
       channels: graphChannels,
     });
-    if(inputs.id.toLowerCase() === "shopify"){
+    if(inputs.id.toLowerCase() === "marketing"){
+
+    }
+    else if(inputs.id.toLowerCase() === "shopify"){
       graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
       graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
@@ -208,7 +211,7 @@ module.exports = {
       graph.addEdge("gmail_agent", "response_formatter_node");
       graph.setEntryPoint("gmail_agent");
       graph.setFinishPoint("response_formatter_node");
-    }else{
+    }else if(inputs.id === "Support Engineer"){
       // graph.addNode("extract_category_node", toolsLib.extractCategory);
       graph.addNode("get_apis_node", toolsLib.getApis);
       graph.addNode("select_api_node", toolsLib.selectApi);
@@ -235,6 +238,13 @@ module.exports = {
       
       graph.setFinishPoint("human_loop_node");
       graph.setFinishPoint("response_formatter_node");
+    }
+    else{
+      graph.addNode("document_retriever", toolsLib.document_retriever);
+      // graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      // graph.addEdge("document_retriever", "response_formatter_node");
+      graph.setEntryPoint("document_retriever");
+      graph.setFinishPoint("document_retriever");
     }
     
 

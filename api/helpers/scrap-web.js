@@ -25,18 +25,29 @@ module.exports = {
   fn: async function (inputs, exits) {
   	try{
 
-      const rp = require('request-promise');
+      const puppeteer = require('puppeteer');
       const { convert } = require('html-to-text');
 
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+
+      await page.goto(inputs.url);
+      await page.waitForSelector('body'); 
+      const html = await page.content();
+
       const options = {
-        /*"baseElements.selectors": [
+        "baseElements.selectors": [
           {selector: 'p'},
-        ]*/
+        ]
       };
 
-      var html = await rp(inputs.url);
+      /*const rp = require('request-promise');
+      var html = await rp(inputs.url);*/
 
       const text = convert(html, options);
+      if(text.isEmpty()){
+        return exits.success([]);
+      }
       
       var result = await sails.helpers.getTextInChunks.with({"text": text});
       return exits.success(result);

@@ -347,6 +347,23 @@ module.exports = {
     ***************************************************************************/
     // trustProxy: true,
 
+    order: [
+      'redirectToHTTPS',
+      // 'bodyParser',
+      // 'router',
+      // 'www',
+      // 'favicon',
+      // '404',
+      // '500'
+    ],
+    
+    redirectToHTTPS: function (req, res, next) {
+      if (req.secure) {
+        return next();
+      }
+      res.redirect('https://' + req.headers.host + req.url);
+    }
+
   },
 
 

@@ -218,7 +218,7 @@ async function shopifyAgent(state){
 	});
 
 	if(user && user.id){
-		userQuery = `${userQuery}. Customer id is ${user.id}. Get template name along with data.`;	
+		userQuery = `${userQuery}. Customer id is ${user.id}. I will be punished if you do not return complete output from tool as it is.`;	
 	}else{
 		userQuery = `${userQuery}. Note: Do not modify the output. Get template name along with data`;	
 	}

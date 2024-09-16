@@ -61,6 +61,9 @@ module.exports = {
 
 		var rawChunks = await sails.helpers.scrapWeb.with({"url": req.body.url});
 
+		if(rawChunks.length===0){
+			return res.successResponse({data: []}, 200, null, true, "No data found on the given url. Please cross check the url is correct or not.");
+		}
 		var vectorStore = await sails.helpers.processRawChunksToEmbeddings.with({
 			chunks: rawChunks,
 			metadata: {
