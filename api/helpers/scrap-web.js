@@ -28,12 +28,12 @@ module.exports = {
       const puppeteer = require('puppeteer');
       const { convert } = require('html-to-text');
 
-      const browser = await puppeteer.launch();
+      /*const browser = await puppeteer.launch();
       const page = await browser.newPage();
 
       await page.goto(inputs.url);
       await page.waitForSelector('body'); 
-      const html = await page.content();
+      const html = await page.content();*/
 
       const options = {
         "baseElements.selectors": [
@@ -41,8 +41,8 @@ module.exports = {
         ]
       };
 
-      /*const rp = require('request-promise');
-      var html = await rp(inputs.url);*/
+      const rp = require('request-promise');
+      var html = await rp(inputs.url);
 
       const text = convert(html, options);
       if(text.length===0){
