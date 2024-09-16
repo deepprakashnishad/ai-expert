@@ -52,6 +52,7 @@ module.exports = {
       var result = await sails.helpers.getTextInChunks.with({"text": text});
       return exits.success(result);
   	}catch(e){
+      return exits.success([]);
   		console.log(e);
   	}  	
   }
