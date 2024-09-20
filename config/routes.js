@@ -70,6 +70,7 @@ module.exports.routes = {
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
   'POST /Generic/resetPassword': {controller: "Generic", action:"resetPassword"},
   'POST /Generic/updateAppData': {controller: "Generic", action: "updateAppData"},
+  'GET /Generic/getEnv': {controller: "Generic", action: "getEnv"},
 
 
   /***************************************************************************

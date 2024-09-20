@@ -1,4 +1,8 @@
 module.exports = {
+	getEnv: async function(req, res){
+		console.log(sails.config.custom.ENV)
+		return res.json({"success": true})		
+	},
 
 	updateAppData: async function(req, res){
 		try{

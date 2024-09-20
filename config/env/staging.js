@@ -395,6 +395,7 @@ module.exports = {
   *                                                                         *
   ***************************************************************************/
   custom: {
+    ENV: "staging",
     baseUrl: 'http://ec2-3-139-233-68.us-east-2.compute.amazonaws.com:1337',
     internalEmailAddress: 'support@example.com',
 
@@ -423,19 +424,6 @@ module.exports = {
       username: 'vipin@astratechsystems.com',
       password: 't0cCmj7x'
     },
-    
-    SHOPIFY: {
-      shop_name: "6cdc10-40",
-
-      admin_token: "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",
-
-      store_token: "81a53db4b8b9d2840d8c445c486a9bdb",
-
-      api_key: "33a12bf566722a928ad9e777d51ac463",
-
-      api_secret_key: "d7b3305c15a02b90f9b6fbac2122b7b6"
-    },
-
     // sendgridSecret: 'SG.fake.3e0Bn0qSQVnwb1E4qNPz9JZP5vLZYqjh7sn8S93oSHU',
     // stripeSecret: 'sk_prod__fake_Nfgh82401348jaDa3lkZ0d9Hm',
     //--------------------------------------------------------------------------
