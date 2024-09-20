@@ -33,6 +33,9 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
 
     async _call(arg) {
         try{
+            if(!arg['customer_id']){
+                return "Please provide your customer id or email to cancel an order.";
+            }
             var orders = await this.shopify.customer.orders(arg['customer_id']);
             
             if(!arg['orderId'] && orders.length > 1){

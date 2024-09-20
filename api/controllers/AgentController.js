@@ -242,8 +242,6 @@ module.exports = {
 
 		messages.push({role: "user", content: inputMessage});
 
-		console.log(messages);
-
 		var result = await sails.helpers.callChatGpt.with({
 			"messages": messages, 
 			"max_tokens": req.body.max_tokens?req.body.max_tokens:4096,
@@ -276,6 +274,10 @@ module.exports = {
 			lChatHistory = chatHistories[req.body.chatId]
 		}else{
 			lChatHistory = await ChatHistory.findOne({id: req.body.chatId});
+		}
+
+		if(req.body.appId && typeof req.body.appId==="number"){
+			req.body.appId = req.body.appId.toString();
 		}
 
 		var chatId = lChatHistory.id;

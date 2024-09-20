@@ -132,6 +132,9 @@ async function getShopifyCustomerDetails(state){
 
 	if(response.length > 0){
 		response[0]['name'] = user['name'];
+		response[0]['appId'] = user['appId'];
+	}else{
+		return {}
 	}	
 
 	return {
@@ -175,7 +178,7 @@ async function shopifyAgent(state){
 
 	var userQuery = conversation[conversation.length-1]['content'];
 
-	var shopifyOptions = await AppData.findOne({appId: user.appId, type: "shopify"});
+	var shopifyOptions = await AppData.findOne({cid: user.appId, type: "shopify"});
 	if(shopifyOptions){
 		shopifyOptions = shopifyOptions.data;
 	}else{

@@ -57,6 +57,9 @@ class GetCustomerOrders extends ShopifyBaseTool {
     }
 
     async _call(arg) {
+        if(!arg['customer_id']){
+            return "Please provide your valid customer id or registered email to get list of orders.";
+        }
         var customer_id = arg['customer_id'];
         delete arg['customer_id'];
         const response = await this.shopify.customer.orders(customer_id, arg);

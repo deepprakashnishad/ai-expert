@@ -54,6 +54,11 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
                     arg['customer_id'] = customers[0].id;
                 }
             }
+
+            if(!arg['customer_id']){
+                return "Please provide your valid customer id or registered email to get order fulfillment details.";
+            }
+
             const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "any"});
             if(orders.length === 0){
                 return "No order found!!!";

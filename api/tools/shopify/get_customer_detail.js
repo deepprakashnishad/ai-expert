@@ -28,6 +28,9 @@ class GetCustomerDetail extends ShopifyBaseTool {
     }
 
     async _call(arg) {
+        if(!arg && !arg['customer_id']){
+            return "Customer id is required to get customer details"; 
+        }
         const response = await this.shopify.customer.get(arg);
         return JSON.stringify(response);
     }

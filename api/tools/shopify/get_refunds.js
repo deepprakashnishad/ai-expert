@@ -73,6 +73,11 @@ class ShopifyGetRefunds extends ShopifyBaseTool {
                         arg['customer_id'] = customers[0].id;
                     }
                 }
+
+                if(!arg['customer_id']){
+                    return "Please provide your valid customer id or registered email to get refund details.";
+                }
+
                 const cancelledOrders = await this.shopify.customer.orders(arg['customer_id'], {"status": "cancelled"});
                 if(cancelledOrders.length === 0){
                     return "No cancelled order found!!!"
