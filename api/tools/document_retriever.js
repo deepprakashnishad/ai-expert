@@ -67,16 +67,6 @@ async function document_retriever(state){
 		}
 	]*/
 
-	if(!conversation){
-		conversation = [];
-		messages.push({"role": "user", "content": userQuery});
-	}else{
-		messages = messages.concat(conversation);
-	}
-
-	/*if(matchedInfo.length === 0){
-		result = `<p>No information is found related to the query. May I helpful you with something else.<\p>`
-	}else{*/
 	var messages = [
 		{
 			"role": "system",
@@ -89,6 +79,18 @@ async function document_retriever(state){
 			`
 		}
 	];
+
+	if(!conversation){
+		conversation = [];
+		messages.push({"role": "user", "content": userQuery});
+	}else{
+		messages = messages.concat(conversation);
+	}
+
+	/*if(matchedInfo.length === 0){
+		result = `<p>No information is found related to the query. May I helpful you with something else.<\p>`
+	}else{*/
+	
 	var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
 
 	result = result[0]['message']['content'];
