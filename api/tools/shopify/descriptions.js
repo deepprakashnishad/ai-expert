@@ -25,6 +25,8 @@ const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order.`
 
 const SEARCH_PRODUCT_BY_QUERY = `This is tool fetches or searches or retrieves list of products currently available in the store`;
 
+const GENERIC_ANSWER_TOOL = `This tool can be used to search general static information matching to the related query prestored in database. It also responds to general queries like Hi, Hello etc.`;
+
 module.exports = {
 	GET_SOPIFY_ORDER_DESCRIPTION,
 	GET_SOPIFY_PRODUCT_LIST_DESCRIPTION,
@@ -37,5 +39,6 @@ module.exports = {
 	CALCULATE_REFUND,
 	GET_PRODUCT_VARIANTS,
 	GET_ORDER_FULFILLMENT,
-	SEARCH_PRODUCT_BY_QUERY
+	SEARCH_PRODUCT_BY_QUERY,
+	GENERIC_ANSWER_TOOL
 }

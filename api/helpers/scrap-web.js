@@ -36,24 +36,40 @@ module.exports = {
       const html = await page.content();*/
 
       const options = {
-        "baseElements.selectors": [
-          {selector: 'p'},
+        selectors: [
+          { selector: 'p', options: { ignoreHref: true } }, // Convert <p> elements
+          { selector: 'img', options: { ignoreImage: true } }, // Ignore <img> elements
+          { selector: 'h1', options: { ignoreHref: true } }, // Ignore <h1> elements
+          { selector: 'h2', options: { ignoreHref: true } }, // Ignore <h2> elements
+          { selector: 'h3', options: { ignoreHref: true } }, // Ignore <h3> elements
         ]
       };
 
       const rp = require('request-promise');
       var html = await rp(inputs.url);
 
-      const text = convert(html, options);
+      var text = convert(html, options);
       if(text.length===0){
         return exits.success([]);
       }
+
+      // text = text.split('\n').filter(line => !line.includes('data:image')).join('\n');
+      text = text
+      .split('\n')
+      .filter(line => 
+        line.trim() !== '' && // Remove empty lines
+        !line.includes('data:image') && // Ignore data URIs
+        !line.includes('javascript:void(0);') && // Ignore JS void links
+        !line.includes('http://') && // Optionally ignore HTTP links
+        !line.includes('https://') // Optionally ignore HTTPS links
+      )
+      .join('\n');
       
       var result = await sails.helpers.getTextInChunks.with({"text": text});
       return exits.success(result);
   	}catch(e){
+      console.log(e);
       return exits.success([]);
-  		console.log(e);
   	}  	
   }
 };

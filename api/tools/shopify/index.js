@@ -16,7 +16,7 @@ const {ShopifyGetProductVariants} = require("./get_product_variants.js");
 const {ShopifyGetRefunds} = require("./get_refunds.js")
 const {ShopifyCalculateRefund} = require("./calculate_refund.js")
 const {SearchProductByQuery} = require("./search_product_by_query.js");
-
+const {GenericAnswerTool} = require("./generic_answer_tool.js");
 const tools = require('./../core/tool.js');
 
 /*const shopifyOptions = {
@@ -174,7 +174,7 @@ async function customShopifyAgent(state){
 
 /*langchain ReAct agent to be used in langgraph*/
 async function shopifyAgent(state){
-	var {llm, conversation, user, extraData} = state;
+	var {llm, conversation, user, extraData, chatId} = state;
 
 	var userQuery = conversation[conversation.length-1]['content'];
 
@@ -202,6 +202,7 @@ async function shopifyAgent(state){
 	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
 	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
 	var searchProductByQuery = new SearchProductByQuery(shopifyOptions);
+	var genericAnswerTool = new GenericAnswerTool();
 
 	const tools = [
 		// getProductListTool, 
@@ -211,7 +212,8 @@ async function shopifyAgent(state){
 		cancelOrder,
 		getProductVariants,
 		getRefunds,
-		searchProductByQuery
+		searchProductByQuery,
+		genericAnswerTool
 	];
 
 	const shopifyAgent = await initializeAgentExecutorWithOptions(tools, llm, {
@@ -221,9 +223,9 @@ async function shopifyAgent(state){
 	});
 
 	if(user && user.id){
-		userQuery = `${userQuery}. Customer id is ${user.id}. I will be punished if you do not return complete output from tool as it is.`;	
+		userQuery = `Based on provided information and tools try to find answer to user_query. {"user_query":${userQuery}, "customer_id": ${user.id}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;	
 	}else{
-		userQuery = `${userQuery}. Note: Do not modify the output. Get template name along with data`;	
+		userQuery = `Based on provided information and tools try to find answer to user_query. {"user_query":${userQuery}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;		
 	}
 
 	const result = await shopifyAgent.invoke({ input: userQuery });

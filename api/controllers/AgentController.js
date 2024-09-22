@@ -336,6 +336,8 @@ module.exports = {
 		    if (Object.keys(event)[0] === END) {
 		      console.log("---FINISHED---");
 		      finalResult = event[END];
+		      /*conversation.push({"role":"assistant", "content": finalResult});
+    		  await ChatHistory.update({"id": chatId}, {"graphState.conversation": conversation});*/
 		      break;
 		    } else {
 		      console.log("Stream event: ", Object.keys(event)[0]);
