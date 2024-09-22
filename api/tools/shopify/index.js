@@ -105,7 +105,7 @@ async function getMetafields(){
 async function getShopifyCustomerDetails(state){
 	var {user} = state;
 
-	var shopifyOptions = await AppData.findOne({cid: user.appId, type: "shopify"});
+	var shopifyOptions = await AppData.findOne({cid: user.appId.toString(), type: "shopify"});
 	if(shopifyOptions){
 		shopifyOptions = shopifyOptions.data;
 	}else{
@@ -128,17 +128,22 @@ async function getShopifyCustomerDetails(state){
 	    baseUrl: shopifyOptions.baseUrl
 	});
 
-	const response = await shopify.customer.search({email: user.email});
+	try{
+		const response = await shopify.customer.search({email: user.email});
 
-	if(response.length > 0){
-		response[0]['name'] = user['name'];
-		response[0]['appId'] = user['appId'];
-	}else{
+		if(response.length > 0){
+			response[0]['name'] = user['name'];
+			response[0]['appId'] = user['appId'];
+		}else{
+			return {}
+		}	
+
+		return {
+			user: response[0]
+		}
+	}catch(e){
+		console.log(e);
 		return {}
-	}	
-
-	return {
-		user: response[0]
 	}
 }
 
@@ -178,7 +183,7 @@ async function shopifyAgent(state){
 
 	var userQuery = conversation[conversation.length-1]['content'];
 
-	var shopifyOptions = await AppData.findOne({cid: user.appId, type: "shopify"});
+	var shopifyOptions = await AppData.findOne({cid: user.appId.toString(), type: "shopify"});
 	if(shopifyOptions){
 		shopifyOptions = shopifyOptions.data;
 	}else{
@@ -223,23 +228,29 @@ async function shopifyAgent(state){
 	});
 
 	if(user && user.id){
-		userQuery = `Based on provided information and tools try to find answer to user_query. {"user_query":${userQuery}, "customer_id": ${user.id}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;	
+		userQuery = `Based on provided information and tools try to find detailed answer to user_query. {"user_query":${userQuery}, "customer_id": ${user.id}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;	
 	}else{
-		userQuery = `Based on provided information and tools try to find answer to user_query. {"user_query":${userQuery}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;		
+		userQuery = `Based on provided information and tools try to find detailed answer to user_query. {"user_query":${userQuery}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;		
 	}
+	try{
+		const result = await shopifyAgent.invoke({ input: userQuery });	
+		if(!extraData){
+			extraData = {};
+		}	
+		if(result['output'] && result['output']['template_name']){
+			extraData['template_name'] = result['output']['template_name'];		
+		}
 
-	const result = await shopifyAgent.invoke({ input: userQuery });
+		return {
+			finalResult: result['output']['data']?result['output']['data']:result['output'],
+			extraData: extraData
+		}
+	}catch(e){
+		console.log(e);
 
-	if(!extraData){
-		extraData = {};
-	}	
-	if(result['output'] && result['output']['template_name']){
-		extraData['template_name'] = result['output']['template_name'];		
-	}
-
-	return {
-		finalResult: result['output']['data']?result['output']['data']:result['output'],
-		extraData: extraData
+		return {
+			finalResult: "Due to technical issue unable to fetch the results right now. Try again later."
+		}
 	}
 }
 

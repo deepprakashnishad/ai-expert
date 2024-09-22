@@ -39,6 +39,30 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
         return mFulfillments;
     }
 
+    expectedDeliveryDate(startDateStr, n=8) {
+        // Parse the input date string
+        const startDate = new Date(startDateStr);
+        if (isNaN(startDate)) {
+            throw new Error("Invalid date format. Please use 'YYYY-MM-DDTHH:mm:ss+TZD'.");
+        }
+
+        let daysAdded = 0;
+        let futureDate = new Date(startDate);
+
+        while (daysAdded < n) {
+            futureDate.setDate(futureDate.getDate() + 1);
+            // Check if the future date is a weekday (Monday to Friday)
+            if (futureDate.getDay() !== 0 && futureDate.getDay() !== 6) { // 0 = Sunday, 6 = Saturday
+                daysAdded++;
+            }
+        }
+
+        // Format the future date
+        const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'long' };
+        return futureDate.toLocaleDateString('en-US', options);
+    }
+
+
     async _call(arg) {
         var response;
         try{
@@ -63,7 +87,7 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             if(orders.length === 0){
                 return "No order found!!!";
             }
-            var selectedOrder = {};
+            var selectedOrder = orders[0];
             for(var order of orders){
                 if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===arg['orderId'])){
                     selectedOrder = order;
@@ -76,11 +100,17 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             // order['id'] = orders[0]['id'];
             var fulfillments = this.extractFulfillments(selectedOrder.fulfillments);
             // order['fulfillments'] = fulfillments;
-            return JSON.stringify(fulfillments);
+
+            return JSON.stringify({
+                "fulfillments": fulfillments, 
+                "order_status_url": selectedOrder.order_status_url,
+                "fulfillment_status": selectedOrder.fulfillment_status,
+                "expected_delivery": this.expectedDeliveryDate(selectedOrder.created_at)
+            });
         }catch(e){
             console.log(e)
         }
-        return undefined;
+        return "Due to technical issue unable to fetch the results right now. Try again later.";
     }
 }
  
