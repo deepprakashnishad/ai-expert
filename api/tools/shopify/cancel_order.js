@@ -37,6 +37,9 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
                 return "Please provide your customer id or email to cancel an order.";
             }
             var orders = await this.shopify.customer.orders(arg['customer_id']);
+            orders.sort((a, b) => {
+              return new Date(b.created_at) - new Date(a.created_at);
+            });
             
             if(!arg['orderId'] && orders.length > 1){
                 var orderNumberList = orders.map(ele => ele.order_number);

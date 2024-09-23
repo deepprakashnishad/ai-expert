@@ -64,6 +64,9 @@ class GetCustomerOrders extends ShopifyBaseTool {
         delete arg['customer_id'];
         const response = await this.shopify.customer.orders(customer_id, arg);
         const orders = this.extractOrders(response);
+        orders.sort((a, b) => {
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
         return JSON.stringify(orders);
     }
 }

@@ -79,6 +79,9 @@ class ShopifyGetRefunds extends ShopifyBaseTool {
                 }
 
                 const cancelledOrders = await this.shopify.customer.orders(arg['customer_id'], {"status": "cancelled"});
+                cancelledOrders.sort((a, b) => {
+                  return new Date(b.created_at) - new Date(a.created_at);
+                });
                 if(cancelledOrders.length === 0){
                     return "No cancelled order found!!!"
                 }
