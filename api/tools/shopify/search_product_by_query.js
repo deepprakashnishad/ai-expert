@@ -17,17 +17,24 @@ class SearchProductByQuery extends ShopifyBaseTool {
             writable: true,
             value: z.object({
                 query: z.string(),
-                result_count: z.number().default(5),
-                prefix: z.string().default(""),
+                result_count: z.number().default(50),
+                // prefix: z.enum(["LAST", "NONE"]).default("LAST"),
                 productFilters: z.object({
                     available: z.boolean().default(true),
                     price: z.object({
                         max: z.number().optional(),
                         min: z.number().optional()
                     }).optional(),
-                    type: z.string().optional(),
-                    tag: z.string().optional()
-                }).optional()
+                    tag: z.string().optional(),
+                    productType: z.string().optional(),
+                    variantOption: z.object({
+                        name: z.string(),
+                        value: z.string()
+                    }).optional()
+                }).optional(),
+                sortKey: z.enum(["PRICE", "RELEVANCE"]).default("RELEVANCE"), 
+                types: z.enum(["ARTICLE","PAGE", "PRODUCT"]).default("PRODUCT"),
+                unavailableProducts: z.enum(["HIDE", "LAST", "SHOW"]).default("LAST")
             })
         });
         Object.defineProperty(this, "description", {
