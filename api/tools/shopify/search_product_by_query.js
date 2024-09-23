@@ -41,18 +41,30 @@ class SearchProductByQuery extends ShopifyBaseTool {
     extractProduct(products){
         var fProducts = [];
         for(var prod of products){
+            prod = prod['node'];
             var temp = {};
             temp['id'] = prod['id'];
             temp['title'] = prod['title'];
-            temp['body_html'] = prod['body_html'];
-            temp['vendor'] = prod['vendor'];
+            temp['descriptionHtml'] = prod['descriptionHtml'];
             temp['handle'] = prod['handle'];
             temp['product_url'] = `${this.baseUrl}products/${temp['handle']}`;
-            temp['product_type'] = prod['product_type'];
+            temp['product_type'] = prod['productType'];
             temp['status'] = prod['status'];
-            temp['currency'] = prod['currency'] || "INR";
-            temp['image'] = prod['image'] && prod['image']['src']? prod['image']['src']:undefined;
+            if(prod.variants && prod.variants.edges){
+                temp['variants'] = prod.variants.edges.map(ele => {
+                    ele = ele.node;
+                    return {
+                        availableForSale: ele.availableForSale,
+                        price: ele.price,
+                        quantityAvailable: ele.quantityAvailable //>0?ele.quantityAvailable:"Out of stock"
+                    }
+                });    
+            }
 
+            if(prod.images && prod.images.edges){
+                temp['images'] = prod.images.edges.map(ele=>ele.node);    
+            }
+            
             fProducts.push(temp);
         }
         return fProducts;
@@ -107,7 +119,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
           },
         });
         if(!errors){
-            const products = this.extractProduct(data);
+            const products = this.extractProduct(data['search']['edges']);
             return JSON.stringify({"template_name": "product_list_template", "data": products});    
         }else{
             console.log(errors);

@@ -216,7 +216,7 @@ module.exports = {
 			User Query: ${query}
 			Final Result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}`;*/
 		
-		const prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
+		const prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto.
 
 			query: ${query}
 			final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
