@@ -56,7 +56,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
                     return {
                         availableForSale: ele.availableForSale,
                         price: ele.price,
-                        quantityAvailable: ele.quantityAvailable //>0?ele.quantityAvailable:"Out of stock"
+                        quantityAvailable: ele.quantityAvailable>0?ele.quantityAvailable:"Out of stock"
                     }
                 });    
             }
