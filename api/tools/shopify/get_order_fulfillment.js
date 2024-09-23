@@ -84,6 +84,9 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             }
 
             const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "any"});
+            orders.sort((a, b) => {
+              return new Date(b.created_at) - new Date(a.created_at);
+            });
             if(orders.length === 0){
                 return "No order found!!!";
             }

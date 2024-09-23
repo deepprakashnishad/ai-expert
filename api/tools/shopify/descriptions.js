@@ -21,7 +21,7 @@ const CALCULATE_REFUND = `This tool calculates refund for the given orderId`;
 
 const GET_PRODUCT_VARIANTS = `This tool fetch variants of the given product id or product title`;
 
-const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order.`;
+const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order. It can fetch complete delivery details expected delivery date, shipping details etc.`;
 
 const SEARCH_PRODUCT_BY_QUERY = `This is tool fetches or searches or retrieves list of products currently available in the store`;
 
