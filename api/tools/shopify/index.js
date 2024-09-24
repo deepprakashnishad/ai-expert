@@ -17,6 +17,8 @@ const {ShopifyGetRefunds} = require("./get_refunds.js")
 const {ShopifyCalculateRefund} = require("./calculate_refund.js")
 const {SearchProductByQuery} = require("./search_product_by_query.js");
 const {GenericAnswerTool} = require("./generic_answer_tool.js");
+const {FetchInventory} = require("./get_inventory.js");
+const {ShopifyGetProductRecommendations} = require("./product_recommendation.js");
 const tools = require('./../core/tool.js');
 
 /*const shopifyOptions = {
@@ -207,7 +209,10 @@ async function shopifyAgent(state){
 	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
 	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
 	var searchProductByQuery = new SearchProductByQuery(shopifyOptions);
+	var inventoryTool = new FetchInventory(shopifyOptions);
+	var productRecommendationTool = new ShopifyGetProductRecommendations(shopifyOptions);
 	var genericAnswerTool = new GenericAnswerTool();
+
 
 	const tools = [
 		// getProductListTool, 
@@ -218,6 +223,8 @@ async function shopifyAgent(state){
 		getProductVariants,
 		getRefunds,
 		searchProductByQuery,
+		inventoryTool,
+		productRecommendationTool,
 		genericAnswerTool
 	];
 

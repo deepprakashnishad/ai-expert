@@ -50,7 +50,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
         for(var prod of products){
             prod = prod['node'];
             var temp = {};
-            temp['id'] = prod['id'];
+            temp['product_id'] = prod['id'];
             temp['title'] = prod['title'];
             temp['descriptionHtml'] = prod['descriptionHtml'];
             temp['handle'] = prod['handle'];
@@ -105,6 +105,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
                     edges {
                         node {
                             id
+                            title
                             price {
                               amount
                               currencyCode

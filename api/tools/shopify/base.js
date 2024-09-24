@@ -55,9 +55,9 @@ class ShopifyBaseTool extends StructuredTool {
             writable: true,
             value: fields['baseUrl']
         })*/
-        this.shopify = this.getShopify(this.CredentialsSchema.parse(fields));
-
-        this.storefrontClient = this.getStorefrontClient(this.CredentialsSchema.parse(fields));
+        this.credentials = this.CredentialsSchema.parse(fields);
+        this.shopify = this.getShopify(this.credentials);
+        this.storefrontClient = this.getStorefrontClient(this.credentials);
     }
 
     getShopify(credentials) {

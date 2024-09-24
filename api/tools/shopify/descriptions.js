@@ -21,11 +21,15 @@ const CALCULATE_REFUND = `This tool calculates refund for the given orderId`;
 
 const GET_PRODUCT_VARIANTS = `This tool fetch variants of the given product id or product title`;
 
-const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order. It can fetch complete delivery details expected delivery date, shipping details etc.`;
+const GET_ORDER_FULFILLMENT = `Retrieves fulfillments associated with an order. It can fetch complete delivery details expected delivery date, shipping details, when user will recieve his order or product etc.`;
 
 const SEARCH_PRODUCT_BY_QUERY = `This is tool fetches or searches or retrieves list of products currently available in the store`;
 
 const GENERIC_ANSWER_TOOL = `This tool can be used to search general static information matching to the related query prestored in database. It also responds to general queries like Hi, Hello etc.`;
+
+const INVENTORY_TOOL = `This tool can be used to retrieve inventory details, product available quantity etc`;
+
+const PRODUCT_RECOMMENDATION_TOOL = `This tool can be used to find related or complimentary products`;
 
 module.exports = {
 	GET_SOPIFY_ORDER_DESCRIPTION,
@@ -40,5 +44,7 @@ module.exports = {
 	GET_PRODUCT_VARIANTS,
 	GET_ORDER_FULFILLMENT,
 	SEARCH_PRODUCT_BY_QUERY,
-	GENERIC_ANSWER_TOOL
+	GENERIC_ANSWER_TOOL,
+	INVENTORY_TOOL,
+	PRODUCT_RECOMMENDATION_TOOL
 }

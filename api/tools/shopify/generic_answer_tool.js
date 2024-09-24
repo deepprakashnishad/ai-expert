@@ -38,7 +38,7 @@ class GenericAnswerTool extends StructuredTool {
 
         var result = await sails.helpers.chatGptEmbedding.with({inputTextArray: [userQuery]});
 
-        quesEmbeddingData = result[0].embedding;
+        const quesEmbeddingData = result[0].embedding;
 
         const cvectorColl = Cvector.getDatastore().manager.collection(Cvector.tableName);
 

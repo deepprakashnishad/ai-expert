@@ -64,8 +64,9 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
             return JSON.stringify(response);    
         }catch(ex){
             console.log(ex);
+            return "Due to a technical issue we are unable to cancel this order right now.";
         }
-        return undefined;
+        return "Due to a technical issue we are unable to cancel this order right now.";
     }
 }
  
