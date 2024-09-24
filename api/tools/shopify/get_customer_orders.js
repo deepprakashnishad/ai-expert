@@ -17,6 +17,7 @@ class GetCustomerOrders extends ShopifyBaseTool {
             writable: true,
             value: z.object({
                 customer_id: z.number(),
+                orderNumber: z.number().optional(),
                 status: z.enum(["open", "closed", "cancelled", "any"]).optional()
             })
         });
@@ -64,10 +65,15 @@ class GetCustomerOrders extends ShopifyBaseTool {
         delete arg['customer_id'];
         const response = await this.shopify.customer.orders(customer_id, arg);
         const orders = this.extractOrders(response);
-        orders.sort((a, b) => {
-          return new Date(b.created_at) - new Date(a.created_at);
-        });
-        return JSON.stringify(orders);
+        if(!arg['orderNumber']){
+        	orders.sort((a, b) => {
+	          return new Date(b.created_at) - new Date(a.created_at);
+	        });
+	        return JSON.stringify(orders);
+        }else{
+        	const order = orders.find(order => order.order_number === givenOrderNumber);
+        	return JSON.stringify(order);
+        }
     }
 }
  

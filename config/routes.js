@@ -67,6 +67,9 @@ module.exports.routes = {
   'GET /Tool': { controller: 'Tool', action: "list"},
   'DELETE /Tool/:id': { controller: 'Tool', action: "delete"},
 
+  'POST /Review': { controller: 'Review', action: "create"},
+  'GET /Review': { controller: 'Review', action: "get"},
+
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
   'POST /Generic/resetPassword': {controller: "Generic", action:"resetPassword"},
   'POST /Generic/updateAppData': {controller: "Generic", action: "updateAppData"},

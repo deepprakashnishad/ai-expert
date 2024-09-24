@@ -20,7 +20,6 @@ module.exports = {
 			console.log(e);
 			return res.json(e);
 		}
-		
 	},
 
 	wakeUp: async function(req, res){
