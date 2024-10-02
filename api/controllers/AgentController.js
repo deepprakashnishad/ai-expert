@@ -460,11 +460,17 @@ module.exports = {
 	},
 
 	test: async function(req, res){
-		/*const llm = new ChatOpenAI({
+		const llm = new ChatOpenAI({
 		    modelName: "gpt-4-turbo-preview",
 		    temperature: 0,
-		});*/
-		response = await toolLib.fetchProducts();
+		});
+		let conversation = [{content: "Prepare a quotation for the given client"}];
+		response = await toolLib.pdfGenerator({
+			llm: llm,
+			conversation: conversation,
+			finalResult: true,
+			user: {"name": "deep", "appId": "6"}
+		});
 		
 	    return res.json(response);	
 	},

@@ -131,9 +131,14 @@ async function getShopifyCustomerDetails(state){
 	});
 
 	try{
-		const response = await shopify.customer.search({email: user.email});
+		var response;
+		if(user.email){
+			response = await shopify.customer.search({email: user.email});	
+		}else if(user.phone){
+			response = await shopify.customer.search({phone: user.phone});	
+		}
 
-		if(response.length > 0){
+		if(response && response.length > 0){
 			response[0]['name'] = user['name'];
 			response[0]['appId'] = user['appId'];
 		}else{

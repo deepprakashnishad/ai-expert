@@ -282,7 +282,9 @@ module.exports = {
 	},
 
 	pdfGenerator: async function(state){
-		var {llm, finalResult, query} = state;
+		var {llm, finalResult, conversation, user} = state;
+
+		var query = conversation[conversation.length-1]['content'];
 
 		if(!finalResult){
 			return {
@@ -298,94 +300,33 @@ module.exports = {
 			finalResult = JSON.stringify(finalResult);
 		}
 
-		var htmlContent = `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-			    <meta charset="UTF-8">
-			    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-			    <title>Draft Invoice</title>
-			    <style>
-			        body {
-			            font-family: Arial, sans-serif;
-			            margin: 20px;
-			        }
-			        .invoice-container {
-			            border: 1px solid #000;
-			            padding: 20px;
-			            max-width: 800px;
-			            margin: auto;
-			        }
-			        .invoice-header, .invoice-footer {
-			            text-align: center;
-			            margin-bottom: 20px;
-			        }
-			        .invoice-body {
-			            margin-bottom: 20px;
-			        }
-			        .invoice-section {
-			            margin-bottom: 10px;
-			        }
-			        .invoice-table {
-			            width: 100%;
-			            border-collapse: collapse;
-			            margin-bottom: 20px;
-			        }
-			        .invoice-table th, .invoice-table td {
-			            border: 1px solid #000;
-			            padding: 8px;
-			            text-align: left;
-			        }
-			        .invoice-footer a {
-			            color: #000;
-			            text-decoration: none;
-			        }
-			    </style>
-			</head>
-			<body>
-			    <div class="invoice-container">
-			        <div class="invoice-header">
-			            <h1>Draft Customer Invoice</h1>
-			        </div>
-			        <div class="invoice-body">
-			            <div class="invoice-section">
-			                <p><strong>Untaxed Amount:</strong> {{untaxed_amount}}</p>
-			                <p><strong>Tax (18%):</strong> {{tax}}</p>
-			                <p><strong>Total:</strong> {{total}}</p>
-			            </div>
-			            <div class="invoice-section">
-			                <p><strong>Shipping Address:</strong></p>
-			                <p>{{shipping_address}}</p>
-			                <p>{{recipient_name}}</p>
-			            </div>
-			            <div class="invoice-section">
-			                <table class="invoice-table">
-			                    <thead>
-			                        <tr>
-			                            <th>Description</th>
-			                            <th>Quantity</th>
-			                            <th>Unit Price</th>
-			                            <th>Taxes</th>
-			                            <th>Amount</th>
-			                        </tr>
-			                    </thead>
-			                    <tbody>
-			                    </tbody>
-			                </table>
-			            </div>
-			            <div class="invoice-section">
-			                <p>Terms & Conditions: <a href="https://odoo-171419-0.cloudclusters.net/terms">https://odoo-171419-0.cloudclusters.net/terms</a></p>
-			            </div>
-			        </div>
-			        <div class="invoice-footer">
-			            <p><strong>Unique Corp</strong></p>
-			            <p>Address: 772 Raviwar Peth, Pune, Maharashtra - 411002 India.</p>
-			            <p>Phone No: +91-9822431229, +91-7350023007.</p>
-			            <p>Email: <a href="mailto:sales@uniqueequips.com">sales@uniqueequips.com</a></p>
-			            <p>GSTIN: 27AEEPD4000P1ZP.</p>
-			        </div>
-			    </div>
-			</body>
-			</html>`;
+		var templates = await AppData.find({cid: user.appId.toString(), type: "template"});
+
+		var templateNames = templates.map(ele=>ele.data.name);
+		var messages = [
+			{
+				"role": "system",
+				"content": `You are an expert bot to select best template based on their names for the given user query.
+				templates: [${templateNames.join(", ")}]
+				Your output must be one of the names from the provided above list of templates only.
+				eg: 
+				templates: ['abc', 'xyz', 'pqr']
+				output: xyz
+				`
+			},
+			{
+				"role": "user",
+				"content": "query"
+			}
+		];
+
+		var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
+
+		result = result[0]['message']['content'];
+
+		var htmlContent = templates.find(ele => ele.data.name===result);
+
+		htmlContent = htmlContent.data.template;
 
 		var mPath = `generatedDocs/${generateObjectId()}.pdf`;
 		const outputPath = path.join(sails.config.paths.public, mPath);
@@ -419,6 +360,12 @@ module.exports = {
 		});
 
 		var responseContent = result[0]["message"]['content'];
+
+		// Ensure the directory exists
+		const dir = path.dirname(outputPath);
+		if (!fs.existsSync(dir)) {
+		    fs.mkdirSync(dir, { recursive: true });
+		}
 
 		const browser = await puppeteer.launch({
 			args: ['--no-sandbox', '--disable-setuid-sandbox']

@@ -8,7 +8,7 @@ module.exports = {
 		try{
 			const appDataColl = await AppData.getDatastore().manager.collection(AppData.tableName);
 			var result = await appDataColl.updateOne(
-				{"cid": req.body.appId, "type": req.body.type},
+				{"cid": req.body.appId.toString(), "type": req.body.type},
 				{$set: {"data": req.body.data}},
 				{
 					upsert: true
