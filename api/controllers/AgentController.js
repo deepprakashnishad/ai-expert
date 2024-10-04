@@ -464,12 +464,12 @@ module.exports = {
 		    modelName: "gpt-4-turbo-preview",
 		    temperature: 0,
 		});
-		let conversation = [{content: "Prepare a quotation for the given client"}];
-		response = await toolLib.pdfGenerator({
+		let conversation = [{content: "Get me my last order details"}];
+		response = await toolLib.customShopifyAgent({
 			llm: llm,
 			conversation: conversation,
 			finalResult: true,
-			user: {"name": "deep", "appId": "6"}
+			user: {"name": "deep", "email": "rakhiparkale1999@gmail.com", "appId": "6"}
 		});
 		
 	    return res.json(response);	
@@ -572,6 +572,7 @@ module.exports = {
 		const outputPath = path.join(sails.config.paths.public, mPath);
 
 		const browser = await puppeteer.launch({
+			headless: true,
 			args: ['--no-sandbox', '--disable-setuid-sandbox']
 		});
 	    const page = await browser.newPage();
