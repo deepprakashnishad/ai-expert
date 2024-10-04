@@ -48,7 +48,7 @@ class GenericAnswerTool extends StructuredTool {
                     "queryVector": quesEmbeddingData,
                     "filter": {
                         "cid": {
-                          "$eq": appId.toString() // Filter by the category ID
+                          "$eq": arg['appId'].toString() // Filter by the category ID
                         }
                     },
                     "path": "e",
