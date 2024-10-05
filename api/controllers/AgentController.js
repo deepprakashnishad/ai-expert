@@ -572,8 +572,16 @@ module.exports = {
 		const outputPath = path.join(sails.config.paths.public, mPath);
 
 		const browser = await puppeteer.launch({
+			executablePath: process.env.NODE_ENV==="production" || 
+							process.env.NODE_ENV==="staging" ?
+							process.env.PUPPETEER_EXECUTABLE_PATH : puppeteer.executablePath(),
 			headless: true,
-			args: ['--no-sandbox', '--disable-setuid-sandbox']
+			args: [
+				'--no-sandbox', 
+				'--disable-setuid-sandbox',
+				'--single-process',
+				'--no-zygote'
+			]
 		});
 	    const page = await browser.newPage();
 	    await page.setContent(htmlContent);
