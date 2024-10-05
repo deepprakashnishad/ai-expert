@@ -478,6 +478,7 @@ module.exports = {
 	pdfTester: async function(req, res){
 		const puppeteer = require("puppeteer");
 		const path = require('path');
+		const fs = require("fs");
 
 		var htmlContent = `<!DOCTYPE html>
 			<html lang="en">
