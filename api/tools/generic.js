@@ -36,8 +36,6 @@ module.exports = {
 		var graphPlan = {
 			
 		};
-
-
 	},
 
 	apiCaller: async function(method, url, queryParams={}, body={}, params=[], options={}){
@@ -248,7 +246,6 @@ module.exports = {
 				"content": prompt
 			}
 		]
-		console.log(messages)
 		var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
 		response = JSON.parse(response[0]['message']['content']);
 		if(response['is_pdf']){
@@ -263,12 +260,47 @@ module.exports = {
 				"response": response['html']
 			};
 		}
-		
+	},
 
-		// Call the language model
-		// const response = await llm.call(prompt);
+	addActionButtons: async function(state){
+		var { llm, finalResult, conversation} = state;
 
-		
+		var query = conversation[conversation.length-1]['content'];
+
+		var messages = [
+			{
+				role: "system", 
+				content: `Embed action buttons within the finalResult based on the user query. It could be at the end of the final result as html buttons or in different sections as you deemed it to be fit:
+					
+				  finalResult: ${finalResult},
+				  query: ${query},
+				  actions: {
+				    product: [
+				      { name: "add_to_cart", display_name: "Add to cart", data-prod-id: product_id },
+				      { name: "add_to_favorite", display_name: "Add to favorite", data-prod-id: product_id }
+				    ],
+				    refund: [
+				    	{name: "raise_dispute", display_name: "Raise Dispute", refund_id: refund_id}
+				    ]
+				  }
+					
+					Action button should be as follows:
+					<button class="btn-action" data-action-name="{{name}}" data-extra="Stringified object of data">{{display_name}}</button>
+
+				Final output must be similar to finalResult with action buttons if required.
+				`
+			}
+		];
+
+		var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
+
+		result = result[0]['message']['content'];
+
+		console.log(result);
+
+		return {
+			finalResult: result
+		}
 	},
 
 	isNextNode: function(state){
@@ -368,7 +400,16 @@ module.exports = {
 		}
 
 		const browser = await puppeteer.launch({
-			args: ['--no-sandbox', '--disable-setuid-sandbox']
+			executablePath: process.env.NODE_ENV==="production" || 
+							process.env.NODE_ENV==="staging" ?
+							process.env.PUPPETEER_EXECUTABLE_PATH : puppeteer.executablePath(),
+			headless: true,
+			args: [
+				'--no-sandbox', 
+				'--disable-setuid-sandbox',
+				'--single-process',
+				'--no-zygote'
+			]
 		});
 	    const page = await browser.newPage();
 	    await page.setContent(responseContent);
