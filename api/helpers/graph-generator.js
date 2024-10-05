@@ -113,14 +113,17 @@ module.exports = {
     else if(inputs.id.toLowerCase() === "shopify"){
       graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
       graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
+      // graph.addNode("shopifyAgent", toolsLib.customShopifyAgent);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      // graph.addNode("addActionButtons", toolsLib.addActionButtons);
 
       graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
       graph.addEdge("shopifyAgent", "response_formatter_node");
       graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
       graph.setEntryPoint("getShopifyCustomerDetails"); 
       graph.setFinishPoint("pdfGenerator"); 
+      // graph.setFinishPoint("addActionButtons"); 
     }
     else if(inputs.id === "Invoice Generator"){
       graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);
@@ -240,11 +243,19 @@ module.exports = {
       graph.setFinishPoint("response_formatter_node");
     }
     else{
-      graph.addNode("document_retriever", toolsLib.document_retriever);
-      // graph.addNode("response_formatter_node", toolsLib.responseFormatter);
-      // graph.addEdge("document_retriever", "response_formatter_node");
-      graph.setEntryPoint("document_retriever");
-      graph.setFinishPoint("document_retriever");
+      graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
+      graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
+      // graph.addNode("shopifyAgent", toolsLib.customShopifyAgent);
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      // graph.addNode("addActionButtons", toolsLib.addActionButtons);
+
+      graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
+      graph.addEdge("shopifyAgent", "response_formatter_node");
+      graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
+      graph.setEntryPoint("getShopifyCustomerDetails"); 
+      graph.setFinishPoint("pdfGenerator"); 
+      // graph.setFinishPoint("addActionButtons"); 
     }
     
 

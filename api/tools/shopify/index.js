@@ -19,7 +19,7 @@ const {SearchProductByQuery} = require("./search_product_by_query.js");
 const {GenericAnswerTool} = require("./generic_answer_tool.js");
 const {FetchInventory} = require("./get_inventory.js");
 const {ShopifyGetProductRecommendations} = require("./product_recommendation.js");
-const tools = require('./../core/tool.js');
+const coreToolExecutor = require('./../core/tool.js');
 
 /*const shopifyOptions = {
 	shopName: sails.config.custom.SHOPIFY.shop_name,
@@ -111,7 +111,7 @@ async function getShopifyCustomerDetails(state){
 	if(shopifyOptions){
 		shopifyOptions = shopifyOptions.data;
 	}else{
-		throw new Error("Shopify credentials not found"); 
+		return {};
 	}
 	shopifyOptions.current ??= 10;
 	shopifyOptions.max ??= 40;
@@ -157,6 +157,24 @@ async function getShopifyCustomerDetails(state){
 /*Custom agent to introduce human node*/
 async function customShopifyAgent(state){
 
+	var {user, conversation} = state;
+
+	var userQuery = conversation[conversation.length-1]['content'];
+
+	var shopifyOptions = await AppData.findOne({cid: user.appId.toString(), type: "shopify"});
+	if(shopifyOptions){
+		shopifyOptions = shopifyOptions.data;
+	}else{
+		throw new Error("Shopify credentials not found"); 
+	}
+	shopifyOptions.current ??= 10;
+	shopifyOptions.max ??= 40;
+	shopifyOptions.remaining ??= 30;
+	shopifyOptions.autoLimit ??= true;
+	shopifyOptions.adminAPIVersion ??= '2024-07';
+	shopifyOptions.storeAPIVersion ??= '2023-10';
+	shopifyOptions.currency = user.currency?user.currency:"INR";
+
 	var getProductListTool = new ShopifyGetProducts(shopifyOptions);
 	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
 	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
@@ -178,9 +196,11 @@ async function customShopifyAgent(state){
 
 	state['apis'] = tools;
 
-	var result = await tools.bestToolSelector(state);
+	var result = await coreToolExecutor.bestToolSelector(state);
 
-	return result;
+	return {
+		finalResult: result
+	};
 }
 
 
@@ -190,48 +210,48 @@ async function shopifyAgent(state){
 
 	var userQuery = conversation[conversation.length-1]['content'];
 
+	var tools = [];
+
 	var shopifyOptions = await AppData.findOne({cid: user.appId.toString(), type: "shopify"});
 	if(shopifyOptions){
 		shopifyOptions = shopifyOptions.data;
-	}else{
-		throw new Error("Shopify credentials not found"); 
+		shopifyOptions.current ??= 10;
+		shopifyOptions.max ??= 40;
+		shopifyOptions.remaining ??= 30;
+		shopifyOptions.autoLimit ??= true;
+		shopifyOptions.adminAPIVersion ??= '2024-07';
+		shopifyOptions.storeAPIVersion ??= '2023-10';
+		shopifyOptions.currency = user.currency?user.currency:"INR";
+
+
+		// var getProductListTool = new ShopifyGetProducts(shopifyOptions);
+		var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
+		var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
+		var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
+		// var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
+		var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
+		var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
+		var getRefunds = new ShopifyGetRefunds(shopifyOptions);
+		var searchProductByQuery = new SearchProductByQuery(shopifyOptions);
+		var inventoryTool = new FetchInventory(shopifyOptions);
+		var productRecommendationTool = new ShopifyGetProductRecommendations(shopifyOptions);
+		tools = [
+			// getProductListTool, 
+			getCustomerDetailTool, 
+			getCustomerOrderTool, 
+			getOrderFulfillment,
+			cancelOrder,
+			getProductVariants,
+			getRefunds,
+			searchProductByQuery,
+			inventoryTool,
+			productRecommendationTool,
+			genericAnswerTool
+		];
 	}
-	shopifyOptions.current ??= 10;
-	shopifyOptions.max ??= 40;
-	shopifyOptions.remaining ??= 30;
-	shopifyOptions.autoLimit ??= true;
-	shopifyOptions.adminAPIVersion ??= '2024-07';
-	shopifyOptions.storeAPIVersion ??= '2023-10';
-	shopifyOptions.currency = user.currency?user.currency:"INR";
-
-
-	// var getProductListTool = new ShopifyGetProducts(shopifyOptions);
-	var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
-	var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
-	var getOrderFulfillment = new ShopifyGetOrderFulfillment(shopifyOptions);
-	// var calculateRefund = new ShopifyCalculateRefund(shopifyOptions);
-	var cancelOrder = new ShopifyCancelOrder(shopifyOptions);
-	var getProductVariants = new ShopifyGetProductVariants(shopifyOptions);
-	var getRefunds = new ShopifyGetRefunds(shopifyOptions);
-	var searchProductByQuery = new SearchProductByQuery(shopifyOptions);
-	var inventoryTool = new FetchInventory(shopifyOptions);
-	var productRecommendationTool = new ShopifyGetProductRecommendations(shopifyOptions);
 	var genericAnswerTool = new GenericAnswerTool();
 
-
-	const tools = [
-		// getProductListTool, 
-		getCustomerDetailTool, 
-		getCustomerOrderTool, 
-		getOrderFulfillment,
-		cancelOrder,
-		getProductVariants,
-		getRefunds,
-		searchProductByQuery,
-		inventoryTool,
-		productRecommendationTool,
-		genericAnswerTool
-	];
+	tools.push(genericAnswerTool);
 
 	const shopifyAgent = await initializeAgentExecutorWithOptions(tools, llm, {
 	    // agentType: "structured-chat-zero-shot-react-description",
@@ -319,5 +339,6 @@ module.exports = {
 	getMetafields,
 	mShopifyAgent,
 	shopifyAgent,
+	customShopifyAgent,
 	getShopifyCustomerDetails
 }
