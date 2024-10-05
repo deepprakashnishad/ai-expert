@@ -220,7 +220,7 @@ async function shopifyAgent(state){
 		shopifyOptions.remaining ??= 30;
 		shopifyOptions.autoLimit ??= true;
 		shopifyOptions.adminAPIVersion ??= '2024-07';
-		shopifyOptions.storeAPIVersion ??= '2023-10';
+		shopifyOptions.storeAPIVersion ??= '2024-10';
 		shopifyOptions.currency = user.currency?user.currency:"INR";
 
 
@@ -246,7 +246,6 @@ async function shopifyAgent(state){
 			searchProductByQuery,
 			inventoryTool,
 			productRecommendationTool,
-			genericAnswerTool
 		];
 	}
 	var genericAnswerTool = new GenericAnswerTool();
