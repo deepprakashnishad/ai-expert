@@ -571,6 +571,11 @@ module.exports = {
 		var mPath = `generatedDocs/${generateObjectId()}.pdf`;
 		const outputPath = path.join(sails.config.paths.public, mPath);
 
+		const dir = path.dirname(outputPath);
+		if (!fs.existsSync(dir)) {
+		    fs.mkdirSync(dir, { recursive: true });
+		}
+
 		const browser = await puppeteer.launch({
 			executablePath: process.env.NODE_ENV==="production" || 
 							process.env.NODE_ENV==="staging" ?
