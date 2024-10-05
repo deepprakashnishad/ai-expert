@@ -38,6 +38,33 @@ module.exports = {
 		};
 	},
 
+	flowDecisionMaker: async function(state){
+		const {paths} = require('./description.js');
+		var {user, conversation} = state;
+
+		var userQuery = conversation[conversation.length-1]['content'];
+
+		var messages = [
+            {
+                "role": "system",
+                "content": `Choose one of the paths that is best for solving user query:
+                    {paths: ${JSON.stringify(paths)}}
+                    Output should be the name of the path only.
+                `
+            },
+            {
+            	"role": "user",
+            	"content": userQuery
+            }
+        ];
+
+        var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
+        console.log(result[0]['message']['content'])
+        return {
+        	next_node: result[0]['message']['content']
+        }
+	},
+
 	apiCaller: async function(method, url, queryParams={}, body={}, params=[], options={}){
 		if(method==="GET"){
 			if(params){

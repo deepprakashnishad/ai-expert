@@ -16,8 +16,8 @@ class SearchProductByQuery extends ShopifyBaseTool {
             configurable: true,
             writable: true,
             value: z.object({
-                query: z.string(),
-                result_count: z.number().default(50),
+                query: z.string().describe("Product title, name, or description for calling search API."),
+                result_count: z.number().default(5),
                 // prefix: z.enum(["LAST", "NONE"]).default("LAST"),
                 productFilters: z.object({
                     available: z.boolean().default(true),
@@ -71,7 +71,9 @@ class SearchProductByQuery extends ShopifyBaseTool {
             if(prod.images && prod.images.edges){
                 temp['images'] = prod.images.edges.map(ele=>ele.node);    
             }
-            
+
+            temp['actions'] = [{"name": "add_to_cart", "display_name": "Add to Cart", "data-product-id": prod['id']}, {"name": "like", "display_name": "Like", "data-product-id": prod['id']}];
+            temp['template_name'] = "product_template";            
             fProducts.push(temp);
         }
         return fProducts;
@@ -128,7 +130,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
         });
         if(!errors){
             const products = this.extractProduct(data['search']['edges']);
-            return JSON.stringify({"template_name": "product_list_template", "data": products});    
+            return JSON.stringify(products);
         }else{
             console.log(errors);
             return "Due to technical issue unable to fetch the results right now. Try again later.";

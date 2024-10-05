@@ -396,7 +396,7 @@ module.exports = {
   ***************************************************************************/
   custom: {
     ENV: "staging",
-    baseUrl: 'http://ec2-3-139-233-68.us-east-2.compute.amazonaws.com:1337',
+    baseUrl: 'https://ai-expert1.onrender.com',
     internalEmailAddress: 'support@example.com',
 
     /*SQL_DB:{

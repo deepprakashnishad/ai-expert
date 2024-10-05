@@ -13,7 +13,8 @@ module.exports = {
 
   inputs: {
     id:{
-      type: "string"
+      type: "string",
+      defaultsTo: ""
     },
     chatId: {
       type: "string"
@@ -111,9 +112,30 @@ module.exports = {
 
     }
     else if(inputs.id.toLowerCase() === "shopify"){
-      graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
+      graph.addNode("flowDecisionMaker", toolsLib.flowDecisionMaker);
+      // graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
       graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
+      graph.addNode("retrieval_augmented_generation", toolsLib.document_retriever);
       // graph.addNode("shopifyAgent", toolsLib.customShopifyAgent);
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      // graph.addNode("addActionButtons", toolsLib.addActionButtons);
+
+      // graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
+      graph.addEdge("shopifyAgent", "response_formatter_node");
+
+      // graph.addConditionalEdges("getShopifyCustomerDetails", toolsLib.flowDecisionMaker);
+      graph.addConditionalEdges("flowDecisionMaker", toolsLib.isNextNode);
+      graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
+      graph.setEntryPoint("flowDecisionMaker"); 
+      graph.setFinishPoint("pdfGenerator"); 
+      graph.setFinishPoint("retrieval_augmented_generation"); 
+      // graph.setFinishPoint("addActionButtons"); 
+
+      
+      /*graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
+      // graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
+      graph.addNode("shopifyAgent", toolsLib.customShopifyAgent);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       // graph.addNode("addActionButtons", toolsLib.addActionButtons);
@@ -123,7 +145,7 @@ module.exports = {
       graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
       graph.setEntryPoint("getShopifyCustomerDetails"); 
       graph.setFinishPoint("pdfGenerator"); 
-      // graph.setFinishPoint("addActionButtons"); 
+      // graph.setFinishPoint("addActionButtons"); */
     }
     else if(inputs.id === "Invoice Generator"){
       graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);
@@ -243,18 +265,24 @@ module.exports = {
       graph.setFinishPoint("response_formatter_node");
     }
     else{
-      graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
+      graph.addNode("flowDecisionMaker", toolsLib.flowDecisionMaker);
+      // graph.addNode("getShopifyCustomerDetails", toolsLib.getShopifyCustomerDetails);
       graph.addNode("shopifyAgent", toolsLib.shopifyAgent);
+      graph.addNode("retrieval_augmented_generation", toolsLib.document_retriever);
       // graph.addNode("shopifyAgent", toolsLib.customShopifyAgent);
       graph.addNode("response_formatter_node", toolsLib.responseFormatter);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       // graph.addNode("addActionButtons", toolsLib.addActionButtons);
 
-      graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
+      // graph.addEdge("getShopifyCustomerDetails", "shopifyAgent");
       graph.addEdge("shopifyAgent", "response_formatter_node");
+
+      // graph.addConditionalEdges("getShopifyCustomerDetails", toolsLib.flowDecisionMaker);
+      graph.addConditionalEdges("flowDecisionMaker", toolsLib.isNextNode);
       graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
-      graph.setEntryPoint("getShopifyCustomerDetails"); 
+      graph.setEntryPoint("flowDecisionMaker"); 
       graph.setFinishPoint("pdfGenerator"); 
+      graph.setFinishPoint("retrieval_augmented_generation"); 
       // graph.setFinishPoint("addActionButtons"); 
     }
     
