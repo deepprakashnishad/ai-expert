@@ -63,7 +63,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
                     return {
                         availableForSale: ele.availableForSale,
                         price: ele.price,
-                        quantityAvailable: ele.quantityAvailable>0?ele.quantityAvailable:"Out of stock"
+                        // quantityAvailable: ele.quantityAvailable>0?ele.quantityAvailable:"Out of stock"
                     }
                 });    
             }
@@ -73,7 +73,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
             }
 
             temp['actions'] = [{"name": "add_to_cart", "display_name": "Add to Cart", "data-product-id": prod['id']}, {"name": "like", "display_name": "Like", "data-product-id": prod['id']}];
-            temp['template_name'] = "product_template";            
+            temp['template_name'] = "product_template";
             fProducts.push(temp);
         }
         return fProducts;
