@@ -19,6 +19,10 @@ async function initializeDB(llm, appId){
 	var datasource;
 
 	var dbConfig = await AppData.findOne({cid: appId, type: "database"});
+	if(!dbConfig){
+		console.log("Query using default app id 1")
+		dbConfig = await AppData.findOne({cid: "1", type: "database"});
+	}
 
 	dbConfig = dbConfig.data;
 
