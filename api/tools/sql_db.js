@@ -14,21 +14,54 @@ var db = null;
 var sqlToolKit = null;
 var pool = null;
 
-async function initializeDB(llm){
+async function initializeDB(llm, appId){
 
 	var datasource;
 
-	if(sails.config.environment === 'development'){
+	var dbConfig = await AppData.findOne({cid: appId, type: "database"});
+
+	dbConfig = dbConfig.data;
+
+	if(dbConfig.database_type==="postgres"){
+		pool = new Pool({
+		  user: dbConfig.db_user,
+		  host: dbConfig.db_host,
+		  database: dbConfig.db_name,
+		  password: dbConfig.db_password,
+		  port: dbConfig.db_port,
+		  /*ssl: {
+		    rejectUnauthorized: false,
+		    // ca: sslCert
+		  }*/
+		});
+	}
+
+	/*datasource = new DataSource({
+	  type: dbConfig.database_type,
+	  user: dbConfig.db_user,
+	  host: dbConfig.db_host,
+	  database: dbConfig.db_name,
+	  password: dbConfig.db_password,
+	  port: dbConfig.db_port,
+	  synchronize: false,
+	  logging: false,
+	  // ssl: {
+	  //   rejectUnauthorized: false,
+	  //   ca: sslCert
+	  // }
+	});*/
+
+	/*if(sails.config.environment === 'development'){
 		pool = new Pool({
 		  user: sails.config.custom.SQL_DB.user,
 		  host: sails.config.custom.SQL_DB.host,
 		  database: sails.config.custom.SQL_DB.database,
 		  password: sails.config.custom.SQL_DB.password,
 		  port: sails.config.custom.SQL_DB.port, // default PostgreSQL port
-		  ssl: {
-		    rejectUnauthorized: sails.config.custom.SQL_DB.is_ssl,
-		    // ca: sslCert
-		  }
+		  // ssl: {
+		  //   rejectUnauthorized: sails.config.custom.SQL_DB.is_ssl,
+		  //   ca: sslCert
+		  // }
 		});
 
 		datasource = new DataSource({
@@ -74,15 +107,15 @@ async function initializeDB(llm){
 		    // ca: sslCert
 		  }
 		});	
-	}
+	}*/
 
 	
 
-	db = await SqlDatabase.fromDataSourceParams({
+	/*db = await SqlDatabase.fromDataSourceParams({
 	  appDataSource: datasource,
 	});
 
-	sqlToolKit = new SqlToolkit(db, llm)
+	sqlToolKit = new SqlToolkit(db, llm)*/
 
 	// console.log(db.allTables.map((t) => t));
 }
@@ -94,10 +127,23 @@ async function execute_query(llm, query){
 	}
 
 	console.log(`Running query - ${query}`);
-	var res = await db.run(query);
-	console.log("Query result");
-	console.log(res);
-	res = JSON.parse(res);
+	var res;
+
+	if(db){
+		res = await db.run(query);
+		res = JSON.parse(res);
+	}else{
+		const client = await pool.connect(); // Get a client from the pool
+	    try {
+	        res = await client.query(query); // Execute the query
+	        console.log('Query Result:', res.rows); // Print the result
+	        res = res.rows;
+	    } catch (err) {
+	        console.error('Error executing query:', err.stack); // Print error if it occurs
+	    } finally {
+	        client.release(); // Release the client back to the pool
+	    }
+	}
 	res = res
     	.flat()
     	.filter(el => el != null);
@@ -154,7 +200,7 @@ async function execute_db_operation(llm, input){
 	return res;
 }
 
-async function get_schema(){
+async function get_schema(llm, appId){
 	const tablesQuery = `
     SELECT table_name
     FROM information_schema.tables
@@ -185,7 +231,7 @@ async function get_schema(){
   `;
 
   	if(!pool){
-		await initializeDB(llm);
+		await initializeDB(llm, appId);
 	}
   
   const tablesResult = await pool.query(tablesQuery);
@@ -255,15 +301,15 @@ async function sql_lang_graph_with_human_response(state){
 }
 
 async function sql_lang_graph_db_query(state){
-	const {llm, chatId, conversation} = state;
+	const {llm, chatId, conversation, user} = state;
 
 	if(!sqlToolKit){	
-		await initializeDB(llm);
+		await initializeDB(llm, user.appId.toString());
 	}
 
 	var query = conversation[conversation.length-1]['content'];
 
-	const schema = await get_schema();
+	const schema = await get_schema(llm, user.appId.toString());
 	const {tables} = schema;
 
 	var messages = [{"role": "system", "content":`Find list of useful tables from the provided list of tables for the given user query. Your response must be in json format as {useful_tables: array_of_table_names}. Given tables:
