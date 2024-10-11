@@ -61,7 +61,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
                 temp['variants'] = prod.variants.edges.map(ele => {
                     ele = ele.node;
                     return {
-                        availableForSale: ele.availableForSale,
+                        // availableForSale: ele.availableForSale,
                         price: ele.price,
                         // quantityAvailable: ele.quantityAvailable>0?ele.quantityAvailable:"Out of stock"
                     }
