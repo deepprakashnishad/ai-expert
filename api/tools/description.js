@@ -8,6 +8,7 @@ module.exports = {
 			name: "shopifyAgent",
 			description: "Choose this to make api calls of shopify. To retrieve any specific information related to a customer, his related orders, refund details of a specific order, search products, get product details, product list  etc."	
 		}
-	]
+	],
 
+	SEND_EMAIL_DESC: "This tool should be used for sending one or more email"
 } 	

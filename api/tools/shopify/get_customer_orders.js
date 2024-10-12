@@ -16,10 +16,20 @@ class GetCustomerOrders extends ShopifyBaseTool {
             configurable: true,
             writable: true,
             value: z.object({
+                customer_email: z.string().optional(),
+                customer_phone: z.string().optional(),
                 customer_id: z.number(),
                 orderNumber: z.number().optional(),
                 status: z.enum(["open", "closed", "cancelled", "any"]).optional()
-            })
+            }).refine(data => 
+                data.customer_id !== undefined || 
+                data.customer_phone !== undefined || 
+                data.customer_email !== undefined, 
+                {
+                    message: "At least one of customer_id, customer_phone, or customer_email must be provided",
+                    path: ["customer_id", "customer_phone", "customer_email"]
+                }
+            )
         });
         Object.defineProperty(this, "description", {
             enumerable: true,
@@ -32,6 +42,9 @@ class GetCustomerOrders extends ShopifyBaseTool {
     extractOrders(orders){
         var fOrders = [];
         for(var order of orders){
+            if(order.financial_status==="refunded"){
+                continue;
+            }
             var temp = {};
             temp["contact_email"] = order['contact_email'];
             temp['created_at'] = order['created_at'];

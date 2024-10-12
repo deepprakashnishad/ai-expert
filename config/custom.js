@@ -38,17 +38,22 @@ module.exports.custom = {
   //   port: 3306, // default PostgreSQL port
   // },
 
-  // SQL_DB:{
-  //   dbType: "postgres",
-  //   user: 'demo',
-  //   host: 'localhost',
-  //   database: 'ecmps',
-  //   password: 'demo',
-  //   port: 5432, // default PostgreSQL port
-  // },
+  GOOGLE: {
+    CLIENT_ID: "963508048830-1n1sgll8ufmpon9gg8ul44gm37rjnolj.apps.googleusercontent.com",
+    CLIENT_SECRET: "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",
+  },
+
+  SQL_DB:{
+    dbType: "postgres",
+    user: 'odoo',
+    host: 'localhost',
+    database: 'ecpms-prod',
+    password: 'pass',
+    port: 5432, // default PostgreSQL port
+  },
 
   // postgresql://demo123:GuVym45v3yt2Uss53IwLzyHuU9qd3Y06@dpg-cqu9i4jv2p9s73d3mtdg-a.singapore-postgres.render.com/testdb_2wby
-  SQL_DB:{
+  /*SQL_DB:{
     dbType: "postgres",
     user: 'demo123',
     host: 'dpg-cqu9i4jv2p9s73d3mtdg-a.singapore-postgres.render.com',
@@ -56,7 +61,7 @@ module.exports.custom = {
     password: 'GuVym45v3yt2Uss53IwLzyHuU9qd3Y06',
     port: 5432, // default PostgreSQL port
     is_ssl: true
-  },
+  },*/
 
   ODOO: {
     host: 'localhost',
@@ -74,13 +79,13 @@ module.exports.custom = {
     password: 't0cCmj7x'
   },*/
 
-  /*ODOO: {
+  ODOO: {
     https: true,
     host: 'odoo-171419-0.cloudclusters.net',
-    db: 'admin',
-    username: 'vipin@astratechsystems.com',
-    password: 'C7n20RxR'
-  },*/
+    db: 'ecmps',
+    username: 'odoo',
+    password: 'Odoo108123!'
+  },
 
   SHOPIFY: {
     shop_name: "6cdc10-40",

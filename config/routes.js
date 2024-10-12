@@ -75,6 +75,9 @@ module.exports.routes = {
   'POST /Generic/updateAppData': {controller: "Generic", action: "updateAppData"},
   'GET /Generic/getEnv': {controller: "Generic", action: "getEnv"},
 
+  'GET /auth/google': 'GoogleAuthController.authenticate',
+  'GET /auth/google/callback': 'GoogleAuthController.callback',
+  'POST /gmail/send-email': 'GoogleAuthController.sendEmail',
 
   /***************************************************************************
   *                                                                          *

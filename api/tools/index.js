@@ -1,6 +1,5 @@
 // index.js
 const generic = require('./generic');
-const module2 = require('./demo2');
 const extract_category = require('./extract-category');
 const select_api_tool = require('./select-api-tool');
 const llm_factory = require('./llm_factory');
@@ -22,7 +21,6 @@ const {TavilySearchResults} = require("@langchain/community/tools/tavily_search"
 
 module.exports = {
   ...generic,
-  ...module2,
   ...llm_factory,
   ...extract_category,
   ...select_api_tool,

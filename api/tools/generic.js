@@ -375,13 +375,15 @@ module.exports = {
 			},
 			{
 				"role": "user",
-				"content": "query"
+				"content": query
 			}
 		];
 
 		var result = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
 
 		result = result[0]['message']['content'];
+
+		console.log(`Selected template - ${result}`);
 
 		var htmlContent = templates.find(ele => ele.data.name===result);
 

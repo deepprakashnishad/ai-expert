@@ -6,14 +6,26 @@ module.exports = {
 
 	updateAppData: async function(req, res){
 		try{
+			var dataName = req.body.data.name;
 			const appDataColl = await AppData.getDatastore().manager.collection(AppData.tableName);
-			var result = await appDataColl.updateOne(
-				{"cid": req.body.appId.toString(), "type": req.body.type},
-				{$set: {"data": req.body.data}},
-				{
-					upsert: true
-				}
-			);
+			if(dataName){
+				var result = await appDataColl.updateOne(
+					{"cid": req.body.appId.toString(), "type": req.body.type, "data.name": dataName},
+					{$set: {"data": req.body.data}},
+					{
+						upsert: true
+					}
+				);	
+			}else{
+				var result = await appDataColl.updateOne(
+					{"cid": req.body.appId.toString(), "type": req.body.type},
+					{$set: {"data": req.body.data}},
+					{
+						upsert: true
+					}
+				);
+			}
+			
 
 			return res.json({"success": true})
 		}catch(e){

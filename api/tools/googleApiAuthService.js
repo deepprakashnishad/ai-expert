@@ -57,7 +57,7 @@ async function saveCredentials(client){
 		access_token: client.credentials.access_token,
 	});
 	console.log(payload)
-	if(payload.refresh_token){
+	if(payload.refresh_token || JSON.parse(payload)['refresh_token']){
 		console.log("Writing tokenfile");
 		var write_result = await fs.writeFile(TOKEN_PATH, payload);	
 		console.log(write_result)
@@ -65,20 +65,34 @@ async function saveCredentials(client){
 	
 }
 
-async function authorize(){
+async function authorize(appId){
+    const oauth2Client = new google.auth.OAuth2(
+        sails.config.custom.GOOGLE.CLIENT_ID,
+        sails.config.custom.GOOGLE.CLIENT_SECRET,
+    );
+
+    var googleConfig = await AppData.findOne({cid: appId.toString(), type: "google"});
+    googleConfig = googleConfig.data.tokens;
+
+    oauth2Client.setCredentials(googleConfig);
+
+    return oauth2Client;
+}
+
+/*async function authorize(){
 	let client = await loadSavedCredentialsIfExists();
 
 	console.log(client);
 
 	if(client){ return client; }
 
-	/*const auth = new GoogleAuth({
+	const auth = new GoogleAuth({
 	  keyFile: SERVICE_ACCOUNT_PATH,
 	  scopes: SCOPES,
 	});
 
 
-	client = await auth.getClient();*/
+	client = await auth.getClient();
 
 	client = await authenticate({
 		scopes: SCOPES,
@@ -93,7 +107,7 @@ async function authorize(){
 	}
 
 	return client;
-}
+}*/
 
 module.exports = {
 	authorize

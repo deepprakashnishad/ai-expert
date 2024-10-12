@@ -32,7 +32,8 @@ class GenericAnswerTool extends StructuredTool {
 
     async _call(arg) {
 
-        var state = await ChatHistory.findOne({id: arg['chatId']});
+        var ch = await ChatHistory.findOne({id: arg['chatId']});
+        var state = ch['graphState'] || {conversation: []};
 
         var userQuery = arg['userQuery'];
 
@@ -120,7 +121,7 @@ class GenericAnswerTool extends StructuredTool {
 
         state['conversation'].push({"role":"assistant", "content": result});
 
-        await ChatHistory.update({"id": chatId}, {"graphState": state});
+        await ChatHistory.update({"id": arg['chatId']}, {"graphState": state});
 
         return result;
     }

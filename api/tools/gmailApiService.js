@@ -1,9 +1,11 @@
 const {createTransport} = require('nodemailer');
-
+const { z } = require("zod");
 const axios = require("axios");
 
 const path = require("path");
 const process = require("process");
+
+const description = require('./description.js');
 
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const { OpenAI } = require("@langchain/openai");
@@ -28,10 +30,14 @@ const { StructuredTool } = require("@langchain/core/tools");
 class MyGmailCreateDraft extends GmailCreateDraft{
   constructor(fields){
     super(fields);
+
+    this.schema = this.schema.extend({
+        appId: z.string() // Add the appId property
+    });
   }
 
   async _call(arg) {
-    const auth = await authorize();
+    const auth = await authorize(arg.appId);
     const gmail = google.gmail({ version: 'v1', auth });
 
     const { message, to, subject, cc, bcc } = arg;
@@ -46,15 +52,20 @@ class MyGmailCreateDraft extends GmailCreateDraft{
 
 class MyGmailSearch extends GmailSearch {
   gmail;
-  
+  appId;
   constructor(fields){
     super(fields);
+
+    this.schema = this.schema.extend({
+        appId: z.string() // Add the appId property
+    });
   }
 
   async _call(arg) {
-    const { query, maxResults = 10, resource = "messages" } = arg;
+    const { appId, query, maxResults = 10, resource = "messages" } = arg;
+    this.appId = appId;
     if(!this.gmail){
-      var auth = await authorize();
+      var auth = await authorize(appId);
       this.gmail = google.gmail({ version: 'v1', auth });
     }
 
@@ -84,7 +95,7 @@ class MyGmailSearch extends GmailSearch {
 
   async parseMessages(messages) {
     if(!this.gmail){
-      var auth = await authorize();
+      var auth = await authorize(this.appId);
       this.gmail = google.gmail({ version: 'v1', auth });
     }
     const parsedMessages = await Promise.all(messages.map(async (message) => {
@@ -119,7 +130,7 @@ class MyGmailSearch extends GmailSearch {
 
   async parseThreads(threads) {
     if(!this.gmail){
-      var auth = await authorize();
+      var auth = await authorize(this.appId);
       this.gmail = google.gmail({ version: 'v1', auth });
     }
     const parsedThreads = await Promise.all(threads.map(async (thread) => {
@@ -156,16 +167,19 @@ class MyGmailGetThread extends GmailGetThread{
   gmail;
   constructor(fields){
     super(fields);
+
+    this.schema = this.schema.extend({
+        appId: z.string() // Add the appId property
+    });
   }
 
   async _call(arg) {
+    const { threadId, appId } = arg;
 
     if(!this.gmail){
-      var auth = await authorize();
+      var auth = await authorize(appId);
       this.gmail = google.gmail({ version: 'v1', auth });
     }
-
-    const { threadId } = arg;
     const thread = await this.gmail.users.threads.get({
         userId: "me",
         id: threadId,
@@ -228,16 +242,18 @@ class MyGmailGetMessage extends GmailGetMessage{
 
   constructor(fields){
     super(fields);
+
+    this.schema = this.schema.extend({
+        appId: z.string() // Add the appId property
+    });
   }
 
   async _call(arg) {
-
+    const { messageId, appId } = arg;
     if(!this.gmail){
-      var auth = await authorize();
+      var auth = await authorize(appId);
       this.gmail = google.gmail({ version: 'v1', auth });
     }
-
-    const { messageId } = arg;
     const message = await this.gmail.users.messages.get({
         userId: "me",
         id: messageId,
@@ -294,12 +310,39 @@ class MyGmailSendMessage extends GmailSendMessage{
 
   constructor(fields){
     super(fields);
+
+    Object.defineProperty(this, "name", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: "gmail_send_message"
+    });
+
+    this.schema = this.schema.extend({
+      message: z.string(),
+      to: z.array(z.string()),
+      subject: z.string(),
+      cc: z.array(z.string()).optional(),
+      bcc: z.array(z.string()).optional(),
+      appId: z.string() // Add the appId property
+    });
+
+    Object.defineProperty(this, "description", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: description.SEND_EMAIL_DESC
+    });
   }
 
-  async _call({ message, to, subject, cc, bcc, }) {
+  async _call(arg) {
+    const { message, to, subject, cc, bcc, appId } = arg;
+
+    console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSend Message Tool has been called with following args\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    console.log(arg);
 
     if(!this.gmail){
-      var auth = await authorize();
+      var auth = await authorize(appId);
       this.gmail = google.gmail({ version: 'v1', auth });
     }
 
@@ -311,7 +354,7 @@ class MyGmailSendMessage extends GmailSendMessage{
         bcc,
     });
     try {
-        const response = await gmail.users.messages.send({
+        const response = await this.gmail.users.messages.send({
             userId: "me",
             requestBody: {
                 raw: rawMessage,
@@ -325,54 +368,11 @@ class MyGmailSendMessage extends GmailSendMessage{
   }
 }
 
-async function initialize(){
-	const transporter = createTransport({
-	  service: 'gmail', // Replace with your provider
-	  auth: {
-	    user: 'radhagovindsewadham@gmail.com',
-	    pass: 'bjbx binl hyhx yjes'
-	  }
-	});
-
-	return transporter;
-}
-
-async function sendMail( 
-	recipients, 
-	subject, 
-	body, 
-	attachments,
-	from="Notamedia Support",
-){
-
-	var transporter = createTransport({
-	  service: 'gmail', // Replace with your provider
-	  auth: {
-	    user: 'radhagovindsewadham@gmail.com',
-	    pass: 'bjbx binl hyhx yjes'
-	  }
-	});
-
-	const mailOptions = {
-	  from: from,
-	  to: recipients,
-	  subject: subject,
-	  text: body,
-	  attachments: attachments
-	};
-
-	return await transporter.sendMail(mailOptions, (error, info) => {
-	  if (error) {
-	    console.error(error);
-	  } else {
-	    console.log("Mail sent");
-	  }
-	});
-}
-
 async function gmail_agent(state) {
 
-  const {query, llm} = state;
+  const {conversation, llm, user} = state;
+  console.log(user);
+  const userQuery = `{userQuery: ${conversation[conversation.length-1]['content']}, appId: ${user.appId}}`;
 
   const SERVICE_ACCOUNT_PATH = path.join(process.cwd(), './auto-gpt-service-account.json');
   const serviceAccount = require(SERVICE_ACCOUNT_PATH);
@@ -398,12 +398,12 @@ async function gmail_agent(state) {
 
   const gmailAgent = await initializeAgentExecutorWithOptions(tools, llm, {
     agentType: "structured-chat-zero-shot-react-description",
-    verbose: false,
+    verbose: true,
   });
 
   // const query = `Create a gmail draft for me to edit of a letter from the perspective of a sentient parrot who is looking to collaborate on some research with her estranged friend, a cat. Under no circumstances may you send the message, however.`;
 
-  const result = await gmailAgent.invoke({ input: query });
+  const result = await gmailAgent.invoke({ input: userQuery });
     // Create Result {
     //   output: 'I have created a draft email for you to edit. The draft Id is r5681294731961864018.'
     // }

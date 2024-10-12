@@ -90,8 +90,35 @@ async function customShopifyAgent(state){
 		shopifyOptions.remaining ??= 30;
 		shopifyOptions.autoLimit ??= true;
 		shopifyOptions.adminAPIVersion ??= '2024-07';
-		shopifyOptions.storeAPIVersion ??= '2023-10';
+		shopifyOptions.storeAPIVersion ??= '2024-07';
 		shopifyOptions.currency = user.currency?user.currency:"INR";
+
+		const shopify = new Shopify({
+			shopName: shopifyOptions.shopName,
+		    accessToken: shopifyOptions.accessToken,
+		    remaining: shopifyOptions.remaining,
+		    current: shopifyOptions.current,
+		    max: shopifyOptions.max,
+		    autoLimit: shopifyOptions.autoLimit,
+		    baseUrl: shopifyOptions.baseUrl
+		});
+
+		var response;
+		try{
+			if(user.email){
+				response = await shopify.customer.search({email: user.email});	
+			}else if(user.phone){
+				response = await shopify.customer.search({phone: user.phone});	
+			}
+
+			if(response && response.length > 0){
+				state['user']['id'] = response[0]['id'];
+				state['user']['name'] = response[0]['name'];
+			}
+		}catch(e){
+			console.log(e);
+		}
+		
 		// var getProductListTool = new ShopifyGetProducts(shopifyOptions);
 		var getCustomerDetailTool = new GetCustomerDetail(shopifyOptions);
 		var getCustomerOrderTool = new GetCustomerOrders(shopifyOptions);
@@ -117,9 +144,9 @@ async function customShopifyAgent(state){
 		];
 	}
 
-	var genericAnswerTool = new GenericAnswerTool();
+	// var genericAnswerTool = new GenericAnswerTool();
 
-	tools.push(genericAnswerTool);
+	// tools.push(genericAnswerTool);
 
 	state['apis'] = tools;
 
@@ -216,9 +243,9 @@ async function shopifyAgent(state){
 		});
 
 		if(user && user.id){
-			userQuery = `Based on provided information and tools try to find detailed answer to user_query. {"user_query":${userQuery}, "customer_id": ${user.id}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;	
+			userQuery = `Based on provided information and tools try to find detailed answer to user_query alongwith the action_name, template and additional data. {"user_query":${userQuery}, "customer_id": ${user.id}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;	
 		}else{
-			userQuery = `Based on provided information and tools try to find detailed answer to user_query. {"user_query":${userQuery}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;		
+			userQuery = `Based on provided information and tools try to find detailed answer to user_query alongwith the action_name, template and additional data. {"user_query":${userQuery}, "appId": ${user.appId.toString()}, "chatId": ${chatId}.}`;		
 		}
 		
 		const result = await shopifyAgent.invoke({ input: userQuery });	
