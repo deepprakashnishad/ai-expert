@@ -362,6 +362,9 @@ module.exports = {
 		var templates = await AppData.find({cid: user.appId.toString(), type: "template"});
 
 		var templateNames = templates.map(ele=>ele.data.name);
+		console.log(templateNames);
+
+		console.log(query)
 		var messages = [
 			{
 				"role": "system",

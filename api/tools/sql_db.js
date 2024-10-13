@@ -343,14 +343,7 @@ async function sql_lang_graph_db_query(state){
 	var response2 = await sails.helpers.callChatGpt.with({"messages": final_messages, "max_tokens": 4096});
 	response2 = JSON.parse(response2[0]['message']['content']);
 
-	if(!state['conversation']){
-		state['conversation'] = [];
-	}
-
 	var final_query_result = await execute_query(llm, response2['sql_query']);
-	state.conversation.push({"role": "assistant", "content": JSON.stringify(final_query_result)});
-
-	await ChatHistory.update({"id": chatId}, {"graphState": state});
 	
 	return {
 		lastExecutedNode: "sql_query_node",
