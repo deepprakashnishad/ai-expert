@@ -22,6 +22,9 @@ const pinecone = new Pinecone({apiKey: sails.config.custom.PINECONE_API_KEY});
 
 const pineconeIndex = pinecone.Index('ragdoc');
 
+const path = require('path');
+const fs = require("fs");
+
 async function splitter(loader, delimeter){
 	const docs = await loader.load();
 	var splits = [];
@@ -134,8 +137,13 @@ module.exports = {
 	},
 
 	pdfScrapper: async function(req, res){
+		var mPath = `assets/uploads/pdfs`;
+		const outputPath = path.join(sails.config.paths.public, mPath);
+		if (!fs.existsSync(outputPath)) {
+		    fs.mkdirSync(outputPath, { recursive: true });
+		}
 		req.file('doc').upload({
-		  		dirname: require('path').resolve(sails.config.appPath, 'assets/uploads/pdfs')
+		  		dirname: outputPath
 			},
 			async function (err, files) {
 			    if (err){
