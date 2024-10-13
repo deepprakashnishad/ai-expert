@@ -367,7 +367,7 @@ module.exports = {
 				"role": "system",
 				"content": `You are an expert bot to select best template based on their names for the given user query.
 				templates: [${templateNames.join(", ")}]
-				Your output must be one of the names from the provided above list of templates only and null if no match is found.
+				Your output must be one of the names from the provided above list of templates and null if no match is found. Return the template only when crystal clear match is found.
 				eg: 
 				templates: ['abc', 'xyz', 'pqr']
 				output: xyz
