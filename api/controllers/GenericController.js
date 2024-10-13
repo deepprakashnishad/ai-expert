@@ -4,6 +4,11 @@ module.exports = {
 		return res.json({"success": true})		
 	},
 
+	getCurrentWorkingDirectory: async function(req, res){
+		console.log('Current Working Directory:', process.cwd());
+		return res.json({cwd: process.cwd()});
+	},
+
 	updateAppData: async function(req, res){
 		try{
 			var dataName = req.body.data.name;
