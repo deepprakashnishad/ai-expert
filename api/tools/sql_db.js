@@ -332,7 +332,7 @@ async function sql_lang_graph_db_query(state){
 			"role": "system",
 			"content": `Here is the database schema:
 						${formattedSchema}
-						Please construct an SQL query to answer user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query on provided database schema only.`
+						Please construct an SQL query to answer user query strictly as per the schema provided. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema.`
 		},
 		{
 			"role": "user",

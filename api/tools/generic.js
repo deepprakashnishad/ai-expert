@@ -367,7 +367,7 @@ module.exports = {
 				"role": "system",
 				"content": `You are an expert bot to select best template based on their names for the given user query.
 				templates: [${templateNames.join(", ")}]
-				Your output must be one of the names from the provided above list of templates only.
+				Your output must be one of the names from the provided above list of templates only and null if no match is found.
 				eg: 
 				templates: ['abc', 'xyz', 'pqr']
 				output: xyz
@@ -386,8 +386,10 @@ module.exports = {
 		console.log(`Selected template - ${result}`);
 
 		var htmlContent = templates.find(ele => ele.data.name===result);
-
-		htmlContent = htmlContent.data.template;
+		if(htmlContent && htmlContent!==null){
+			htmlContent = htmlContent.data.template;	
+		}
+		
 
 		var mPath = `generatedDocs/${generateObjectId()}.pdf`;
 		const outputPath = path.join(sails.config.paths.public, mPath);
@@ -395,7 +397,7 @@ module.exports = {
 		var messages = [
 			{
 				"role": "system",
-				"content": `You are an intelligent html page designer who prepares html based on provided template. You will replace the values of the placeholder in template with the provided data. You have should replace values of placeholder with the appropriate values. Your replay should contain plain html and nothing else. This html will be written in pdf document. If you feel provided template doesn't fits for provided data then you decide your own template for giving a good look to the document. Also take users query into consideration to decide title and other formatting for html.
+				"content": `You are an intelligent html page designer who prepares html based on provided template. If template is null or not provided or doesn't matches the user query consider creating your own template. You will replace the values of the placeholder in template with the provided data. You have should replace values of placeholder with the appropriate values. Your replay should contain plain html and nothing else. This html will be written in pdf document. If you feel provided template doesn't fits for provided data then you decide your own template for giving a good look to the document. Also take users query into consideration to decide title and other formatting for html.
 					Extra information is document is printed in A4 size in portrait mode.
 				`
 			},
