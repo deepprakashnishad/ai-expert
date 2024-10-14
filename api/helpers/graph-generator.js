@@ -207,15 +207,32 @@ module.exports = {
       
       graph.setFinishPoint("human_loop_node");
       graph.setFinishPoint("pdfGenerator");
+    } 
 
-
-    } else if(inputs.id === "Document Generator"){
+    else if(inputs.id === "Document Generator"){
       graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       graph.addEdge("sql_query_node", "pdfGenerator");
       graph.setEntryPoint("sql_query_node");
       graph.setFinishPoint("pdfGenerator");
-    }else if(inputs.id === "Info Teller"){
+    }
+
+    /*else if(inputs.id === "Invoice Generator"){
+      graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      graph.addEdge("sql_query_node", "pdfGenerator");
+      graph.setEntryPoint("sql_query_node");
+      graph.setFinishPoint("pdfGenerator");
+    }*/
+
+    else if(inputs.id === "Quotation Generator"){
+      graph.addNode("quotation_generator", toolsLib.quotation_generator);
+      graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
+      graph.addEdge("quotation_generator", "pdfGenerator");
+      graph.setEntryPoint("quotation_generator");
+      graph.setFinishPoint("pdfGenerator");
+    }
+    else if(inputs.id === "Info Teller"){
 
       graph.addNode("document_retriever", toolsLib.document_retriever);
       // graph.addNode("response_formatter_node", toolsLib.responseFormatter);

@@ -17,8 +17,8 @@ var pool = null;
 async function initializeDB(llm, appId){
 
 	var datasource;
-
-	var dbConfig = await AppData.findOne({cid: appId, type: "database"});
+	console.log(appId);
+	var dbConfig = await AppData.findOne({cid: appId?appId.toString(): "1", type: "database"});
 	if(!dbConfig){
 		console.log("Query using default app id 1")
 		dbConfig = await AppData.findOne({cid: "1", type: "database"});
@@ -351,10 +351,73 @@ async function sql_lang_graph_db_query(state){
 	}
 }
 
+async function quotation_generator(state){
+	const {llm, chatId, conversation, user} = state;
+	console.log(user);
+	if(!sqlToolKit){	
+		await initializeDB(llm, user.appId.toString());
+	}
+
+	var query = conversation[conversation.length-1]['content'];
+
+	const schema = await get_schema(llm, user.appId.toString());
+
+  	const formattedSchema = formatSchema(schema, ['sale_order']);
+
+	// const userQuery = "List all users and their orders";
+	var final_messages = [
+		{
+			"role": "system",
+			"content": `Here is the sale_order schema:
+						${formattedSchema}
+						Please construct a SQL query to retrieve sale_order for the given user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema.`
+		},
+		{
+			"role": "user",
+			"content": `query: ${query}`
+		}
+	]
+
+	var response = await sails.helpers.callChatGpt.with({"messages": final_messages, "max_tokens": 4096});
+	response = JSON.parse(response[0]['message']['content']);
+
+	var sale_order = await execute_query(llm, response['sql_query']);
+	console.log(response['sql_query']);
+	console.log(sale_order);
+
+	const formattedSchema1 = formatSchema(schema, ['sale_order_line']);
+
+	// const userQuery = "List all users and their orders";
+	final_messages = [
+		{
+			"role": "system",
+			"content": `Here is the sale_order_line schema which gives details of the sale_order:
+						${formattedSchema1}
+						Please construct a SQL query to retrieve necessary information based on the provided sale_order and schema of the sale_order_line table to address given user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema.
+						sale_order: ${JSON.stringify(sale_order)}`
+		},
+		{
+			"role": "user",
+			"content": `query: ${query}`
+		}
+	]
+
+	var response2 = await sails.helpers.callChatGpt.with({"messages": final_messages, "max_tokens": 4096});
+	response2 = JSON.parse(response2[0]['message']['content']);
+	console.log(response2['sql_query'])
+	var sale_order_detail = await execute_query(llm, response2['sql_query']);
+	
+	return {
+		lastExecutedNode: "sql_query_node",
+		finalResult: {"sale_order": sale_order, "sale_order_detail": sale_order_detail}
+	}
+}
+
 module.exports = {
 	initializeDB,
 	execute_query,
 	sql_lang_graph_db_query,
 	sql_lang_graph_with_human_response,
-	execute_db_operation
+	execute_db_operation,
+	quotation_generator
 }
