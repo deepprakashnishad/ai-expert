@@ -345,7 +345,10 @@ module.exports = {
 
 		var query = conversation[conversation.length-1]['content'];
 
-		if(!finalResult){
+		if(!finalResult || finalResult === null || 
+			(Array.isArray(finalResult) && finalResult.length===0) || 
+			(typeof finalResult === 'object' && Object.keys(finalResult).length === 0)
+			){
 			return {
 		    	"finalResult": `
 		    		<p>No result obtained for the given details</p>
