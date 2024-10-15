@@ -1,8 +1,6 @@
 const { google } = require('googleapis');
 const path = require('path');
 
-const GOOGLE_CLIENT_ID = "963508048830-1n1sgll8ufmpon9gg8ul44gm37rjnolj.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
 const SCOPES = [
         "https://www.googleapis.com/auth/gmail.send",
         "https://www.googleapis.com/auth/gmail.compose",
@@ -14,8 +12,8 @@ module.exports = {
         const oauth2Client = new google.auth.OAuth2(
             sails.config.custom.GOOGLE.CLIENT_ID,
             sails.config.custom.GOOGLE.CLIENT_SECRET,
-            'http://localhost:1337/auth/google/callback'
-            // 'https://ai-expert.onrender.com/auth/google/callback'
+            // 'http://localhost:1337/auth/google/callback'
+            `${sails.config.custom.baseUrl}/auth/google/callback`
         );
 
         let clientData = {appId: req.query.appId, redirectUrl: req.query.redirectUrl};
@@ -38,8 +36,8 @@ module.exports = {
         const oauth2Client = new google.auth.OAuth2(
             sails.config.custom.GOOGLE.CLIENT_ID,
             sails.config.custom.GOOGLE.CLIENT_SECRET,
-            'http://localhost:1337/auth/google/callback'
-            // 'https://ai-expert.onrender.com/auth/google/callback'
+            // 'http://localhost:1337/auth/google/callback'
+            `${sails.config.custom.baseUrl}/auth/google/callback`
         );
 
         var { code, state } = req.query;
