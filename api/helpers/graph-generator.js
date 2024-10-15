@@ -147,7 +147,7 @@ module.exports = {
       graph.setFinishPoint("pdfGenerator"); 
       // graph.setFinishPoint("addActionButtons"); */
     }
-    else if(inputs.id === "Invoice Generator"){
+    else if(inputs.id === "Odoo Invoice Generator"){
       graph.addNode("setInvoiceGenerator", toolsLib.setInvoiceGenerator);
       // graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
       graph.addNode("extract_params_node", toolsLib.extractParameters);
