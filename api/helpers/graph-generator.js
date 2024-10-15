@@ -218,14 +218,14 @@ module.exports = {
     }
 
     /*else if(inputs.id === "Invoice Generator"){
-      graph.addNode("sql_query_node", toolsLib.sql_lang_graph_db_query);
+      graph.addNode("invoice_generator", toolsLib.invoice_generator);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
-      graph.addEdge("sql_query_node", "pdfGenerator");
-      graph.setEntryPoint("sql_query_node");
+      graph.addEdge("invoice_generator", "pdfGenerator");
+      graph.setEntryPoint("invoice_generator");
       graph.setFinishPoint("pdfGenerator");
-    }*/
-
-    else if(inputs.id === "Quotation Generator"){
+    }
+*/
+    else if(inputs.id === "Quotation Generator" || inputs.id === "Invoice Generator"){
       graph.addNode("quotation_generator", toolsLib.quotation_generator);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       graph.addEdge("quotation_generator", "pdfGenerator");

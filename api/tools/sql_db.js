@@ -330,9 +330,7 @@ async function sql_lang_graph_db_query(state){
 	var final_messages = [
 		{
 			"role": "system",
-			"content": `Here is the database schema:
-						${formattedSchema}
-						Please construct an SQL query to answer user query strictly as per the schema provided. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema.`
+			"content": `Given the following database schema: ${formattedSchema}, please construct an SQL query to answer the user query strictly according to the provided schema. The query should limit the result to the top 10 rows unless a different row count is explicitly specified in the query. Include only the columns necessary to respond to the user query, ensuring they are present in the provided schema. Your response must be in JSON format as {"sql_query": "constructed_sql_query"}. Carefully ensure the SQL query is both syntactically and semantically correct, and avoid making any assumptions about the schema.`
 		},
 		{
 			"role": "user",
@@ -351,9 +349,8 @@ async function sql_lang_graph_db_query(state){
 	}
 }
 
-async function quotation_generator(state){
+async function invoice_generator(state){
 	const {llm, chatId, conversation, user} = state;
-	console.log(user);
 	if(!sqlToolKit){	
 		await initializeDB(llm, user.appId.toString());
 	}
@@ -362,15 +359,32 @@ async function quotation_generator(state){
 
 	const schema = await get_schema(llm, user.appId.toString());
 
-  	const formattedSchema = formatSchema(schema, ['sale_order']);
+  	const formattedSchema = formatSchema(schema, ['sale_order', 'res_company', 'res_currency', 'crm_lead', 'res_partner', 'account_payment_term', 'product_pricelist', 'res_users']);
+
+
+}
+
+async function quotation_generator(state){
+	const {llm, chatId, conversation, user} = state;
+	if(!sqlToolKit){	
+		await initializeDB(llm, user.appId.toString());
+	}
+
+	var query = conversation[conversation.length-1]['content'];
+
+	const schema = await get_schema(llm, user.appId.toString());
+
+  	const formattedSchema = formatSchema(schema, ['sale_order', 'res_company', 'res_currency', 'crm_lead', 'res_partner', 'account_payment_term', 'product_pricelist', 'res_users']);
 
 	// const userQuery = "List all users and their orders";
 	var final_messages = [
 		{
 			"role": "system",
-			"content": `Here is the sale_order schema:
+			"content": `Given the following sale_order schema: ${formattedSchema}, construct a SQL query to retrieve detailed sale_order information based strictly on the schema. The query must return the following fields: id, partner name, partner address, shipping details, phone, email, quotation date, expiration, and salesperson. Only include columns present in the provided schema. Your response should be in JSON format as {"sql_query": "constructed_sql_query"}. If any required columns are not present in the schema, omit them from the query.`
+			/*"content": `Here is the sale_order schema:
 						${formattedSchema}
-						Please construct a SQL query to retrieve sale_order for the given user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema.`
+						Please construct a SQL query to retrieve detailed sale_order for the given user query.
+						SQL query result must be able to retrieve sale order details which must include id, partner name, partner address, shipping details, phone, email, quotation date, expiration, salesperson.  You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema. Before giving response ensure that columns and tables mentioned in the query are present in the provided schema.`*/
 		},
 		{
 			"role": "user",
@@ -382,8 +396,6 @@ async function quotation_generator(state){
 	response = JSON.parse(response[0]['message']['content']);
 
 	var sale_order = await execute_query(llm, response['sql_query']);
-	console.log(response['sql_query']);
-	console.log(sale_order);
 
 	const formattedSchema1 = formatSchema(schema, ['sale_order_line']);
 
@@ -391,10 +403,7 @@ async function quotation_generator(state){
 	final_messages = [
 		{
 			"role": "system",
-			"content": `Here is the sale_order_line schema which gives details of the sale_order:
-						${formattedSchema1}
-						Please construct a SQL query to retrieve necessary information based on the provided sale_order and schema of the sale_order_line table to address given user query. Query should limit the result to top 10 row untill specified exclusively about the row count in query. You should include columns only necessary to reply the answer. Your reply must be in json format as {"sql_query": "constructed_sql_query"}. Think slowly and carefully to form a query that is syntactically and semantically correct and uses columns and tables from the provided database schema only. Do not make any assumption and construct the query independent of schema.
-						sale_order: ${JSON.stringify(sale_order)}`
+			"content": `Given the following sale_order_line schema: ${formattedSchema1}, construct a SQL query to retrieve necessary information from sale_order_line based on the id of provided sale_order: ${JSON.stringify(sale_order)}. Do not include any other condition in WHERE clause other than sale order id. The query should limit the results to the top 50 rows unless specified otherwise. Include only the columns present in the provided schema that are necessary to respond to the user query. Your response must be in JSON format as {"sql_query": "constructed_sql_query"}. Ensure the SQL query is syntactically and semantically correct, and avoid making assumptions about the schema.`
 		},
 		{
 			"role": "user",
@@ -404,7 +413,6 @@ async function quotation_generator(state){
 
 	var response2 = await sails.helpers.callChatGpt.with({"messages": final_messages, "max_tokens": 4096});
 	response2 = JSON.parse(response2[0]['message']['content']);
-	console.log(response2['sql_query'])
 	var sale_order_detail = await execute_query(llm, response2['sql_query']);
 	
 	return {
