@@ -206,30 +206,37 @@ module.exports = {
 
 	verifyParams: function(state) {
 	  const { bestApi, params, next_node } = state;
-	  if (!bestApi || bestApi.length===0) {
-	    throw new Error("No best API found");
-	  }
-	  if (!params && bestApi.required_parameters.length>0) {
-	    console.log("NO PARAMS");
-	    return "human_loop_node";
-	  }
 
-	  if(bestApi.min_reqd_params && bestApi.min_reqd_params <= Object.keys(params).length){
-	  	return next_node? next_node: "execute_request_node";
-	  }
+		for (const key in params) {
+		    if (params[key] === null || params[key] === undefined || params[key] === '') {
+		        delete params[key];
+		    }
+		}
 
-	  const requiredParamsKeys = bestApi.required_parameters.map(
-	    ({ name }) => name
-	  );
-	  const extractedParamsKeys = Object.keys(params);
-	  const missingKeys = findMissingParams(
-	    requiredParamsKeys,
-	    extractedParamsKeys
-	  );
-	  if (missingKeys.length > 0) {
-	    return "human_loop_node";
-	  }
-	  return next_node? next_node: "execute_request_node";
+		  if (!bestApi || bestApi.length===0) {
+		    throw new Error("No best API found");
+		  }
+		  if (!params && bestApi.required_parameters.length>0) {
+		    console.log("NO PARAMS");
+		    return "human_loop_node";
+		  }
+
+		  if(bestApi.min_reqd_params && bestApi.min_reqd_params <= Object.keys(params).length){
+		  	return next_node? next_node: "execute_request_node";
+		  }
+
+		  const requiredParamsKeys = bestApi.required_parameters.map(
+		    ({ name }) => name
+		  );
+		  const extractedParamsKeys = Object.keys(params);
+		  const missingKeys = findMissingParams(
+		    requiredParamsKeys,
+		    extractedParamsKeys
+		  );
+		  if (missingKeys.length > 0) {
+		    return "human_loop_node";
+		  }
+		return next_node? next_node: "execute_request_node";
 	},
 
 	responseFormatter: async function(state){
