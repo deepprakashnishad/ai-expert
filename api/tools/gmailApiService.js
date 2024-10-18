@@ -371,7 +371,6 @@ class MyGmailSendMessage extends GmailSendMessage{
 async function gmail_agent(state) {
 
   const {conversation, llm, user} = state;
-  console.log(user);
   const userQuery = `{userQuery: ${conversation[conversation.length-1]['content']}, appId: ${user.appId}}`;
 
   const SERVICE_ACCOUNT_PATH = path.join(process.cwd(), './auto-gpt-service-account.json');
@@ -400,10 +399,12 @@ async function gmail_agent(state) {
     agentType: "structured-chat-zero-shot-react-description",
     verbose: true,
   });
+  
 
   // const query = `Create a gmail draft for me to edit of a letter from the perspective of a sentient parrot who is looking to collaborate on some research with her estranged friend, a cat. Under no circumstances may you send the message, however.`;
+  var finalQuery = `Understand user_query thouroghly and act in detail without missing anything. "user_query":${userQuery}`;    
 
-  const result = await gmailAgent.invoke({ input: userQuery });
+  const result = await gmailAgent.invoke({ input: finalQuery });
     // Create Result {
     //   output: 'I have created a draft email for you to edit. The draft Id is r5681294731961864018.'
     // }
@@ -416,7 +417,11 @@ async function gmail_agent(state) {
 }
 
 module.exports = {
-  gmail_agent
+  gmail_agent,
+  MyGmailSearch,
+  MyGmailSendMessage,
+  MyGmailGetMessage,
+  MyGmailGetThread,
 }
 
 async function listMessages(query="", userId="me", maxResults=10, labelIds = [], includeSpamTrash = false){

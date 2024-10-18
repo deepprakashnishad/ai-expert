@@ -50,7 +50,8 @@ module.exports = {
     default: {
       adapter: 'sails-mongo',
       // url: 'mongodb+srv://deepprakashnishad:xeN4lBNogCRIkpI7@clustermum.q6xzhsn.mongodb.net/openai?retryWrites=true&w=majority',
-      url: 'mongodb+srv://vipinrama:8u2hoz2os6iKy0y4@cluster0.7zyyod3.mongodb.net/openai?retryWrites=true&w=majority',
+      url: 'mongodb+srv://vipin_testuser:j87WAGhDcY2VWFpf@cluster0.kyxgx.mongodb.net/testdb?retryWrites=true&w=majority'
+      // url: 'mongodb+srv://vipinrama:8u2hoz2os6iKy0y4@cluster0.7zyyod3.mongodb.net/openai?retryWrites=true&w=majority',
       //--------------------------------------------------------------------------
       //  /\   To avoid checking it in to version control, you might opt to set
       //  ||   sensitive credentials like `url` using an environment variable.

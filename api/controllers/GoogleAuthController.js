@@ -7,6 +7,22 @@ const SCOPES = [
         "https://www.googleapis.com/auth/gmail.readonly",
     ];
 
+async function getUserProfile(oauth2Client) {
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    try {
+        const profileResponse = await gmail.users.getProfile({
+            userId: 'me',
+        });
+
+        // Extracting the email
+        return profileResponse.data.emailAddress;
+    } catch (error) {
+        return undefined;
+    }
+}
+
 module.exports = {
     async authenticate(req, res) {
         const oauth2Client = new google.auth.OAuth2(
@@ -17,8 +33,6 @@ module.exports = {
         );
 
         let clientData = {appId: req.query.appId, redirectUrl: req.query.redirectUrl};
-
-        console.log(req.query);
 
         const authUrl = oauth2Client.generateAuthUrl({
             access_type: 'offline',
@@ -48,17 +62,28 @@ module.exports = {
 
         const { tokens } = await oauth2Client.getToken(code);
         oauth2Client.setCredentials(tokens);
-
-        // Store tokens in session or database
+        console.log(tokens);
         const appDataColl = await AppData.getDatastore().manager.collection(AppData.tableName);
+        var existingGoogleAcc = await AppData.findOne({"cid": appId.toString(), "type": "google"});
 
+        var email = await getUserProfile(oauth2Client);
         var result = await appDataColl.updateOne(
             {"cid": appId.toString(), "type": "google"},
-            {$set: {"data": {tokens: tokens}}},
+            {$set:  {
+                "data.email": email,
+                "data.tokens": {
+                    refresh_token: tokens.refresh_token || existingGoogleAcc.data.tokens.refresh_token,
+                    access_token: tokens.access_token || existingGoogleAcc.data.tokens.access_token,
+                    scope: tokens.scope || existingGoogleAcc.data.tokens.scope,
+                    token_type: tokens.token_type || existingGoogleAcc.data.tokens.token_type,
+                    expiry_date: tokens.expiry_date || existingGoogleAcc.data.tokens.expiry_date,
+                }
+            }},
             {
                 upsert: true
             }
         );
+        // Store tokens in session or database
 
         res.redirect(redirectUrl); // Redirect back to client app or home
     },

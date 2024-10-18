@@ -37,7 +37,6 @@ module.exports = {
 			
 		};
 	},
-
 	flowDecisionMaker: async function(state){
 		const {paths} = require('./description.js');
 		var {user, conversation} = state;

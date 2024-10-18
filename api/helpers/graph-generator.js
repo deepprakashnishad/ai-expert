@@ -1,6 +1,7 @@
 const { END, StateGraph }  = require("@langchain/langgraph");
 
 const toolsLib = require("./../tools");
+const {toolExecutor} = require("./../tools/tool-executor.js");
 
 module.exports = {
 
@@ -223,8 +224,44 @@ module.exports = {
       graph.addEdge("invoice_generator", "pdfGenerator");
       graph.setEntryPoint("invoice_generator");
       graph.setFinishPoint("pdfGenerator");
+    }*/
+    else if(inputs.id === "Research & Mailer"){
+      console.log(toolExecutor);
+      graph.addNode("tavilySearch", 
+        async (context) => {
+            context.extraData = { 
+              toolName: "TavilySearchResults",
+              type: "react-agent", // function, tool, api, decision
+              prompt: "Search for the topic as per the userQuery and prepare body of email and subject line according to the search result.",
+              inputParams: ["userQuery"],
+              output: {
+                subject: "topic - to be used as subject in mail",
+                body: "content of email"
+              }
+            }; // Add extra data here
+            return await toolExecutor(context); // Call the async function
+        }
+      )
+      graph.addNode("gmailSender", 
+        async (context) => {
+          context.extraData = { 
+            toolName: "MyGmailSendMessage",
+            type: "react-agent",
+            prompt: "Send email",
+            inputParams: ["subject", "body", "recipients", "appId"],
+            output: {
+              mail_sent: "true/false",
+              message: "message_for_human"
+            }
+          }; // Add extra data here
+          return await toolExecutor(context); // Call the async function
+        }
+      )
+
+      graph.addEdge("tavilySearch", "gmailSender");
+      graph.setEntryPoint("tavilySearch");
+      graph.setFinishPoint("gmailSender");
     }
-*/
     else if(inputs.id === "Quotation Generator" || inputs.id === "Invoice Generator"){
       graph.addNode("quotation_generator", toolsLib.quotation_generator);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
