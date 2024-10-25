@@ -396,7 +396,7 @@ module.exports = {
   ***************************************************************************/
   custom: {
     ENV: "staging",
-    baseUrl: 'https://ai-expert1.onrender.com',
+    baseUrl: 'http://94.130.89.140:1337',
     internalEmailAddress: 'support@example.com',
 
     /*SQL_DB:{
