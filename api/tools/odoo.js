@@ -176,17 +176,19 @@ async function deleteRecordOdoo(model, id){
 	}
 }
 
-async function rpc_call(endpoint, params){
+async function rpc_call(params){
 	try{
 		if(!odoo.sid){
 			await connectToOdoo();	
 		}
 
-		var url = `${odooProtocol}://${odoo.host}:${odoo.port}${endpoint}`;
+		var url = `${odooProtocol}://${odoo.host}:${odoo.port}/jsonrpc`;
 		var headers = {
 			cookie: odoo.sid,
 			content: "application/json"
 		}
+
+		console.log(params);
 
 		const result = await axios.post(url, {
 			"jsonrpc": "2.0",
@@ -196,19 +198,89 @@ async function rpc_call(endpoint, params){
 			"headers": headers
 		});
 
-		/*const result = await new Promise((resolve, reject)=>{
-			odoo.rpc_call(endpoint, params, function(err, result){
-				if (err) {
-		          reject(err);
-		        } else {
-		          resolve(result);
-		        }
-			})
-		});*/
-
 		return result.data;
 	}catch(e){
 		console.log(e);
+	}
+}
+
+async function odooAgent(state){
+	const {query, llm} = state;
+
+	var messages = [
+		{
+			"role": "system",
+			"content": `You are an assistant that helps users formulate queries for an Odoo ERP database for making the rpc call.`
+		},
+		{
+			"role": "user",
+			"content": `User query: "${query}". Please provide a valid JSON object with the following structure: {params: {model: string, domain: array, fields: array, order: string, limit: number, method: string, args: array}, kwargs: object}. Ensure that each field is appropriately filled. Do not include any additional text, just return the JSON.`
+		}
+	];
+
+	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
+  	response = JSON.parse(response[0]['message']['content']);
+
+  	console.log(response);  	
+
+  	return {
+  		next_node: "odooExecutor",
+  		finalResult: response,
+  		params: response['params']
+  	}
+}
+
+async function odooExecutor(state){
+	var {query, llm, bestApi, params, toolUsed, finalResult} = state;
+
+	var data = [];
+
+	var params = {};
+
+	if(finalResult['params']['method']==="search_read"){
+		params = {
+			service: "object",
+	        model: finalResult['params']['model'],
+	        method: finalResult['params']['method'],
+	        args: [
+	          finalResult['params']['domain'],  // Domain to filter (empty list means no filtering)
+	          finalResult['params']['fields'],  // Fields to retrieve
+	        ],
+	        kwargs: finalResult['params']['kwargs'] || {}
+	    }
+	}else if(finalResult['params']['method']==="write" || finalResult['params']['method']==="unlink"){
+		params = {
+			service: "common",
+			model: finalResult['params']['model'],
+	        method: finalResult['params']['method'],
+	        args: finalResult['params']['args'],
+	        kwargs: finalResult['params']['kwargs'] || {}
+		}
+	}else if(finalResult['params']['method']==="search"){
+		params = {
+			service: "object",
+	        model: finalResult['params']['model'],
+	        method: finalResult['params']['method'],
+	        args: finalResult['params']['args'].length>0?finalResult['params']['args'].length:[[finalResult['params']['domain']]],  // Search 
+	        kwargs: finalResult['params']['kwargs'] || {},
+	    }
+	}else if(finalResult['params']['method']==="create"){
+		params = {
+			service: "common",
+			model: finalResult['params']['model'],
+	        method: finalResult['params']['method'],
+	        args: finalResult['params']['args'],
+	        kwargs: finalResult['params']['kwargs'] || {}
+		}
+	}
+
+
+	var result = await rpc_call(params);
+	console.log(result);
+	return {
+		lastExecutedNode: "odooExecutor",
+		toolUsed: toolUsed,
+		finalResult: result['result']? result['result']['records']: undefined
 	}
 }
 
@@ -257,7 +329,7 @@ async function odooApiSelector(state){
   	}
 }
 
-async function odooExecutor(state){
+/*async function odooExecutor(state){
 	var {query, llm, bestApi, params, toolUsed} = state;
 
 	var data = [];
@@ -272,9 +344,7 @@ async function odooExecutor(state){
 				data.push([key, '=', params[key]])
 			}
 		}
-	}/*else if(!Array.isArray(params['args'])){
-		return {status: false, 'msg': "Invalid params"};
-	}*/
+	}
 	if(bestApi.method==="search_read"){
 		var result = await rpc_call(bestApi.endpoint, {
 			kwargs: {
@@ -310,7 +380,7 @@ async function odooExecutor(state){
 		toolUsed: toolUsed,
 		finalResult: result['result']? result['result']['records']: undefined
 	}
-}
+}*/
 
 async function getNextNode(state){
 	const {finalResult, next_node, bestApi} = state;
@@ -374,5 +444,6 @@ module.exports = {
 	odooExecutor,
 	setInvoiceGenerator,
 	getCompleteInvoiceDetail,
-	connectToOdoo
+	connectToOdoo,
+	odooAgent
 }

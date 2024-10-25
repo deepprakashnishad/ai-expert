@@ -44,9 +44,12 @@ module.exports = {
 	    return res.ok(200);
 	},
 
-	resetPassword: async function(req, res){
-		console.log("Password reset function called");
-		console.log(req.body);
-		return res.ok(200);
+	getChatHistory: async function(req, res){
+		try{
+			return res.json(await ChatHistory.findOne({id: req.query.chatId}));	
+		}catch(e){
+			console.log(e);
+			return res.json({"msg": "Not found", "success": false});
+		}
 	}
 }

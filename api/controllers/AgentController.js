@@ -12,6 +12,8 @@ const { END, StateGraph }  = require("@langchain/langgraph");
 const { DynamicTool, DynamicStructuredTool } = require("@langchain/core/tools");
 
 const toolLib = require('./../tools');
+const { ObjectId } = require('mongodb');
+
 
 var chatHistories = {};
 var chatHistory = [];
@@ -282,7 +284,9 @@ module.exports = {
 
 		var chatId = lChatHistory.id;
 
-		var graphApp = await sails.helpers.graphGenerator.with({state: lChatHistory.graphState, id: req.body.agentId});
+		var conversation;
+
+		var graphApp = await sails.helpers.graphGenerator.with({state: lChatHistory.graphState, id: req.body.agentId, action: req.body.action});
 
 		const llm = new ChatOpenAI({
 		    modelName: "gpt-3.5-turbo-0125", //"gpt-4-turbo-preview",
@@ -297,8 +301,8 @@ module.exports = {
 
 			lChatHistory.graphState.question = null;
 
-			lChatHistory.graphState.conversation.push({"role": "user", "content": query})
-		
+			lChatHistory.graphState.conversation.push({"role": "user", "content": query});
+			conversation = lChatHistory.graphState.conversation;
 			stream = await graphApp.stream({
 							"llm": llm,
 							"next_node": lChatHistory.graphState.next_node,
@@ -318,7 +322,7 @@ module.exports = {
 							"toolUsed": lChatHistory.graphState.toolUsed
 						});
 		}else{
-			var conversation = [{"role": "user", "content": query}];
+			conversation = [{"role": "user", "content": query}];
 			stream = await graphApp.stream({
 			    "llm": llm,
 			    "query": query,
@@ -328,36 +332,47 @@ module.exports = {
 			});	
 		}
 
-		
-
 		let finalResult = null;
 		for await (const event of stream) {
 		    console.log("\n------\n");
 		    if (Object.keys(event)[0] === END) {
 		      console.log("---FINISHED---");
 		      finalResult = event[END];
-		      /*conversation.push({"role":"assistant", "content": finalResult});
-    		  await ChatHistory.update({"id": chatId}, {"graphState.conversation": conversation});*/
 		      break;
 		    } else {
 		      console.log("Stream event: ", Object.keys(event)[0]);
 		      // Uncomment the line below to see the values of the event.
-		      // console.log("Value(s): ", Object.values(event)[0]);
+		      console.log("Value(s): ", Object.values(event)[0]);
 		    }
 		}
+		/*console.log(chatId);
+		var state = await ChatHistory.findOne({id: chatId});
+		console.log(state);
+		state = state['graphState'];
+		console.log(state);*/
+		// const chatHistoryColl = ChatHistory.getDatastore().manager.collection(ChatHistory.tableName);
 		if(finalResult.question){
+			conversation.push({"role":"assistant", "content": finalResult.question});
 			res.successResponse({result: finalResult['question'], chatId: chatId}, 200, null, true, "Information required");	
 		}else if(finalResult.finalResult){
+			conversation.push({"role":"assistant", "content": finalResult.finalResult});
 			res.successResponse({result: finalResult['finalResult'], chatId: chatId}, 200, null, true, "Processing completed")
 		}else if(finalResult.response){
+			conversation.push({"role":"assistant", "content": finalResult.response});
 			res.successResponse({result: finalResult['response'], chatId: chatId}, 200, null, true, "Processing completed")
 		}else if(finalResult && typeof finalResult === "string"){
+			conversation.push({"role":"assistant", "content": finalResult});
 			res.successResponse({result: finalResult, chatId: chatId}, 200, null, true, "Processing completed")
 		}else if(finalResult && typeof finalResult==="object"){
-			return res.successResponse({result: finalResult, chatId: chatId}, 200, null, true, "Processing Completed");	
+			conversation.push({"role":"assistant", "content": finalResult});
+			res.successResponse({result: finalResult, chatId: chatId}, 200, null, true, "Processing Completed");	
 		}else{
-			return res.successResponse({result: "I am not sure how to solve your query. I can create a ticket for your issue though.", chatId: chatId}, 200, null, true, "Processing Completed");	
+			var msg = "I am not sure how to solve your query. I can create a ticket for your issue though."
+			conversation.push({"role":"assistant", "content": msg});
+			res.successResponse({result: msg, chatId: chatId}, 200, null, true, "Processing Completed");	
 		}
+		finalResult.conversation = conversation;
+		await ChatHistory.update({"id": chatId}, {"ch": conversation, "graphState": finalResult});
 	},
 
 	dynamicLangGraph: async function(req, res){

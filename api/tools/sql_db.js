@@ -17,10 +17,8 @@ var pool = null;
 async function initializeDB(llm, appId){
 
 	var datasource;
-	console.log(appId);
 	var dbConfig = await AppData.findOne({cid: appId?appId.toString(): "1", type: "database"});
 	if(!dbConfig){
-		console.log("Query using default app id 1")
 		dbConfig = await AppData.findOne({cid: "1", type: "database"});
 	}
 
@@ -250,8 +248,8 @@ async function get_schema(llm, appId){
 }
 
 function formatSchema({ tables, columns, constraints }, useful_tables=[]) {
-  	let schemaDescription = 'Tables:\n';
   	if(useful_tables.length === 0){
+  		let schemaDescription = 'Tables:\n';
   		tables.forEach(table => {
 		    schemaDescription += `  ${table}:\n    columns:\n`;
 
@@ -269,28 +267,49 @@ function formatSchema({ tables, columns, constraints }, useful_tables=[]) {
 		      }
 		    });
 	  	});
+
+	  	return schemaDescription
   	}else{
-  		useful_tables.forEach(table => {
-	    schemaDescription += `  ${table}:\n    columns:\n`;
+  		const schemaDescription = {};
 
-		    columns.filter(col => col.table_name === table).forEach(col => {
-		      schemaDescription += `      ${col.column_name}: ${col.data_type} (${col.is_nullable ? 'nullable' : 'not nullable'})\n`;
-		    });
+		useful_tables.forEach(table => {
+		  const tableSchema = {
+		    columns: {},
+		    constraints: {}
+		  };
 
-		    schemaDescription += '    constraints:\n';
+		  // Add columns
+		  columns.filter(col => col.table_name === table).forEach(col => {
+		    tableSchema.columns[col.column_name] = {
+		      data_type: col.data_type,
+		      nullable: col.is_nullable
+		    };
+		  });
 
-		    constraints.filter(con => con.table_name === table).forEach(con => {
-		      if (con.constraint_type === 'PRIMARY KEY') {
-		        schemaDescription += `      primary key: ${con.column_name}\n`;
-		      } else if (con.constraint_type === 'FOREIGN KEY') {
-		        schemaDescription += `      foreign key: ${con.column_name} references ${con.foreign_table_name}(${con.foreign_column_name})\n`;
-		      }
-		    });
+		  // Add constraints
+		  tableSchema.constraints = {
+		    primary_keys: [],
+		    foreign_keys: []
+		  };
+
+		  constraints.filter(con => con.table_name === table).forEach(con => {
+		    if (con.constraint_type === 'PRIMARY KEY') {
+		      tableSchema.constraints.primary_keys.push(con.column_name);
+		    } else if (con.constraint_type === 'FOREIGN KEY') {
+		      tableSchema.constraints.foreign_keys.push({
+		        column_name: con.column_name,
+		        references: `${con.foreign_table_name}(${con.foreign_column_name})`
+		      });
+		    }
+		  });
+
+		  // Assign the table schema to the main schema description
+		  schemaDescription[table] = tableSchema;
 		});
-  	}
-  
 
-  return schemaDescription;
+		// Convert schemaDescription to JSON
+		return JSON.stringify(schemaDescription, null, 2);
+  	}
 }
 
 async function sql_lang_graph_with_human_response(state){
@@ -316,21 +335,34 @@ async function sql_lang_graph_db_query(state){
 	const schema = await get_schema(llm, user.appId.toString());
 	const {tables} = schema;
 
-	var messages = [{"role": "system", "content":`Find list of useful tables from the provided list of tables for the given user query. Your response must be in json format as {useful_tables: array_of_table_names}. Given tables:
-		${tables.join("\n")}`},
+	var messages = [{
+			"role": "system", 
+			"content": `Find list of ATLEAST 5 useful tables from the provided list of tables for the given user query. Your response must be in json format as {useful_tables: array_of_table_names}. Given tables:
+			${tables.join("\n")}
+			YOUR RESPONSE MUST CONTAIN MINIMUM 5 tables which has high possibility of having answer.`
+		},
 		{"role": "user", "content": `query: ${query}`}];
 
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
 
 	var useful_tables = JSON.parse(response[0]['message']['content']);
 
+	console.log(useful_tables);
+
   	const formattedSchema = formatSchema(schema, useful_tables['useful_tables']);
+
+  	console.log(formattedSchema);
 
 	// const userQuery = "List all users and their orders";
 	var final_messages = [
 		{
 			"role": "system",
-			"content": `Given the following database schema: ${formattedSchema}, please construct an SQL query to answer the user query strictly according to the provided schema. The query should limit the result to the top 10 rows unless a different row count is explicitly specified in the query. Include only the columns necessary to respond to the user query, ensuring they are present in the provided schema. Your response must be in JSON format as {"sql_query": "constructed_sql_query"}. Carefully ensure the SQL query is both syntactically and semantically correct, and avoid making any assumptions about the schema.`
+			"content": `Given the following database schema: 
+				{database_schema: ${formattedSchema}}
+
+				Understand the user query and carefully analyze provided database_schema and then construct an SQL query to answer the user's query strictly according to the given database_schema. The query should limit the result to the top 10 rows unless a different row count is explicitly specified in the query. Include only the columns necessary to respond to the user query and only if they are present in the table you are querying to. You may use multiple tables to retrieve the final results. 
+				Your response must be in JSON format as {"sql_query": "constructed_sql_query"}. 
+				Carefully ensure the SQL query is both syntactically and semantically correct, and avoid making any assumptions about the schema.`
 		},
 		{
 			"role": "user",

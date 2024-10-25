@@ -21,6 +21,10 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
                 customer_email: z.string().optional(),
                 customer_id: z.string().optional(),
                 cancellation_reason: z.string().default("customer")
+            }).refine(data => {
+                return data.orderId !== undefined || data.customer_email !== undefined || data.customer_id !== undefined;
+            }, {
+                message: "At least one of orderId, customer_email, or customer_id must be provided."
             })
         });
         Object.defineProperty(this, "description", {

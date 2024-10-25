@@ -2,6 +2,7 @@ const { ChatPromptTemplate } = require("@langchain/core/prompts");
 const { z } = require("zod");
 const { GraphState } = require("./index.js");
 const { zodToJsonSchema } = require('zod-to-json-schema');
+const {findZodMissingKeys} = require('./utils');
 
 /**
  * @param {GraphState} state
@@ -32,6 +33,8 @@ async function extractParameters(state) {
   var required_parameters = [];
   var optional_parameters = [];
 
+  let requiredParams, optionalParams;
+
   if(bestApi.required_parameters || bestApi.optional_parameters){
     requiredParams = bestApi?.required_parameters
     .map(
@@ -44,17 +47,30 @@ async function extractParameters(state) {
       (p) => `{Name: ${p.name}, Description: ${p.description}, Type: ${p.type}}`
     )
     .join("\n");
+    requiredParams = requiredParams.concat(optionalParams);
+    messages[0]['content'] = messages[0]['content'].replace("{params}", requiredParams)
   }else{
-    requiredParams = zodToJsonSchema(bestApi.schema)
+    requiredParams = zodToJsonSchema(bestApi.schema).properties;
+    const missingKeys = findZodMissingKeys(bestApi.schema, params);
+    const combinedMissingKeys = [
+      ...(missingKeys.all || []),
+      ...(missingKeys.atleast_2 || []),
+      ...(missingKeys.atleast_1 || []),
+      ...(missingKeys.atleast_3 || [])
+    ];
+    const filteredParams = Object.keys(requiredParams)
+    .filter(key => combinedMissingKeys.includes(key))
+    .reduce((obj, key) => {
+      obj[key] = requiredParams[key];
+      return obj;
+    }, {});
+    messages[0]['content'] = messages[0]['content'].replace("{params}", JSON.stringify(filteredParams))
   }
   
-  
-
-  messages[0]['content'] = messages[0]['content'].replace("{params}", requiredParams.concat(optionalParams))
   messages[1]['content'] = messages[1]['content'].replace("{query}", query);
 
   var tempMessages = messages;
-
+  console.log(messages)
   if(conversation){
     tempMessages = messages.concat(conversation)
   }

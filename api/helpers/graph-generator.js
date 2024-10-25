@@ -1,7 +1,7 @@
 const { END, StateGraph }  = require("@langchain/langgraph");
 
 const toolsLib = require("./../tools");
-const {toolExecutor} = require("./../tools/tool-executor.js");
+const {toolExecutor, actionExecutor, agentSelector, actionParamsVerifier, actionInitializer, requestParams} = require("./../tools/tool-executor.js");
 
 module.exports = {
 
@@ -23,6 +23,9 @@ module.exports = {
     state: {
       type: "json",
       defaultsTo: null
+    },
+    action: {
+      type: "json"
     }
   },
 
@@ -176,9 +179,9 @@ module.exports = {
       graph.setFinishPoint("pdfGenerator");
     }
     else if(inputs.id === "Odoo Agent"){
-      
-      graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
-      graph.addNode("select_api_node", toolsLib.selectApi);
+      graph.addNode("odooAgent", toolsLib.odooAgent);
+      // graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
+      // graph.addNode("select_api_node", toolsLib.selectApi);
       graph.addNode("extract_params_node", toolsLib.extractParameters);
       graph.addNode("human_loop_node", toolsLib.requestParameters);
       graph.addNode("odooExecutor", toolsLib.odooExecutor);
@@ -186,9 +189,9 @@ module.exports = {
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       // graph.addNode("nextActionDecisionMaker", toolsLib.nextActionDecisionMaker);
 
-      graph.addEdge("odooApiSelector", "select_api_node");
-      graph.addEdge("select_api_node", "extract_params_node");
-      graph.addEdge("odooExecutor", "result_verifier");
+      graph.addEdge("odooAgent", "odooExecutor");
+      // graph.addEdge("select_api_node", "extract_params_node");
+      // graph.addEdge("odooExecutor", "result_verifier");
       // graph.addEdge("result_verifier", "nextActionDecisionMaker");
 
       graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
@@ -203,9 +206,9 @@ module.exports = {
         console.log(`Last Executed Node - ${inputs.state.lastExecutedNode}`)
         graph.setEntryPoint(inputs.state.lastExecutedNode);  
       }else{
-        graph.setEntryPoint("odooApiSelector");  
+        graph.setEntryPoint("odooAgent");  
       }
-      
+      graph.setFinishPoint("odooExecutor");
       graph.setFinishPoint("human_loop_node");
       graph.setFinishPoint("pdfGenerator");
     } 
@@ -226,40 +229,43 @@ module.exports = {
       graph.setFinishPoint("pdfGenerator");
     }*/
     else if(inputs.id === "Research & Mailer"){
-      console.log(toolExecutor);
-      graph.addNode("tavilySearch", 
-        async (context) => {
-            context.extraData = { 
-              toolName: "TavilySearchResults",
-              type: "react-agent", // function, tool, api, decision
-              prompt: "Search for the topic as per the userQuery and prepare body of email and subject line according to the search result.",
-              inputParams: ["userQuery"],
-              output: {
-                subject: "topic - to be used as subject in mail",
-                body: "content of email"
-              }
-            }; // Add extra data here
-            return await toolExecutor(context); // Call the async function
-        }
-      )
+      graph.addNode("llmSearch", async (context) => {
+        var {conversation} = context;
+        var userQuery = conversation[conversation.length-1]['content'];
+        context.extraData = {   
+          actionName: "openAI",
+          type: "llm",
+          actionCat: "llm",
+          prompt: `Analyze the user query and prepare recipients, content and subject for the email. 
+                  {user_query: ${userQuery}}
+                  Your response must be in json format as follows
+                  {to: recipient_list, content: "content_of_email", subject: "subject_line"}`,
+          actionType: "llm" // function, tool, api, decision
+        }; // Add extra data here
+        return await toolExecutor(context); // Call the async function
+      });
       graph.addNode("gmailSender", 
         async (context) => {
+          const {params, user} = context;
           context.extraData = { 
-            toolName: "MyGmailSendMessage",
-            type: "react-agent",
-            prompt: "Send email",
-            inputParams: ["subject", "body", "recipients", "appId"],
-            output: {
-              mail_sent: "true/false",
-              message: "message_for_human"
-            }
+            actionName: "MyGmailSendMessage",
+            actionCat: "google",
+            type: "tool",
+            actionType: "react-agent",
+            prompt: `Send email
+                    {subject: ${params['subject']}, body: ${params['content']}, recipients: ${params['to']}, appId: ${user['appId']}}
+                    Output must  in following format
+                    {
+                      mail_sent: "true/false",
+                      message: "User friendly message"
+                    }`
           }; // Add extra data here
           return await toolExecutor(context); // Call the async function
         }
       )
 
-      graph.addEdge("tavilySearch", "gmailSender");
-      graph.setEntryPoint("tavilySearch");
+      graph.addEdge("llmSearch", "gmailSender");
+      graph.setEntryPoint("llmSearch");
       graph.setFinishPoint("gmailSender");
     }
     else if(inputs.id === "Quotation Generator" || inputs.id === "Invoice Generator"){
@@ -317,6 +323,96 @@ module.exports = {
       
       graph.setFinishPoint("human_loop_node");
       graph.setFinishPoint("response_formatter_node");
+    }
+    else if(inputs.id === "Common Agent"){
+      graph.addNode("agentSelector", agentSelector);
+      graph.addNode("actionInitializer", async (context) => {
+        var params = context.params || {};
+        var user_query = context.conversation[context.conversation.length-1]['content'];
+        /*if(inputs.action.data && inputs.action.data['user_query']){
+          user_query = inputs.action.data['user_query'];
+        }else{
+          user_query = inputs.action.conversation[0]['content'];
+        }*/
+        params['chatId'] = context.chatId;
+        params['userQuery'] = user_query;
+        params['appId'] = context['user']['appId'];
+        params['conversation'] = context.conversation;
+        Object.assign(params, inputs.action.data);
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        context.params = params;
+        return await actionInitializer(context); // Call the async function
+      });
+      /*graph.addNode("actionParamsVerifier", async (context) => {
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        return await actionParamsVerifier(context); // Call the async function
+      });*/
+
+      graph.addNode("requestParams", async (context) => {
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        return await requestParams(context); // Call the async function
+      });
+      graph.addNode("extract_params_node", toolsLib.extractParameters);
+
+      graph.addNode("actionExecutor", async (context) => {
+
+        if(inputs.action.type==="react-agent"){
+          if(inputs.action.actionName==="GenericAnswerTool"){
+            var user_query = context.conversation[context.conversation.length-1]['content'];
+            /*if(inputs.action.data && inputs.action.data['user_query']){
+              user_query = inputs.action.data['user_query'];
+            }else{
+              user_query = inputs.action.conversation[0]['content'];
+            }*/
+            context.prompt = `
+              Use the given tools to answer user_query.
+              {
+                user_query: ${user_query},
+                appId: ${context.user.appId || context.params.appId},
+                conversation: ${JSON.stringify(context.conversation)}
+              }
+            `;
+          }else{
+            context.prompt = `Use the given tools to solve users query
+              {
+                user_query: ${user_query},
+                appId: ${context.user.appId},
+                params: ${JSON.stringify(context.params)}
+              }
+            `;
+          }          
+        }else if(inputs.action.type==="tool"){
+
+        }
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        return await actionExecutor(context); // Call the async function
+      });
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+
+      graph.addEdge("actionInitializer", "extract_params_node");
+      graph.addEdge("actionExecutor", "response_formatter_node");
+
+      // graph.addConditionalEdges("actionInitializer", actionParamsVerifier);
+      graph.addConditionalEdges("extract_params_node", actionParamsVerifier);
+      
+      if(inputs.action && inputs.state && inputs.state.lastExecutedNode){
+        graph.setEntryPoint(inputs.state.lastExecutedNode);    
+      }else if(inputs.action){
+        graph.setEntryPoint("actionInitializer");    
+      }else{
+        graph.setEntryPoint("agentSelector");    
+      }
+      graph.setFinishPoint("requestParams");
+      graph.setFinishPoint("response_formatter_node");  
+      graph.setFinishPoint("agentSelector");
     }
     else{
       graph.addNode("flowDecisionMaker", toolsLib.flowDecisionMaker);

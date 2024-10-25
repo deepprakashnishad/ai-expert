@@ -1,3 +1,5 @@
+const { sanitizeConversation } = require('./../tools/utils.js');
+
 module.exports = {
 
 
@@ -53,7 +55,7 @@ module.exports = {
       if(inputs.tools && inputs.tools.length > 0){
         resp = await openAI.chat.completions.create({
           "response_format": { "type": inputs.response_format },
-          "messages": inputs.messages,
+          "messages": sanitizeConversation(inputs.messages),
           "model": 'gpt-3.5-turbo',
           "max_tokens": inputs.max_tokens,
           "temperature": inputs.temperature,
@@ -62,7 +64,7 @@ module.exports = {
       }else{
         resp = await openAI.chat.completions.create({
           "response_format": { "type": inputs.response_format },
-          "messages": inputs.messages,
+          "messages": sanitizeConversation(inputs.messages),
           "model": 'gpt-3.5-turbo',
           "max_tokens": inputs.max_tokens,
           "temperature": inputs.temperature

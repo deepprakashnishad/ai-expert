@@ -8,7 +8,7 @@ class GraphState {
       categories = null, 
       apis = null, 
       bestApi = null, 
-      params = null, 
+      params = {}, 
       response = null, 
       question = null,
       finalResult = null,

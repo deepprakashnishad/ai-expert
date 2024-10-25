@@ -321,5 +321,21 @@ module.exports = {
 	mShopifyAgent,
 	shopifyAgent,
 	customShopifyAgent,
-	getShopifyCustomerDetails
+	getShopifyCustomerDetails,
+
+	ShopifyGetOrders,
+	ShopifyGetProducts,
+	GetCustomerDetail,
+	GetCustomerList,
+	SearchCustomers,
+	GetCustomerOrders,
+	ShopifyGetOrderFulfillment,
+	ShopifyCancelOrder,
+	ShopifyGetProductVariants,
+	ShopifyGetRefunds,	
+	ShopifyCalculateRefund,	
+	SearchProductByQuery,
+	GenericAnswerTool,
+	FetchInventory,
+	ShopifyGetProductRecommendations,
 }
