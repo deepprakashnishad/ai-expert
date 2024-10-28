@@ -1,5 +1,5 @@
 const { ChatPromptTemplate } = require("@langchain/core/prompts");
-const { z } = require("zod");
+const { z, ZodObject } = require("zod");
 const { GraphState } = require("./index.js");
 const { zodToJsonSchema } = require('zod-to-json-schema');
 const {findZodMissingKeys} = require('./utils');
@@ -15,7 +15,9 @@ async function extractParameters(state) {
       {
         "role": "system",
         "content": `Given a conversation and a list of parameters with types, extract and return parameter values as a JSON object. Omit parameters without values or mismatched types.
-          Parameters: [{params}]`
+          Parameters: [{params}]
+          Your json object as output must only contain keys from params. Try your best to get the values for params from the user query and provided conversation.
+          `
       },
       {
         "role": "user",
@@ -50,18 +52,21 @@ async function extractParameters(state) {
     requiredParams = requiredParams.concat(optionalParams);
     messages[0]['content'] = messages[0]['content'].replace("{params}", requiredParams)
   }else{
-    requiredParams = zodToJsonSchema(bestApi.schema).properties;
+    requiredParams = zodToJsonSchema(bestApi.schema);  
     const missingKeys = findZodMissingKeys(bestApi.schema, params);
+  
     const combinedMissingKeys = [
       ...(missingKeys.all || []),
       ...(missingKeys.atleast_2 || []),
       ...(missingKeys.atleast_1 || []),
       ...(missingKeys.atleast_3 || [])
     ];
-    const filteredParams = Object.keys(requiredParams)
-    .filter(key => combinedMissingKeys.includes(key))
+    const filteredParams = Object.keys(requiredParams.properties)
+    .filter(key => {
+      return !Object.keys(params).includes(key)
+    })
     .reduce((obj, key) => {
-      obj[key] = requiredParams[key];
+      obj[key] = requiredParams.properties[key]; // Access the value from `properties`
       return obj;
     }, {});
     messages[0]['content'] = messages[0]['content'].replace("{params}", JSON.stringify(filteredParams))

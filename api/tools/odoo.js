@@ -3,14 +3,17 @@ const axios = require('axios');
 
 var odooProtocol = sails.config.custom.ODOO.https? "https": "http";
 
-var odoo = new Odoo({
+var odooConfig = {
 	https: sails.config.custom.ODOO.https,
   	host: sails.config.custom.ODOO.host,
 	port: sails.config.custom.ODOO.port,
 	database: sails.config.custom.ODOO.db,
 	username: sails.config.custom.ODOO.username,
-	password: sails.config.custom.ODOO.password
-});
+	password: sails.config.custom.ODOO.password,
+	url: sails.config.custom.ODOO.url
+};
+
+var odoo = new Odoo(odooConfig);
 
 async function connectToOdoo(){
 	try{
@@ -214,7 +217,7 @@ async function odooAgent(state){
 		},
 		{
 			"role": "user",
-			"content": `User query: "${query}". Please provide a valid JSON object with the following structure: {params: {model: string, domain: array, fields: array, order: string, limit: number, method: string, args: array}, kwargs: object}. Ensure that each field is appropriately filled. Do not include any additional text, just return the JSON.`
+			"content": `User query: "${query}". Please provide a valid JSON object with the following structure: {model: string, domain: array, fields: array, order: string, limit: number}. Ensure that each field is appropriately filled. Do not include any additional text, just return the JSON.`
 		}
 	];
 
@@ -226,18 +229,18 @@ async function odooAgent(state){
   	return {
   		next_node: "odooExecutor",
   		finalResult: response,
-  		params: response['params']
+  		params: response
   	}
 }
 
 async function odooExecutor(state){
 	var {query, llm, bestApi, params, toolUsed, finalResult} = state;
-
+	const { model, domain = [], fields = [], order = '' } = params;
 	var data = [];
 
 	var params = {};
-
-	if(finalResult['params']['method']==="search_read"){
+	finalResult = await searchReadOdoo(model, params)
+	/*if(finalResult['method']==="search_read"){
 		params = {
 			service: "object",
 	        model: finalResult['params']['model'],
@@ -272,15 +275,11 @@ async function odooExecutor(state){
 	        args: finalResult['params']['args'],
 	        kwargs: finalResult['params']['kwargs'] || {}
 		}
-	}
-
-
-	var result = await rpc_call(params);
-	console.log(result);
+	}*/
 	return {
 		lastExecutedNode: "odooExecutor",
 		toolUsed: toolUsed,
-		finalResult: result['result']? result['result']['records']: undefined
+		finalResult: finalResult
 	}
 }
 

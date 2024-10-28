@@ -120,8 +120,8 @@ Odoo.prototype.search = function (model, params, callback) {
 // https://www.odoo.com/documentation/8.0/reference/orm.html#openerp.models.Model.search
 // https://www.odoo.com/documentation/8.0/reference/orm.html#openerp.models.Model.read
 Odoo.prototype.search_read = function (model, params, callback) {
-  assert(params.domain, "'domain' parameter required. Must provide a search domain.");
-  assert(params.limit, "'limit' parameter required. Must specify max. number of results to return.");
+  // assert(params.domain, "'domain' parameter required. Must provide a search domain.");
+  // assert(params.limit, "'limit' parameter required. Must specify max. number of results to return.");
 
   this._request('/web/dataset/call_kw', {
     model: model,

@@ -84,7 +84,8 @@ module.exports.custom = {
     host: 'odoo-171419-0.cloudclusters.net',
     db: 'admin',
     username: 'vipin@astratechsystems.com',
-    password: 'C7n20RxR'
+    password: 'C7n20RxR',
+    url: 'https://odoo-171419-0.cloudclusters.net'
   },
 
   SHOPIFY: {

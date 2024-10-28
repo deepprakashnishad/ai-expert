@@ -20,7 +20,6 @@ const toolMap = {
 	MyGmailGetMessage,
 	MyGmailGetThread,
 	MyGmailCreateDraft,
-
 	...shopifyTools
 	// ...toolsLib
 }
@@ -108,7 +107,7 @@ module.exports = {
 					Present a selection of relevant options that align with the user's potential interests from the available options. Ensure the options are tailored and remove any that don't fit. Do not filter options if there is any for user to choose.
 
 					Response Structure:
-					You response must contain a message for user and list of probable options that you selected from the given available_choices.
+					You response must contain a message for user and list of actionNames(only) of the probable options that you selected from the given available_choices.
 					Format your responses in JSON like this:
 					{
 					  "msg": "html_formatted_response",
@@ -138,11 +137,11 @@ module.exports = {
         result = JSON.parse(result[0]['message']['content']);
         selectedOptions = result['options'];
         const filteredOptions = mainOptions.filter(option =>
-		    selectedOptions.includes(option.name)
+		    selectedOptions.includes(option.actionName) || selectedOptions.includes(option.displayName)
 		);
 
         return {
-        	finalResult: {msg: result['msg'], options: selectedOptions}
+        	finalResult: {msg: result['msg'], options: filteredOptions}
         }
 	},
 
@@ -197,7 +196,6 @@ module.exports = {
 				}
 			}
 			instance = new toolRef(shopifyOptions);
-
 		} else if(actionType === "gmail"){
 			const SERVICE_ACCOUNT_PATH = path.join(process.cwd(), './auto-gpt-service-account.json');
 			const serviceAccount = require(SERVICE_ACCOUNT_PATH);
@@ -211,6 +209,8 @@ module.exports = {
 			    scopes: ["https://mail.google.com/"],
 			};
 			instance = new toolRef(gmailParams);
+		}else if(actionType === "customTool"){
+			instance = await Tool.findOne({id: actionName});
 		}else{
 			instance = new toolRef();
 		}
@@ -225,15 +225,32 @@ module.exports = {
 
 	actionParamsVerifier: function(state){
 		const {llm, user, bestApi, params, next_node} = state;
+		/*for (const key in params) {
+		    if (params[key] === null || params[key] === undefined || params[key] === '') {
+		        delete params[key];
+		    }
+		}
+		if (!bestApi || bestApi.length===0) {
+		    throw new Error("No best API found");
+		}
 
-		const missingKeys = findZodMissingKeys(bestApi.schema, params);
-		if (Object.keys(missingKeys).length > 0) {
-			for(var key of Object.keys(missingKeys)){
-				if(missingKeys[key].length>0){
-					return "requestParams";
+		if (!params && bestApi.required_parameters.length>0) {
+		    return "human_loop_node";
+		}*/
+
+		// if(bestApi.schema instanceof ZodObject){
+			const missingKeys = findZodMissingKeys(bestApi.schema, params);
+			if (Object.keys(missingKeys).length > 0) {
+				for(var key of Object.keys(missingKeys)){
+					if(missingKeys[key].length>0){
+						return "requestParams";
+					}
 				}
-			}
-	  	}
+		  	}	
+		/*}else{
+			findMissingParams()
+		}*/
+		
 		return next_node? next_node: "actionExecutor";
 	},
 
@@ -293,14 +310,14 @@ module.exports = {
 
 		}
 		else if(action.type==="tool"){
-			finalResult = bestApi._call(params)
+			finalResult = await bestApi._call(params)
 		}
 		else {
 			const agentExecutor = await initializeAgentExecutorWithOptions([bestApi], llm, {
 			    agentType: "structured-chat-zero-shot-react-description",
 			    verbose: true,
 		  	});
-			var result = await agentExecutor.invoke({input: prompt});	
+			var finalResult = await agentExecutor.invoke({input: prompt});	
 		}
 
 		return {

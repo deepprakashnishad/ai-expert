@@ -112,8 +112,93 @@ module.exports = {
     graph = new StateGraph({
       channels: graphChannels,
     });
-    if(inputs.id.toLowerCase() === "marketing"){
+    if(inputs.id.toLowerCase() === "Common Agent1"){
+      graph.addNode("agentSelector", agentSelector);
+      graph.addNode("actionInitializer", async (context) => {
+        var params = context.params || {};
+        var user_query = context.conversation[context.conversation.length-1]['content'];
+        /*if(inputs.action.data && inputs.action.data['user_query']){
+          user_query = inputs.action.data['user_query'];
+        }else{
+          user_query = inputs.action.conversation[0]['content'];
+        }*/
+        params['chatId'] = context.chatId;
+        params['userQuery'] = user_query;
+        params['appId'] = context['user']['appId'];
+        params['conversation'] = context.conversation;
+        Object.assign(params, inputs.action.data);
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        context.params = params;
+        return await actionInitializer(context); // Call the async function
+      });
+      /*graph.addNode("actionParamsVerifier", async (context) => {
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        return await actionParamsVerifier(context); // Call the async function
+      });*/
 
+      graph.addNode("requestParams", async (context) => {
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        return await requestParams(context); // Call the async function
+      });
+      graph.addNode("extract_params_node", toolsLib.extractParameters);
+
+      graph.addNode("actionExecutor", async (context) => {
+
+        if(inputs.action.type==="react-agent"){
+          if(inputs.action.actionName==="GenericAnswerTool"){
+            var user_query = context.conversation[context.conversation.length-1]['content'];
+            /*if(inputs.action.data && inputs.action.data['user_query']){
+              user_query = inputs.action.data['user_query'];
+            }else{
+              user_query = inputs.action.conversation[0]['content'];
+            }*/
+            context.prompt = `
+              Use the given tools to answer user_query.
+              {
+                user_query: ${user_query},
+                appId: ${context.user.appId || context.params.appId},
+                conversation: ${JSON.stringify(context.conversation)}
+              }
+            `;
+          }else{
+            context.prompt = `Use the given tools to solve users query
+              {
+                user_query: ${user_query},
+                appId: ${context.user.appId},
+                params: ${JSON.stringify(context.params)}
+              }
+            `;
+          }          
+        }else if(inputs.action.type==="tool"){
+
+        }
+        context.extraData = {   
+          action: inputs.action, // function, tool, api, decision
+        }; // Add extra data here
+        return await actionExecutor(context); // Call the async function
+      });
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+
+      graph.addEdge("actionInitializer", "extract_params_node");
+      graph.addEdge("actionExecutor", "response_formatter_node");
+
+      // graph.addConditionalEdges("actionInitializer", actionParamsVerifier);
+      graph.addConditionalEdges("extract_params_node", actionParamsVerifier);
+      
+      if(inputs.action){
+        graph.setEntryPoint("actionInitializer");    
+      }else{
+        graph.setEntryPoint("agentSelector");    
+      }
+      graph.setFinishPoint("requestParams");
+      graph.setFinishPoint("response_formatter_node");  
+      graph.setFinishPoint("agentSelector"); 
     }
     else if(inputs.id.toLowerCase() === "shopify"){
       graph.addNode("flowDecisionMaker", toolsLib.flowDecisionMaker);
@@ -403,9 +488,7 @@ module.exports = {
       // graph.addConditionalEdges("actionInitializer", actionParamsVerifier);
       graph.addConditionalEdges("extract_params_node", actionParamsVerifier);
       
-      if(inputs.action && inputs.state && inputs.state.lastExecutedNode){
-        graph.setEntryPoint(inputs.state.lastExecutedNode);    
-      }else if(inputs.action){
+      if(inputs.action){
         graph.setEntryPoint("actionInitializer");    
       }else{
         graph.setEntryPoint("agentSelector");    

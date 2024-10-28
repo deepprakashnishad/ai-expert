@@ -16,7 +16,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
             configurable: true,
             writable: true,
             value: z.object({
-                query: z.string().describe("Product title, name, or description for calling search API."),
+                productSearchString: z.string().describe("Product title, name, or description for calling search API."),
                 result_count: z.number().default(5),
                 // prefix: z.enum(["LAST", "NONE"]).default("LAST"),
                 productFilters: z.object({
@@ -124,7 +124,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
         }`;
         const {data, errors, extensions} = await this.storefrontClient.request(productQuery, {
           variables: {
-            query: arg['query'],
+            query: arg['productSearchString'],
             first: arg['result_count'],
           },
         });

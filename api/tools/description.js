@@ -35,7 +35,7 @@ module.exports = {
 		{
 			actionName: "SearchProductByQuery",
 			displayName: "Search Product",
-			type: "react-agent",
+			type: "tool",
 			actionType: "shopify",
 			description: "This tool can fetch products by query"
 		},
@@ -59,7 +59,16 @@ module.exports = {
 					ques: "What do you want to know?"
 				}
 			]
-		}
+		},
+		{
+			actionName: "6687c69c802c0b4423a68909",
+			displayName: "Quotation Generator",
+			type: "customTool",
+			actionType: "customTool",
+			description: "Use this tool to generate quotations",
+			actionPrompt: "Please provide details of the quotations.",
+			questions: []
+		},
 	],
 
 	/*{
