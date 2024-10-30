@@ -270,13 +270,6 @@ async function odooAgent(state){
 				Greetings: 
 				Please repond with greeting message as follows:
 				{type: "general", msg: "reponse_to_user_message"}
-
-				General queries about Odoo:
-				Based on your knowledge about odoo give response to user as follows
-				{type: "general", msg: "reponse_to_user_message"}
-
-				Out of context:
-				If question is not related to odoo then tell user that you are an agent designed for odoo activities.
 			`
 		},
 		{
@@ -284,6 +277,13 @@ async function odooAgent(state){
 			"content": `User query: "${query}".`
 		}
 	];
+
+	/*General queries about Odoo:
+				Based on your knowledge about odoo give response to user as follows
+				{type: "general", msg: "reponse_to_user_message"}
+
+				Out of context:
+				If question is not related to odoo then tell user that you are an agent designed for odoo activities.*/
 
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
   	response = JSON.parse(response[0]['message']['content']);	
