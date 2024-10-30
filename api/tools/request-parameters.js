@@ -118,8 +118,29 @@ async function requestParameters(state) {
   return {"question": question}
 }
 
+async function collectDataFromHuman(state){
+  const { llm, dataFromHuman } = state;
+
+  var messages = 
+    [
+      {
+        "role": "system",
+        "content": `You are an expert customer representative who rephrases provided missing_info in form of question to collect information from user. You should STRICTLY limit your questions to collect missing_info provided by the user and DO NOT add questions on your own. Format your reponse in HTML format for better representation.
+          `
+      },{
+        "role": "user",
+        "content": `{missing_info: ${JSON.stringify(params)}}`
+      }
+  ];
+
+  var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096, "response_format": "text"});
+
+  return {"question": response[0]['message']['content']}
+}
+
 module.exports = {
   readUserInput,
   parseUserInput,
   requestParameters,
+  collectDataFromHuman
 };

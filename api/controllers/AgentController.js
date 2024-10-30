@@ -371,8 +371,11 @@ module.exports = {
 			conversation.push({"role":"assistant", "content": msg});
 			res.successResponse({result: msg, chatId: chatId}, 200, null, true, "Processing Completed");	
 		}
-		finalResult.conversation = conversation;
-		await ChatHistory.update({"id": chatId}, {"ch": conversation, "graphState": finalResult});
+		if(!req.body.isHidden){
+			finalResult.conversation = conversation;
+			await ChatHistory.update({"id": chatId}, {"ch": conversation, "graphState": finalResult});	
+		}
+		
 	},
 
 	dynamicLangGraph: async function(req, res){

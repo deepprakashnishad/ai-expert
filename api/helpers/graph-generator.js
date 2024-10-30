@@ -140,11 +140,11 @@ module.exports = {
         return await actionParamsVerifier(context); // Call the async function
       });*/
 
-      graph.addNode("requestParams", async (context) => {
+      graph.addNode("human_loop_node", async (context) => {
         context.extraData = {   
           action: inputs.action, // function, tool, api, decision
         }; // Add extra data here
-        return await requestParams(context); // Call the async function
+        return await collectDataFromHuman(context); // Call the async function
       });
       graph.addNode("extract_params_node", toolsLib.extractParameters);
 
@@ -196,7 +196,7 @@ module.exports = {
       }else{
         graph.setEntryPoint("agentSelector");    
       }
-      graph.setFinishPoint("requestParams");
+      graph.setFinishPoint("human_loop_node");
       graph.setFinishPoint("response_formatter_node");  
       graph.setFinishPoint("agentSelector"); 
     }
@@ -267,34 +267,32 @@ module.exports = {
       graph.addNode("odooAgent", toolsLib.odooAgent);
       // graph.addNode("odooApiSelector", toolsLib.odooApiSelector);
       // graph.addNode("select_api_node", toolsLib.selectApi);
-      graph.addNode("extract_params_node", toolsLib.extractParameters);
-      graph.addNode("human_loop_node", toolsLib.requestParameters);
-      graph.addNode("odooExecutor", toolsLib.odooExecutor);
-      graph.addNode("result_verifier", toolsLib.resultVerifier);
+      // graph.addNode("extract_params_node", toolsLib.extractParameters);
+      // graph.addNode("human_loop_node", toolsLib.requestParameters);
+      graph.addNode("odooExecutor", async function(context){
+        if(context.next_node==="response_formatter_node"){
+          return {};
+        }else{
+          return await toolsLib.odooExecutor(context);
+        }
+      });
+      // graph.addNode("result_verifier", toolsLib.resultVerifier);
       graph.addNode("pdfGenerator", toolsLib.pdfGenerator);
       // graph.addNode("nextActionDecisionMaker", toolsLib.nextActionDecisionMaker);
-
+      graph.addNode("response_formatter_node", toolsLib.responseFormatter);
+      
       graph.addEdge("odooAgent", "odooExecutor");
+      graph.addEdge("odooExecutor", "response_formatter_node");
+      graph.addConditionalEdges("response_formatter_node", toolsLib.isNextNode);
       // graph.addEdge("select_api_node", "extract_params_node");
       // graph.addEdge("odooExecutor", "result_verifier");
-      // graph.addEdge("result_verifier", "nextActionDecisionMaker");
 
-      graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
+      // graph.addConditionalEdges("extract_params_node", toolsLib.verifyParams);
 
-      graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
-
-      graph.addConditionalEdges("result_verifier", toolsLib.nextActionDecisionMaker);      
+      // graph.addConditionalEdges("human_loop_node", toolsLib.verifyParams);
 
 
-
-      if(inputs.state && inputs.state.lastExecutedNode){
-        console.log(`Last Executed Node - ${inputs.state.lastExecutedNode}`)
-        graph.setEntryPoint(inputs.state.lastExecutedNode);  
-      }else{
-        graph.setEntryPoint("odooAgent");  
-      }
-      graph.setFinishPoint("odooExecutor");
-      graph.setFinishPoint("human_loop_node");
+      graph.setEntryPoint("odooAgent");  
       graph.setFinishPoint("pdfGenerator");
     } 
 

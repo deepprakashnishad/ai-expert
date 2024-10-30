@@ -130,7 +130,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
         });
         if(!errors){
             const products = this.extractProduct(data['search']['edges']);
-            return JSON.stringify(products);
+            return {"template": "chatbot_product", "products": JSON.stringify(products)};
         }else{
             console.log(errors);
             return "Due to technical issue unable to fetch the results right now. Try again later.";

@@ -221,10 +221,6 @@ module.exports = {
 		    return "human_loop_node";
 		  }
 
-		  if(bestApi.min_reqd_params && bestApi.min_reqd_params <= Object.keys(params).length){
-		  	return next_node? next_node: "execute_request_node";
-		  }
-
 		  const requiredParamsKeys = bestApi.required_parameters.map(
 		    ({ name }) => name
 		  );
@@ -240,14 +236,19 @@ module.exports = {
 	},
 
 	responseFormatter: async function(state){
-		const {llm, query, finalResult, extraData, user} = state;
+		var {llm, query, finalResult, extraData, user, prompt} = state;
 
+		console.log(finalResult)
 		/*const prompt = `Please format the following information into a well-structured HTML response for human readability. Ensure that the output is detailed and does not include any JSON objects and is presented in a clear and readable format using HTML tags like paragraphs, lists, and tables.
 
 			User Query: ${query}
 			Final Result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}`;*/
 		
-		const prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto. All links must open in new tab.
+		if(!prompt){
+			prompt = `Based on query and final_result, form a well-structured HTML response for human readability strictly based on query and final_result only. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto. All links must open in new tab. 
+
+			If pdf not needed:
+			Always at the end of you reponse add a prompt for the user to engage in conversation.
 
 			query: ${query}
 			final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
@@ -257,20 +258,30 @@ module.exports = {
 				html: "formatted_html_string",
 				is_pdf: true/false
 			}`;
+			var template_name;
+			if(finalResult['template']){
+				template_name = finalResult['template'];
+			}else if(extraData && extraData['template']){
+				template_name = extraData['template'];
+			}
 
-		if(extraData && extraData['template']){
-			var mTemplate = await AppData.findOne({cid: user.appId, type: extraData['template']});
-			prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Use provided format to generate your response. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto. All links must open in new tab.
+			if(template_name){
+				var mTemplate = await AppData.findOne({cid: user.appId, type: "template", "data.name": template_name}).meta({enableExperimentalDeepTargets:true});
+				prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Use provided template format to generate your response. If no template is provided generate your response. Also decide from user query if response needs to be sent in pdf file or not. Html output must be detailed atleast fill the template and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto. All links must open in new tab.
 
-			query: ${query}
-			final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
+				If pdf not needed:
+				Always at the end of you reponse add a prompt for the user to engage in conversation.
 
-			Output must be in following json format only:
-			{
-				html: "formatted_html_string",
-				is_pdf: true/false,
-				format: ${mTemplate['data']['format']}
-			}`;
+				query: ${query}
+				final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
+				template: ${mTemplate['data']['template']}
+
+				Output must be in following json format only:
+				{
+					html: "formatted_html_string",
+					is_pdf: true/false
+				}`;
+			}	
 		}			
 
 		var messages = [
@@ -290,7 +301,8 @@ module.exports = {
 		}else{
 			return {
 				"finalResult": response['html'],
-				"response": response['html']
+				"response": response['html'],
+				"next_node": undefined
 			};
 		}
 	},

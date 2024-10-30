@@ -7,7 +7,7 @@ const shopifyTools = require('./shopify/index.js');
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const Shopify = require('shopify-api-node');
 const path = require("path");
-const {findZodMissingKeys} = require('./utils');
+const {findZodMissingKeys, extractMissingParams} = require('./utils');
 
 function isZodObject(schema){
 	return schema instanceof ZodObject;
@@ -95,38 +95,39 @@ module.exports = {
 	agentSelector: async function(state){
 		const {mainOptions} = require('./description.js');
 		var {user, conversation} = state;
+
 		var userQuery = conversation[conversation.length-1]['content'];
+
+		if(userQuery==="all_available_options"){
+			return {
+	        	finalResult: {msg: "Please make a choice", options: mainOptions}
+	        }			
+		}
 
 		var messages = [
             {
-                "role": "system",
-                "content": `Role: You are an interactive and empathetic proactive support and sales chatbot. Your goal is to engage users, assist customers and provide relevant options based on their statements from following available choices. After all this your main goal is to increase sales.
-                	{available_choices: ${JSON.stringify(mainOptions)}}
-					Greeting Response:
-					When a user sends a greeting, respond warmly.
-					Present a selection of relevant options that align with the user's potential interests from the available options. Ensure the options are tailored and remove any that don't fit. Do not filter options if there is any for user to choose.
+			    "role": "system",
+			    "content": `
+			        Role: You are an interactive and empathetic proactive support and sales chatbot. Your goal is to engage users, assist customers, and provide relevant options based on their statements from the following available choices. After all this, your main goal is to increase sales.
+			        {available_choices: ${JSON.stringify(mainOptions)}}
 
-					Response Structure:
-					You response must contain a message for user and list of actionNames(only) of the probable options that you selected from the given available_choices.
-					Format your responses in JSON like this:
-					{
-					  "msg": "html_formatted_response",
-					  "options": ["option_object1", "option_object2", "option_object3"]
-					}
-				`
+			        Greeting Response:
+			        When a user sends a greeting, respond warmly.
+			        Present a selection of relevant options that align with the user's potential interests from the available choices. Ensure the options are tailored, and remove any that don't fit. Do not filter options if there are any for the user to choose.
+			        
+			        Disengaged or Negative Response:
+			        If the user responds with phrases like "Nothing," "Not interested," or similar expressions indicating they are unable to take any action or are possibly leaving, respond with a gentle, empathetic message and present all available options to encourage them to explore.
 
-				/*User Engagement:
-					If the user seems bored or disengaged, acknowledge their sentiment and encourage interaction by offering engaging and diverse options.*/
-				/*"options": [{"option_name1": "display option 1"}, {"option_name2": "display option 2"}, {"option_name3": "display option 3"}]*/
-                /*"content": `You are an interactive, empathetic and proactive chatbot who responds to user query based on his statement.
-        			If a greeting is sent you respond with greeeting alongwith options you have.
-        			You may filter out some options if you are sure that the option is not at all related to user's requirement.
-        			Ensure that user is presented with some and options and he is bored.
-                    {options: ${JSON.stringify(mainOptions)}}
-                    Output must be in json format.
-                    {msg: "html_formatted_response", options: [option_name1, option_name5, option_name10]}
-                `*/
-            },
+			        Response Structure:
+			        Your response must contain a message for the user and a list of action names (only) of the probable options that you selected from the given available_choices.
+			        
+			        Format your responses in JSON like this:
+			        {
+			            "msg": "html_formatted_response",
+			            "options": ["option_object1", "option_object2", "option_object3"]
+			        }
+			    `
+			},
             {
             	"role": "user",
             	"content": userQuery
@@ -153,6 +154,7 @@ module.exports = {
 		var userQuery = conversation[conversation.length-1]['content'];
 
 		const {actionName, type, actionType} = state.extraData.action;
+		console.log(actionName);
 		const toolRef = toolMap[actionName];
 
 		var instance;
@@ -225,7 +227,7 @@ module.exports = {
 
 	actionParamsVerifier: function(state){
 		const {llm, user, bestApi, params, next_node} = state;
-		/*for (const key in params) {
+		for (const key in params) {
 		    if (params[key] === null || params[key] === undefined || params[key] === '') {
 		        delete params[key];
 		    }
@@ -236,20 +238,27 @@ module.exports = {
 
 		if (!params && bestApi.required_parameters.length>0) {
 		    return "human_loop_node";
-		}*/
+		}
 
-		// if(bestApi.schema instanceof ZodObject){
+		if(bestApi.schema instanceof ZodObject){
 			const missingKeys = findZodMissingKeys(bestApi.schema, params);
 			if (Object.keys(missingKeys).length > 0) {
-				for(var key of Object.keys(missingKeys)){
-					if(missingKeys[key].length>0){
-						return "requestParams";
-					}
+				if(missingKeys["all"].length>0){
+					return "human_loop_node";
 				}
+				/*for(var key of Object.keys(missingKeys)){
+					if(missingKeys["all"].length>0){
+						return "human_loop_node";
+					}
+				}*/
 		  	}	
-		/*}else{
-			findMissingParams()
-		}*/
+		}else{
+			const missingKeys = extractMissingParams(bestApi, params);
+			if (missingKeys.length > 0) {
+			    return "collect_params_node";
+			}
+			return next_node? next_node: "actionExecutor";
+		}
 		
 		return next_node? next_node: "actionExecutor";
 	},
@@ -295,7 +304,7 @@ module.exports = {
 	actionExecutor: async function(state){
 		const {llm, user, bestApi, prompt} = state;
 
-		var {finalResult, conversation, params} = state;
+		var {finalResult, conversation, params, extraData} = state;
 
 		var userQuery = conversation[conversation.length-1]['content'];
 
@@ -310,7 +319,7 @@ module.exports = {
 
 		}
 		else if(action.type==="tool"){
-			finalResult = await bestApi._call(params)
+			finalResult = await bestApi._call(params);
 		}
 		else {
 			const agentExecutor = await initializeAgentExecutorWithOptions([bestApi], llm, {
@@ -321,7 +330,36 @@ module.exports = {
 		}
 
 		return {
-			finalResult: finalResult
+			finalResult: finalResult,
+			params: {}
 		}
 	},
+
+	collectParams: async function(state){
+		const {llm, user, bestApi, params, next_node, callToolStack} = state;
+
+		const missingKeys = extractMissingParams(bestApi, params);
+
+		var missingParams = bestApi.required_parameters
+        .filter((p) => {
+          if(p.value){
+            params[p.name] = p.value;
+          }
+          return p.value === undefined || p.value === null
+        });
+
+        for(var mParam of missingParams){
+        	if(mParam.collectFrom && mParam.collectFrom.tool_type === "graph_node"){
+        		return {
+        			question: mParam.collectFrom.question,
+        			next_node: mParam.collectFrom.tool
+        		}
+        	}else {
+        		callToolStack.push(bestApi);
+        		if(mParam.collectFrom && mParam.collectFrom.tool_type === "toolLib"){
+        			bestApi = toolsLib[mParam.collectFrom.tool]
+        		}
+        	}
+        }
+	}
 }

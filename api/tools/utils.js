@@ -4,6 +4,25 @@ const { z, ZodObject } = require('zod');
  * @param {string[]} extractedParams
  * @returns {string[]}
  */
+
+function extractMissingParams(bestApi, params){
+  const requiredParamsKeys = bestApi.required_parameters
+        .filter((p) => {
+          if(p.value){
+            params[p.name] = p.value;
+          }
+          return p.value === undefined || p.value === null
+        })
+        .map((param) => param.name);
+
+  const extractedParamsKeys = Object.keys(params);
+
+  return findMissingParams(
+      requiredParamsKeys,
+        extractedParamsKeys
+    );
+}
+
 function findMissingParams(requiredParams, extractedParams) {
   const missing = requiredParams.filter(
     (required) => !extractedParams.some((extracted) => extracted === required)
@@ -85,8 +104,28 @@ function sanitizeConversation(conversation){
   return conversation;
 }
 
+async function getCorrectedDataFromLLM(input){
+  console.log(input);
+  var messages = [
+    {
+      "role": "system",
+      "content": "You are an expert of fixing issues. Understand the user and provide solution as per the request"
+    },
+    {
+      "role": "user",
+      "content": JSON.stringify(input)
+    }
+  ];
+  console.log(messages);
+  var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
+  console.log("Done");
+  console.log(response)
+  return response[0]['message']['content'];
+}
+
 module.exports = {
   findMissingParams,
   findZodMissingKeys,
-  sanitizeConversation
+  sanitizeConversation,
+  getCorrectedDataFromLLM
 };

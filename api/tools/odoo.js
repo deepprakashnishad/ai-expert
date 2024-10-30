@@ -1,5 +1,6 @@
 var Odoo = require('./odoo/index.js');
 const axios = require('axios');
+const {getCorrectedDataFromLLM} = require("./utils.js");
 
 var odooProtocol = sails.config.custom.ODOO.https? "https": "http";
 
@@ -74,7 +75,40 @@ async function searchOdoo(model, params){
 	}
 }
 
-async function searchReadOdoo(model, params){
+async function getModelDetailsByName(partialModelName){
+	var modelSearchParams = {
+        model: 'ir.model',
+        method: "search_read",
+        args: [
+          [['model', 'ilike', partialModelName]]
+        ],
+        kwargs: {
+          fields: ['model', 'name'],
+          limit: 10
+        }
+    };
+
+    var models = await searchReadOdoo('ir.model', modelSearchParams);
+    const modelNames = models.map(m => m.model);
+
+    var fieldSearchParams = {
+        model: 'ir.model.fields',
+        method: "search_read",
+        args: [
+            [['model', 'in', modelNames]]
+        ],
+        kwargs: {
+            fields: ['model', 'name', 'field_description', 'ttype', 'relation', 'required'],
+            limit: 200
+        }
+    }
+
+    var fields = await searchReadOdoo('ir.model.fields', fieldSearchParams);
+    console.log(fields);
+    return fields;
+}
+
+async function searchReadOdoo(model, params, iteration=0){
 	try{
 		if(!odoo.sid){
 			await connectToOdoo();	
@@ -88,10 +122,24 @@ async function searchReadOdoo(model, params){
 		        }
 			})
 		});
-
 		return result;
 	}catch(e){
-		console.log(e);
+		console.log(e)
+		if(iteration < 5){
+			iteration++;
+			console.log(`Attempt ${iteration}`);
+			var response = await getCorrectedDataFromLLM({
+				context: "odoo search_read", 
+				instruction: `Please provide a valid JSON object with the following structure: {model: string, domain: array, fields: array, order: string, limit: number}. Ensure that each field is appropriately filled with standard values with respect to odoo standard model. Include only fields that are relavant to user query only. Do not include any additional text, just return the JSON`,
+				data_used: params,
+				error: e.data.message
+			});
+
+			var params = JSON.parse(response);
+			
+			return await searchReadOdoo(params['model'], params, iteration);
+		}
+		return e.data.message;
 	}
 }
 
@@ -204,32 +252,46 @@ async function rpc_call(params){
 		return result.data;
 	}catch(e){
 		console.log(e);
+		return JSON.stringify(e);
 	}
 }
 
 async function odooAgent(state){
-	const {query, llm} = state;
-
+	const {llm, conversation} = state;
+	let query = conversation[conversation.length-1]['content'];
 	var messages = [
 		{
 			"role": "system",
-			"content": `You are an assistant that helps users formulate queries for an Odoo ERP database for making the rpc call.`
+			"content": `You are an empathic assistant that helps users formulate queries for an Odoo ERP database for making the rpc call.
+
+				Greetings: 
+				Please repond with greeting message as follows:
+				{type: "greeting", msg: "reponse_to_user_message"}
+
+				Odoo related query:
+				Please provide a valid JSON object with the following structure: {type: "odoo", params: {model: string, domain: array, fields: array, order: string, limit: number}}. Ensure that each field is appropriately filled with standard values with respect to odoo standard model. Include only fields that are relavant to user query only. Do not include any additional text, just return the JSON.
+			`
 		},
 		{
 			"role": "user",
-			"content": `User query: "${query}". Please provide a valid JSON object with the following structure: {model: string, domain: array, fields: array, order: string, limit: number}. Ensure that each field is appropriately filled. Do not include any additional text, just return the JSON.`
+			"content": `User query: "${query}".`
 		}
 	];
 
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
-  	response = JSON.parse(response[0]['message']['content']);
-
-  	console.log(response);  	
-
-  	return {
-  		next_node: "odooExecutor",
-  		finalResult: response,
-  		params: response
+  	response = JSON.parse(response[0]['message']['content']);	
+  	console.log(response);
+  	if(response['type']==="odoo"){
+  		return {
+	  		next_node: "odooExecutor",
+	  		finalResult: response['params'],
+	  		params: response['params']
+	  	}
+  	}else{
+  		return {
+	  		next_node: "response_formatter_node",
+	  		finalResult: response['msg'],
+	  	}
   	}
 }
 
@@ -237,9 +299,16 @@ async function odooExecutor(state){
 	var {query, llm, bestApi, params, toolUsed, finalResult} = state;
 	const { model, domain = [], fields = [], order = '' } = params;
 	var data = [];
-
-	var params = {};
-	finalResult = await searchReadOdoo(model, params)
+	try{
+		finalResult = await searchReadOdoo(model, params);
+		console.log(finalResult);	
+	}catch(e){
+		console.log(e);
+		return {
+			finalResult: "Due to a technical error, I was unable to retrieve the result"
+		}
+	}
+	
 	/*if(finalResult['method']==="search_read"){
 		params = {
 			service: "object",

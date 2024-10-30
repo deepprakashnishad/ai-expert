@@ -21,7 +21,7 @@ class GetCustomerOrders extends ShopifyBaseTool {
                 customer_id: z.number(),
                 orderNumber: z.number().optional(),
                 status: z.enum(["open", "closed", "cancelled", "any"]).optional()
-            }).refine(data => 
+            })/*.refine(data => 
                 data.customer_id !== undefined || 
                 data.customer_phone !== undefined || 
                 data.customer_email !== undefined, 
@@ -29,7 +29,7 @@ class GetCustomerOrders extends ShopifyBaseTool {
                     message: "At least one of customer_id, customer_phone, or customer_email must be provided",
                     path: ["customer_id", "customer_phone", "customer_email"]
                 }
-            )
+            )*/
         });
         Object.defineProperty(this, "description", {
             enumerable: true,
