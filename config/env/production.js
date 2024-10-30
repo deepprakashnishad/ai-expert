@@ -436,10 +436,11 @@ module.exports = {
 
     ODOO: {
       https: true,
-      host: 'odoo-164786-0.cloudclusters.net',
-      db: 'eCPMS',
+      host: 'odoo-171419-0.cloudclusters.net',
+      db: 'admin',
       username: 'vipin@astratechsystems.com',
-      password: 't0cCmj7x'
+      password: 'C7n20RxR',
+      url: 'https://odoo-171419-0.cloudclusters.net'
     },
 
     // sendgridSecret: 'SG.fake.3e0Bn0qSQVnwb1E4qNPz9JZP5vLZYqjh7sn8S93oSHU',
