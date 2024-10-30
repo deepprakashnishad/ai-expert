@@ -25,12 +25,10 @@ class ShopifyGetProductRecommendations extends ShopifyBaseTool {
             writable: true,
             value: z.object({
                 limit: z.number().default(5),
-                query: z.string(),
-                product_id: z.number(),
+                productSearchString: z.string(),
+                product_id: z.number().optional(),
                 intent: z.enum(["related", "complementary"]).default("related"),
                 published_status: z.enum(["published", "unpublished", "any"]).default("published")
-            }).refine(data => data.query || data.product_id, {
-                message: "Either 'query' or 'product_id' must be provided.",
             })
         });
     }
@@ -89,7 +87,7 @@ class ShopifyGetProductRecommendations extends ShopifyBaseTool {
             }`;
             const {data, errors, extensions} = await this.storefrontClient.request(productQuery, {
               variables: {
-                query: arg['query'],
+                query: arg['productSearchString'],
                 first: 1,
               },
             });
@@ -110,7 +108,8 @@ class ShopifyGetProductRecommendations extends ShopifyBaseTool {
             const response = await axios.get(apiUrl);
             const products = this.extractProducts(response.data.products);
             console.log(products);
-            return JSON.stringify(products);
+            
+            return {"template": "chatbot_product", "products": JSON.stringify(products)};;
         } catch (error) {
             console.log(error);
             return "Due to a technical issue I cannot recommend any product right now. Please try again later"; // Rethrow or handle the error as needed

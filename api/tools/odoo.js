@@ -113,6 +113,7 @@ async function searchReadOdoo(model, params, iteration=0){
 		if(!odoo.sid){
 			await connectToOdoo();	
 		}
+		console.log(params['domain']);
 		const result = await new Promise((resolve, reject)=>{
 			odoo.search_read(model, params, function(err, result){
 				if (err) {
@@ -287,7 +288,7 @@ async function odooAgent(state){
 
 	var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
   	response = JSON.parse(response[0]['message']['content']);	
-  	console.log(response);
+  	
   	if(response['type']==="odoo"){
   		return {
 	  		next_node: "odooExecutor",

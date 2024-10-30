@@ -55,8 +55,9 @@ module.exports.routes = {
   'DELETE /Agent/:id': { controller: 'Agent', action: "delete"},
   'POST /Agent/chat': { controller: 'Agent', action: "chat"},
   'POST /Agent/assignTools': { controller: 'Agent', action: "assignTools"},
-  'POST /Agent/langchainAgentChat': { controller: 'Agent', action: "langchainAgentChat"},
+  // 'POST /Agent/langchainAgentChat': { controller: 'Agent', action: "langchainAgentChat"},
   'POST /Agent/langGraphChat': { controller: 'Agent', action: "langGraphChat"},
+  'POST /Agent/executeTool': { controller: 'Agent', action: "executeTool"},
   'POST /Agent/test': { controller: 'Agent', action: "test"},
   'POST /Agent/pdfTester': { controller: 'Agent', action: "pdfTester"},
 
@@ -71,7 +72,7 @@ module.exports.routes = {
   'GET /Review': { controller: 'Review', action: "get"},
 
   'GET /Generic/wake-up': {controller: "Generic", action:"wakeUp"},
-  'POST /Generic/resetPassword': {controller: "Generic", action:"resetPassword"},
+  // 'POST /Generic/resetPassword': {controller: "Generic", action:"resetPassword"},
   'POST /Generic/updateAppData': {controller: "Generic", action: "updateAppData"},
   'GET /Generic/getEnv': {controller: "Generic", action: "getEnv"},
   'GET /Generic/getCurrentWorkingDirectory': {controller: "Generic", action: "getCurrentWorkingDirectory"},

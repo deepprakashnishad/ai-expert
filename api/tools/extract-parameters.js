@@ -9,14 +9,14 @@ const {findZodMissingKeys} = require('./utils');
  */
 async function extractParameters(state) {
   const { llm, query, bestApi, params, conversation } = state;
-
+  console.log(params);
   const messages = 
     [
       {
         "role": "system",
         "content": `Given a conversation and a list of parameters with types, extract and return parameter values as a JSON object. Omit parameters without values or mismatched types.
           Parameters: [{params}]
-          Your json object as output must only contain keys from params. Try your best to get the values for params from the user query and provided conversation.
+          Your json object as output must only contain keys from params. If any parameter have default value and you do not find value for that parameter then you must include it in your response with given default value. Try your best to get the values for params from the user query and provided conversation.
           `
       },
       {

@@ -50,7 +50,7 @@ class SearchProductByQuery extends ShopifyBaseTool {
         for(var prod of products){
             prod = prod['node'];
             var temp = {};
-            temp['product_id'] = prod['id'];
+            temp['product_id'] = prod['id'].split("/").pop();;
             temp['title'] = prod['title'];
             temp['descriptionHtml'] = prod['descriptionHtml'];
             temp['handle'] = prod['handle'];

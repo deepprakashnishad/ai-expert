@@ -19,7 +19,7 @@ const {SearchProductByQuery} = require("./search_product_by_query.js");
 const {GenericAnswerTool} = require("./generic_answer_tool.js");
 const {FetchInventory} = require("./get_inventory.js");
 const {ShopifyGetProductRecommendations} = require("./product_recommendation.js");
-const coreToolExecutor = require('./../core/tool.js');
+// const coreToolExecutor = require('./../core/tool.js');
 
 const axios = require('axios')
 
@@ -74,7 +74,7 @@ async function getShopifyCustomerDetails(state){
 }
 
 /*Custom agent to introduce human node*/
-async function customShopifyAgent(state){
+/*async function customShopifyAgent(state){
 
 	var {user, conversation} = state;
 
@@ -156,7 +156,7 @@ async function customShopifyAgent(state){
 		finalResult: result
 	};
 }
-
+*/
 /*langchain ReAct agent to be used in langgraph*/
 async function shopifyAgent(state){
 	var {llm, conversation, user, extraData, chatId} = state;
@@ -320,7 +320,7 @@ async function mShopifyAgent(query){
 module.exports = {
 	mShopifyAgent,
 	shopifyAgent,
-	customShopifyAgent,
+	// customShopifyAgent,
 	getShopifyCustomerDetails,
 
 	ShopifyGetOrders,

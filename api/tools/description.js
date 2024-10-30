@@ -70,22 +70,29 @@ module.exports = {
 		},
 	],
 
-	subOptions: {
-		"yes": {
+	subOptions: [
+		{
 			actionName: "yes",
 			displayName: "Yes",
 			type: "input",
 			actionPrompt: "Yes",
 		},
 
-		"no": {
+		{
 			actionName: "no",
 			displayName: "No",
 			type: "input",
 			actionPrompt: "No"
 		},
-
-	},
+		{
+			actionName: "ShopifyGetProductRecommendations",
+			displayName: "Related Products",
+			type: "tool",
+			actionType: "shopify",
+			description: "Use this tool to get related products",
+			toolInput: "{product_id: {PRODUCT_ID}, productSearchString: {PRODUCT_TITLE}}"
+		}
+	],
 
 	/*{
 		name: "shopify.get_customer_detail",

@@ -123,9 +123,55 @@ async function getCorrectedDataFromLLM(input){
   return response[0]['message']['content'];
 }
 
+async function dynamicResponseFormatter(args){
+    var {prompt, finalResult, extraData, query} = args;
+    
+    if(!prompt){
+      prompt = `Based on query and final_result, form a well-structured HTML response for human readability strictly based on query and final_result only. Html output must be detailed and cover maximum information from final_result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto. All links must open in new tab. 
+
+      query: ${query}
+      final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
+
+      Output must be in following json format only:
+      {
+        html: "formatted_html_string"
+      }`;
+      var template_name;
+      if(finalResult['template']){
+        template_name = finalResult['template'];
+      }else if(extraData && extraData['template']){
+        template_name = extraData['template'];
+      }
+
+      if(template_name){
+        var mTemplate = await AppData.findOne({cid: extraData['user'].appId, type: "template", "data.name": template_name}).meta({enableExperimentalDeepTargets:true});
+        prompt = `Form a well-structured HTML response for human readability strictly based on query and final_result only. Use provided template format to generate your response. If no template is provided generate your response. Html output must be detailed atleast fill the template and cover maximum information from Final Result and presented in a clear and readable format using HTML tags like paragraphs, lists, and tables. Always limit width of Images within 251px and height auto. All links must open in new tab.
+        query: ${query}
+        final_result: ${typeof finalResult === "string" ? finalResult : JSON.stringify(finalResult)}
+        template: ${mTemplate['data']['template']}
+
+        Output must be in following json format only:
+        {
+          html: "formatted_html_string"
+        }`;
+      } 
+    }     
+
+    var messages = [
+      {
+        "role": "system",
+        "content": prompt
+      }
+    ]
+    var response = await sails.helpers.callChatGpt.with({"messages": messages, "max_tokens": 4096});
+    response = JSON.parse(response[0]['message']['content']);
+    return response['html'];
+}
+
 module.exports = {
   findMissingParams,
   findZodMissingKeys,
   sanitizeConversation,
-  getCorrectedDataFromLLM
+  getCorrectedDataFromLLM,
+  dynamicResponseFormatter
 };

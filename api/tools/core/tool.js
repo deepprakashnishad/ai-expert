@@ -1,5 +1,26 @@
+const toolsLib = require("./..");
 const { z, ZodObject } = require('zod');
 const { zodToJsonSchema } = require('zod-to-json-schema');
+const {TavilySearchResults} = require("@langchain/community/tools/tavily_search");
+const { MyGmailSearch, MyGmailGetThread, MyGmailGetMessage, MyGmailSendMessage, MyGmailCreateDraft} = require("./../gmailApiService.js");
+const { initializeAgentExecutorWithOptions } = require("langchain/agents");
+const Shopify = require('shopify-api-node');
+const path = require("path");
+const {findZodMissingKeys, extractMissingParams} = require('./../utils');
+
+const shopifyTools = require('../shopify/index.js');
+
+const toolMap = {
+	TavilySearchResults,
+	MyGmailSearch,
+	MyGmailSendMessage,
+	MyGmailGetMessage,
+	MyGmailGetThread,
+	MyGmailCreateDraft,
+	...shopifyTools
+	// ...toolsLib
+}
+
 
 function isZodObject(schema){
 	return schema instanceof ZodObject;
@@ -103,4 +124,149 @@ module.exports = {
 			"bestApi": bestApi
 		}
 	},
+
+	toolInitializer: async function(actionType, actionName, extraData){
+		var instance;
+		const toolRef = toolMap[actionName];
+		if(actionType === "shopify"){
+			var shopifyOptions = await AppData.findOne({cid: extraData['user'].appId.toString(), type: "shopify"});
+			if(shopifyOptions){
+				shopifyOptions = shopifyOptions.data;
+				shopifyOptions.current ??= 10;
+				shopifyOptions.max ??= 40;
+				shopifyOptions.remaining ??= 30;
+				shopifyOptions.autoLimit ??= true;
+				shopifyOptions.adminAPIVersion ??= '2024-07';
+				shopifyOptions.storeAPIVersion ??= '2024-10';
+				shopifyOptions.currency = extraData['user'].currency?extraData['user'].currency:"INR";
+
+				const shopify = new Shopify({
+					shopName: shopifyOptions.shopName,
+				    accessToken: shopifyOptions.accessToken,
+				    remaining: shopifyOptions.remaining,
+				    current: shopifyOptions.current,
+				    max: shopifyOptions.max,
+				    autoLimit: shopifyOptions.autoLimit,
+				    baseUrl: shopifyOptions.baseUrl
+				});
+
+				/*try{
+					if(user.email){
+						response = await shopify.customer.search({email: user.email});	
+					}else if(user.phone){
+						response = await shopify.customer.search({phone: user.phone});	
+					}
+
+					if(response && response.length > 0){
+						params['customer_id'] = response[0]['id'];
+						params['customer_phone'] = response[0]['email'];
+						params['customer_email'] = response[0]['phone'];
+						// state['user']['name'] = response[0]['name'];
+					}
+				}catch(e){
+					console.log(e);
+				}*/
+			}
+			instance = new toolRef(shopifyOptions);
+		} else if(actionType === "gmail"){
+			const SERVICE_ACCOUNT_PATH = path.join(process.cwd(), './auto-gpt-service-account.json');
+			const serviceAccount = require(SERVICE_ACCOUNT_PATH);
+
+			// These are the default parameters for the Gmail tools
+			const gmailParams = {
+			    credentials: {
+			      clientEmail: serviceAccount.client_email,
+			      privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'), // Ensure proper formatting
+			    },
+			    scopes: ["https://mail.google.com/"],
+			};
+			instance = new toolRef(gmailParams);
+		}else if(actionType === "customTool"){
+			instance = await Tool.findOne({id: actionName});
+		}else{
+			instance = new toolRef();
+		}
+
+		return instance;
+	},
+
+	toolExtractParameters: async function(args){
+		var {bestApi, existingParams, conversation} = args;
+		const messages = 
+		    [
+		      {
+		        "role": "system",
+		        "content": `Given a conversation and a list of parameters with types, extract and return parameter values as a JSON object. Omit parameters without values or mismatched types.
+		          Parameters: [{params}],
+		          conversation: {conversation}
+
+		          Your json object as output must only contain keys from params. If any parameter have default value and you do not find value for that parameter then you must include it in your response with given default value. Try your best to get the values for params from the user query and provided conversation.
+		          `
+		      }
+		];
+
+		  if(!bestApi){
+		    return {
+		      "lastExecutedNode": "extract_params_node",
+		      "next_node": "human_loop_node"  
+		    }
+		  }
+
+		  var required_parameters = [];
+		  var optional_parameters = [];
+
+		  let requiredParams, optionalParams;
+
+		  if(bestApi.required_parameters || bestApi.optional_parameters){
+		    requiredParams = bestApi?.required_parameters
+		    .map(
+		      (p) => `{Name: ${p.name}, Description: ${p.description}, Type: ${p.type}}`
+		    )
+		    .join("\n");
+
+		    optionalParams = bestApi?.optional_parameters
+		    .map(
+		      (p) => `{Name: ${p.name}, Description: ${p.description}, Type: ${p.type}}`
+		    )
+		    .join("\n");
+		    requiredParams = requiredParams.concat(optionalParams);
+		    messages[0]['content'] = messages[0]['content'].replace("{params}", requiredParams)
+		  }else{
+		    requiredParams = zodToJsonSchema(bestApi.schema);  
+		    const missingKeys = findZodMissingKeys(bestApi.schema, existingParams);
+		  
+		    const combinedMissingKeys = [
+		      ...(missingKeys.all || []),
+		      ...(missingKeys.atleast_2 || []),
+		      ...(missingKeys.atleast_1 || []),
+		      ...(missingKeys.atleast_3 || [])
+		    ];
+		    const filteredParams = Object.keys(requiredParams.properties)
+		    .filter(key => {
+		      return !Object.keys(existingParams).includes(key)
+		    })
+		    .reduce((obj, key) => {
+		      obj[key] = requiredParams.properties[key]; // Access the value from `properties`
+		      return obj;
+		    }, {});
+		    messages[0]['content'] = messages[0]['content'].replace("{params}", JSON.stringify(filteredParams)).replace("{conversation}", JSON.stringify(conversation));
+		  }
+		  
+		  var tempMessages = messages;
+		  console.log(messages)
+		  if(conversation){
+		    tempMessages = messages.concat(conversation)
+		  }
+		  
+		  console.log(tempMessages);
+		  var response = await sails.helpers.callChatGpt.with({"messages": tempMessages, "max_tokens": 4096});
+		  var res_params = JSON.parse(response[0]['message']['content']);
+
+		  console.log(res_params);
+		  return {
+		      ...existingParams,
+		      ...res_params
+		    }
+		    
+	}
 }
