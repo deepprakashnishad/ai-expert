@@ -50,9 +50,9 @@ class SearchProductByQuery extends ShopifyBaseTool {
         for(var prod of products){
             prod = prod['node'];
             var temp = {};
-            temp['product_id'] = prod['id'].split("/").pop();;
+            temp['product_id'] = prod['id'].split("/").pop();
             temp['title'] = prod['title'];
-            temp['descriptionHtml'] = prod['descriptionHtml'];
+            // temp['descriptionHtml'] = prod['descriptionHtml'];
             temp['handle'] = prod['handle'];
             temp['product_url'] = `${this.baseUrl}products/${temp['handle']}`;
             temp['product_type'] = prod['productType'];
@@ -130,7 +130,10 @@ class SearchProductByQuery extends ShopifyBaseTool {
         });
         if(!errors){
             const products = this.extractProduct(data['search']['edges']);
-            return {"template": "chatbot_product", "products": JSON.stringify(products)};
+            if(products.length>0)
+                return {"template": "chatbot_product", "products": JSON.stringify(products)};
+            else
+                return {msg: "Sorry no products could be found for your search."};
         }else{
             console.log(errors);
             return "Due to technical issue unable to fetch the results right now. Try again later.";

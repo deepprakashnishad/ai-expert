@@ -37,7 +37,7 @@ class ShopifyGetProductRecommendations extends ShopifyBaseTool {
         var newProdList = [];
         for(var ele of products){
             var temp = {};
-            temp['product_id'] = ele.id;
+            temp['product_id'] = ele['id'];
             temp['title'] = ele.title;
             temp['handle'] = ele.handle;
             temp['product_url'] = `${this.credentials.baseUrl}products/${ele['handle']}`;
@@ -102,6 +102,7 @@ class ShopifyGetProductRecommendations extends ShopifyBaseTool {
                 return "Due to technical issue unable to fetch the results right now. Try again later.";
             }        
         }
+        arg['product_id'] = arg['product_id'].split("/").pop();
 
         const apiUrl = `${this.credentials.baseUrl}recommendations/products.json?product_id=${arg['product_id']}&limit=${arg['limit']}&intent=${arg['intent']}`;
         try {

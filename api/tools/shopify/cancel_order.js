@@ -18,13 +18,9 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
             writable: true,
             value: z.object({
                 orderId: z.number().optional(),
-                customer_email: z.string().optional(),
-                customer_id: z.string().optional(),
+                customer_email: z.string().optional().describe("A valid email id of user"),
+                customer_phone: z.string().optional(),
                 cancellation_reason: z.string().default("customer")
-            }).refine(data => {
-                return data.orderId !== undefined || data.customer_email !== undefined || data.customer_id !== undefined;
-            }, {
-                message: "At least one of orderId, customer_email, or customer_id must be provided."
             })
         });
         Object.defineProperty(this, "description", {
@@ -37,8 +33,25 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
 
     async _call(arg) {
         try{
-            if(!arg['customer_id']){
+            if(!arg['customer_phone'] && !arg['customer_email']){
                 return "Please provide your customer id or email to cancel an order.";
+            }else if(arg['customer_phone']){
+                try{
+                    let response = await this.shopify.customer.search({phone: arg['customer_phone']});
+                    if(response.length>1){
+                        throw new Error("Multiple customers found!");
+                    }
+                    arg['customer_id'] = response[0]['id'];
+                }catch(e){
+                    let response = await this.shopify.customer.search({email: arg['customer_email']});
+                    if(response.length>1){
+                        throw new Error("Multiple customers found!");
+                    }
+                    arg['customer_id'] = response[0]['id'];    
+                }
+            }else if(arg['customer_email']){
+                let response = await this.shopify.customer.search({email: arg['email']});
+                arg['customer_id'] = response[0]['id'];    
             }
             var orders = await this.shopify.customer.orders(arg['customer_id']);
             orders.sort((a, b) => {
@@ -54,9 +67,13 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
             var selectedOrder;
 
             for(var order of orders){
-                if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===arg['orderId'])){
-                    selectedOrder = order;
-                    break;
+                try{
+                    if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===parseInt(arg["orderId"].replace("#", ""), 10))){
+                        selectedOrder = order;                        
+                        break;
+                    }
+                }catch(e){
+                    console.log(e);
                 }
             }
             if(!selectedOrder){
@@ -64,8 +81,16 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
             }
             // var order = await this.shopify.order.get(arg['orderId']);
             
-            const response = await this.shopify.order.cancel(selectedOrder.id, {"amount": selectedOrder.total_price, "currency": selectedOrder.currency, "email": selectedOrder.email});
-            return JSON.stringify(response);    
+            const cancelOrderResponse = await this.shopify.order.cancel(selectedOrder.id/*, {"amount": selectedOrder.total_price, "currency": selectedOrder.currency, "email": selectedOrder.email}*/);
+            if(response['request_status']==="cancellation_requested"){
+                try{
+                    var response = await this.shopify.refund.create(selectedOrder.id);
+                    return JSON.stringify({msg:`Order with order number ${order.number} has been cancelled successfully and refund has been created with id ${response['refund']['id']}`, order_detail: cancelOrderResponse});    
+                }catch(e){
+                    console.log(e);
+                }
+            }
+            return JSON.stringify({msg:`Order with order number ${cancelOrderResponse.number} has been cancelled successfully`, order_detail: cancelOrderResponse});    
         }catch(ex){
             console.log(ex);
             return "Due to a technical issue we are unable to cancel this order right now.";

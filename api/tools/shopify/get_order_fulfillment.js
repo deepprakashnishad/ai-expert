@@ -17,8 +17,8 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             writable: true,
             value: z.object({
                 orderId: z.number().optional(),
-                customer_id: z.number().optional(),
-                customer_email: z.string().optional()
+                customer_email: z.string().optional(),
+                customer_phone: z.string().optional()
             })
         });
         Object.defineProperty(this, "description", {
@@ -39,7 +39,7 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
         return mFulfillments;
     }
 
-    expectedDeliveryDate(startDateStr, n=8) {
+    /*expectedDeliveryDate(startDateStr, n=3) {
         // Parse the input date string
         const startDate = new Date(startDateStr);
         if (isNaN(startDate)) {
@@ -60,27 +60,51 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
         // Format the future date
         const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'long' };
         return futureDate.toLocaleDateString('en-US', options);
+    }*/
+
+    expectedDeliveryDate(startDateStr, n = 3, isWeekendDelivery=false) {
+        // Parse the input date string
+        const startDate = new Date(startDateStr);
+        if (isNaN(startDate)) {
+            throw new Error("Invalid date format. Please use 'YYYY-MM-DDTHH:mm:ss+TZD'.");
+        }
+
+        const currentDate = new Date();
+        let daysAdded = 0;
+        let futureDate = new Date(startDate);
+
+        // Calculate the future date considering only weekdays
+        while (daysAdded < n) {
+            futureDate.setDate(futureDate.getDate() + 1);
+            daysAdded++;
+            // Check if the future date is a weekday (Monday to Friday)
+            if ((futureDate.getDay() === 0 || futureDate.getDay() === 6) && !isWeekendDelivery) { // 0 = Sunday, 6 = Saturday
+                daysAdded--;
+            }
+        }
+
+        // Compare futureDate with currentDate
+        if (futureDate < currentDate) {
+            return -1; // Future date is in the past
+        } else if (futureDate.toDateString() === currentDate.toDateString()) {
+            return 0; // Future date is the same as the current date
+        }
+
+        // Format the future date for output
+        const options = { day: '2-digit', month: 'short', year: 'numeric', weekday: 'long' };
+        return futureDate.toLocaleDateString('en-US', options);
     }
+
 
 
     async _call(arg) {
         var response;
         try{
-            if(!arg['customer_id']){
-                if(!arg['customer_email']){
-                    return "Need orderId or customer email or customer id to get refund details."
-                }else{
-                    var customers = await this.shopify.customer.search({email: arg['customer_email']});
-                    if(customers.length === 0){
-                        return "Shopify account for given email doesn't exist"
-                    }
 
-                    arg['customer_id'] = customers[0].id;
-                }
-            }
+            arg['customer_id'] = await this.getCustomerId(arg);
 
             if(!arg['customer_id']){
-                return "Please provide your valid customer id or registered email to get order fulfillment details.";
+                return "Please provide your valid registered email or phone to get order fulfillment details.";
             }
 
             const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "any"});
@@ -92,7 +116,7 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             }
             var selectedOrder = orders[0];
             for(var order of orders){
-                if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===arg['orderId'])){
+                if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===parseInt(arg["orderId"].replace("#", ""), 10))){
                     selectedOrder = order;
                     break;
                 }
@@ -104,11 +128,24 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             var fulfillments = this.extractFulfillments(selectedOrder.fulfillments);
             // order['fulfillments'] = fulfillments;
 
+            let expectedDeliveryDate = this.expectedDeliveryDate(selectedOrder.created_at);
+
+            if(expectedDeliveryDate===0){
+                expectedDeliveryDate = "Your order should arrive by today.";
+            }else if(expectedDeliveryDate<0){
+                if(fulfillments.length>0){
+                    expectedDeliveryDate = "Your order should have reached you by now. Please use the tracking url provided to track the order.";    
+                }else{
+                    expectedDeliveryDate = "Your order should have reached you by now. Please contact customer care about the delivery.";    
+                }
+                
+            }
+
             return JSON.stringify({
                 "fulfillments": fulfillments, 
                 "order_status_url": selectedOrder.order_status_url,
                 "fulfillment_status": selectedOrder.fulfillment_status,
-                "expected_delivery": this.expectedDeliveryDate(selectedOrder.created_at)
+                "expected_delivery": expectedDeliveryDate
             });
         }catch(e){
             console.log(e)

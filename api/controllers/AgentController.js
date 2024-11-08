@@ -380,23 +380,78 @@ module.exports = {
 	},
 
 	executeTool: async function(req, res){
-		var instance = await coreTool.toolInitializer(req.body.tool.actionType, req.body.tool.actionName, req.body.extraInfo);
-		try{
-			var toolInput = await coreTool.toolExtractParameters({
-				bestApi: instance, 
-				existingParams: req.body.tool.toolInput,
-				conversation: req.body.conversation
-			});
+		if(!req.body.chatId){
+			var ch = await ChatHistory.create({"ch": []}).fetch();
+			if(ch){
+				lChatHistory = ch;
+			}
+		}else if(chatHistories[req.body.chatId]){
+			lChatHistory = chatHistories[req.body.chatId]
+		}else{
+			lChatHistory = await ChatHistory.findOne({id: req.body.chatId});
+		}
+
+		var conversation = [];
+		if(req.body.conversation.length>0){
+			conversation = req.body.conversation;	
+		}else if(req.body.tool && req.body.tool.conversation){
+			conversation = req.body.tool.conversation;	
+		}
+		if(conversation.length>0)
+			lChatHistory.ch.push(...conversation);	
+
+		if(!req.body.tool){
+			var finalResponse = await coreTool.optionPresenter({
+				conversation: conversation, 
+				user: req.body.extraInfo['user'], 
+				agentId: req.body.agentId,
+				userInput: req.body.userInput
+			})		
+		}else{
+			var instance = await coreTool.toolInitializer(req.body.tool.actionType, req.body.tool.actionName, req.body.extraInfo);
+			try{
+				var toolInput = await coreTool.toolExtractParameters({
+					bestApi: instance, 
+					existingParams: req.body.tool.toolInput,
+					conversation: conversation,
+					extraData: req.body.extraInfo
+				});
+			}catch(e){
+				console.log(e);
+				return res.successResponse({result: "Some technical error occurred", chatId: req.body.chatId}, 200, null, true, "Processing completed")
+			}	
+
+			console.log("Calling with following parameters");
+			console.log(toolInput);
 			var toolOutput = await instance._call(toolInput);
+
+			/*var finalResponse = await toolLib.responseFormatter({
+				finalResult: toolOutput,
+				extraData: req.body.extraInfo,
+				query: req.body.userInput,
+				user: req.body.extraInfo['user']
+			})*/
+			console.log(toolOutput);
 			var finalResponse = await utils.dynamicResponseFormatter({
 				finalResult: toolOutput,
 				extraData: req.body.extraInfo,
 				query: req.body.userInput
 			})
-			return res.successResponse({result: finalResponse, chatId: req.body.chatId}, 200, null, true, "Processing completed")
+		}
+
+		lChatHistory.ch.push({"role": "assistant", "content": finalResponse});
+		await ChatHistory.update({"id": req.body.chatId}, {"ch": lChatHistory.ch});	
+
+		return res.successResponse({result: finalResponse, chatId: lChatHistory.id}, 200, null, true, "Processing completed");
+	},
+
+	getMenuOptionsByKey: async function(req, res){
+		try{
+			var options = await coreTool.getSubOptions(req.body.optionKeys) || [];
+			return res.successResponse({result: options}, 200, null, true, "Options retrieved");
 		}catch(e){
 			console.log(e);
-			return res.successResponse({result: "Some technical error occurred", chatId: req.body.chatId}, 200, null, true, "Processing completed")
+			return res.successResponse({result: []}, 200, null, true, "Options retrieved");
 		}
 	},
 

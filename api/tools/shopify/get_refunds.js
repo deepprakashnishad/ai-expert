@@ -18,8 +18,8 @@ class ShopifyGetRefunds extends ShopifyBaseTool {
             writable: true,
             value: z.object({
                 orderId: z.number().optional(),
-                customer_id: z.number().optional(),
-                customer_email: z.string().optional()
+                customer_email: z.string().optional().describe("A valid email id of user"),
+                customer_phone: z.string().optional()
             })
         });
         Object.defineProperty(this, "description", {
@@ -32,7 +32,6 @@ class ShopifyGetRefunds extends ShopifyBaseTool {
 
     extractRefunds(refunds){
         var fRefunds = [];
-
         for(var refund of refunds){
             var temp = {};
             temp['id'] = refund['id'];
@@ -60,39 +59,35 @@ class ShopifyGetRefunds extends ShopifyBaseTool {
 
     async _call(arg) {
         try{
-            if(!arg['orderId']){
-                if(!arg['customer_id']){
-                    if(!arg['customer_email']){
-                        return "Need orderId or customer email or customer id to get refund details."
-                    }else{
-                        var customers = await this.shopify.customer.search({email: arg['customer_email']});
-                        if(customers.length === 0){
-                            return "Shopify account for given email doesn't exist"
-                        }
+            arg['customer_id'] = await this.getCustomerId(arg);
 
-                        arg['customer_id'] = customers[0].id;
-                    }
-                }
-
-                if(!arg['customer_id']){
-                    return "Please provide your valid customer id or registered email to get refund details.";
-                }
-
-                const cancelledOrders = await this.shopify.customer.orders(arg['customer_id'], {"status": "cancelled"});
-                cancelledOrders.sort((a, b) => {
-                  return new Date(b.created_at) - new Date(a.created_at);
-                });
-                if(cancelledOrders.length === 0){
-                    return "No cancelled order found!!!"
-                }
-
-                var refundDetails = JSON.stringify(this.extractRefunds(cancelledOrders[0].refunds));
-                return refundDetails;
+            if(!arg['customer_id']){
+                return "Please provide your valid customer id or registered email to get refund details.";
             }
-            const response = await this.shopify.refund.list(arg['orderId']);
-            return JSON.stringify(this.extractRefunds(response));    
+            const cancelledOrders = await this.shopify.customer.orders(arg['customer_id'], {"status": "cancelled"});
+            cancelledOrders.sort((a, b) => {
+              return new Date(b.created_at) - new Date(a.created_at);
+            });
+            if(cancelledOrders.length === 0){
+                return "No cancelled order found!!!"
+            }
+            var cancelledOrder;
+            for(var order of cancelledOrders){
+                try{
+                    if((!arg['orderId'] && orders.length===1) || (order.id === arg['orderId'] || order.order_number===parseInt(arg["orderId"].replace("#", ""), 10))){
+                        cancelledOrder = order;
+                        await this.shopify.refund.create(order.id);
+                        break;
+                    }
+                }catch(e){
+                    console.log(e);
+                }
+            }
+            var refundDetails = JSON.stringify(this.extractRefunds(cancelledOrder.refunds));
+            return refundDetails;
         }catch(ex){
             console.log(ex);
+            return "Due to a technical issue we are unable to cancel this order right now.";
         }
         return undefined;
     }

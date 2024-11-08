@@ -10,65 +10,189 @@ module.exports = {
 		}
 	],
 
-	mainOptions: [
+	mainOptions: 
 		{
-			actionName: "ShopifyCancelOrder",
-			displayName: "Cancel Order",
-			type: "tool",
-			actionType: "shopify",
-			description: "Use this tool to cancel a shopify order",
-			actionPrompt: "I want to cancel my order?",
+			"Common Agent": [
+				{
+					actionName: "ShopifyCancelOrder",
+					displayName: "Cancel Order",
+					type: "tool",
+					actionType: "shopify",
+					description: "Use this tool to cancel a shopify order",
+					questions: [{
+							ques: "Please provide the order number of the order to cancel",
+							key: "orderId"
+						}
+					],
+					closing: {
+						"prompt": "Would you like to browse something?",
+						"type": 'OptionFromServer',
+						"options": [
+							{
+								actionName: "SearchProductByQuery",
+								displayName: "Yes"
+							},
+							{
+								actionName: "main_menu",
+								displayName: "Go Back To Main Menu"
+							}
+						]
+					}
+				},
+				/*{
+					actionName: "GetCustomerOrders",
+					displayName: "My Orders",
+					type: "tool",
+					actionType: "shopify",
+					description: "Use this tool to get all or filtered customer orders",
+					userPrompt: "Yes I will retrieve your orders",
+					questions: [
+						{
+							"ques": "Do you wish to retrieve latest order or an specific order",
+							"options": [
+								{value: "latest", displayName: "Latest Order"},
+								{
+									displayName: "Specific Order",
+									questions: [{
+										ques: "Please provide the order number whose details have to be retrieved",
+										key: "orderId"
+									}]
+								},
+							]
+						},
+						{
+							"ques": "Please provide your phone registered with shopify",
+							"key": "customer_phone"
+						}
+					]
+				},*/
+				{
+					actionName: "ShopifyGetOrderFulfillment",
+					displayName: "Track Order",
+					type: "tool",
+					actionType: "shopify",
+					description: "This tool can help you get fulfillment status of an order",
+					userPrompt: "Sure we would love to help you",
+					questions: [
+						{
+							ques: "Please provide the order number whose fulfillment details are needed",
+							key: "orderId"
+						}
+					],
+					closing: {
+						"prompt": "What do you want to do next?",
+						"type": 'OptionFromServer',
+						"options": [
+							{
+								actionName: "SearchProductByQuery",
+								displayName: "Yes"
+							},
+							{
+								actionName: "main_menu",
+								displayName: "Go Back To Main Menu"
+							},
+							{
+								actionName: "ShopifyCancelOrder",
+								displayName: "Cancel Order"
+							}
+
+						]
+					}
+				},
+				{
+					actionName: "SearchProductByQuery",
+					displayName: "Search Product",
+					type: "tool",
+					actionType: "shopify",
+					description: "This tool can fetch products by query",
+					questions:[
+						{
+							"ques": "What I should show you?",
+							"type": 'text',
+							"key": "userInput"
+						}
+					],
+					closing: {
+						"prompt": "Did you liked this? May I show you something else?",
+						"type": 'OptionFromServer',
+						"options": [
+							{
+								actionName: "SearchProductByQuery",
+								displayName: "No, I did not like it."
+							},
+							{
+								actionName: "main_menu",
+								displayName: "Go Back To Main Menu"
+							},
+							{
+								actionName: "ShopifyGetProductRecommendations",
+								displayName: "Product Recommendations"	
+							}
+						]
+					}
+				},
+				{
+					actionName: "ShopifyGetRefunds",
+					displayName: "Get Refund Details",
+					type: "tool",
+					actionType: "shopify",
+					description: "Use this tool to retrieve refund details",
+					userPrompt: "Sure we would love to help you",
+					questions: [
+						{
+							ques: "Please provide the order number whose refund details are to be extracted",
+							key: "orderId"
+						}
+					],
+					closing: {
+						"prompt": "Would you like to browse something?",
+						"type": 'OptionFromServer',
+						"options": [
+							{
+								actionName: "SearchProductByQuery",
+								displayName: "Yes"
+							},
+							{
+								actionName: "main_menu",
+								displayName: "Go Back To Main Menu"
+							}
+						]
+					}
+				},
+				{
+					actionName: "GenericAnswerTool",
+					displayName: "General Questions",
+					type: "tool",
+					actionType: "RAG",
+					description: "This is a retrieval augmented tool and should always be used for generic queries. Use this to search general information matching to the related query pre-stored in database.",
+					questions:[
+						{
+							"ques": "What do wish to know?",
+							"type": 'text',
+							"key": "userInput"
+						}
+					],
+					closing: {
+						"prompt": "Would you like to know anything else or would like to search some products to buy?",
+						"type": 'OptionFromServer',
+						"options": [
+							{
+								actionName: "SearchProductByQuery",
+								displayName: "I wish to search product"
+							},
+							{
+								actionName: "main_menu",
+								displayName: "Go Back To Main Menu"
+							},
+							{
+								actionName: "GenericAnswerTool",
+								displayName: "Ask more query"	
+							}
+						]
+					}
+				}
+			]
 		},
-		{
-			actionName: "GetCustomerOrders",
-			displayName: "Get My Orders",
-			type: "tool",
-			actionType: "shopify",
-			description: "Use this tool to get all or filtered customer orders",
-			actionPrompt: "Please get me my last 3 orders"
-		},
-		{
-			actionName: "ShopifyGetOrderFulfillment",
-			displayName: "Get Order Fulfillment",
-			type: "tool",
-			actionType: "shopify",
-			description: "This tool can help you get fulfillment status of an order",
-			userPrompt: "Please provide order number whose fulfillment details are needed"
-		},
-		{
-			actionName: "SearchProductByQuery",
-			displayName: "Search Product",
-			type: "tool",
-			actionType: "shopify",
-			description: "This tool can fetch products by query",
-			userPrompt: "What do you wish to search today?"
-		},
-		{
-			actionName: "ShopifyGetRefunds",
-			displayName: "Get Refund Details",
-			type: "tool",
-			actionType: "shopify",
-			description: "Use this tool to retrieve refund details",
-			actionPrompt: "Please provide order number whose refund details are to be extracted",
-		},
-		{
-			actionName: "GenericAnswerTool",
-			displayName: "General Questions",
-			type: "tool",
-			actionType: "RAG",
-			description: "This is a retrieval augmented tool and should always be used for generic queries. Use this to search general information matching to the related query pre-stored in database.",
-			userPrompt: "What do you want to know?"
-		},
-		{
-			actionName: "6687c69c802c0b4423a68909",
-			displayName: "Quotation Generator",
-			type: "customTool",
-			actionType: "customTool",
-			description: "Use this tool to generate quotations",
-			userPrompt: "Please provide details of the quotations.",
-			questions: []
-		},
-	],
 
 	subOptions: [
 		{
@@ -85,12 +209,107 @@ module.exports = {
 			actionPrompt: "No"
 		},
 		{
+			actionName: "main_menu",
+			displayName: "Go back to main menu",
+			type: "main_menu"
+		},
+		{
 			actionName: "ShopifyGetProductRecommendations",
 			displayName: "Related Products",
 			type: "tool",
 			actionType: "shopify",
 			description: "Use this tool to get related products",
 			toolInput: "{product_id: {PRODUCT_ID}, productSearchString: {PRODUCT_TITLE}}"
+		},
+		{
+			actionName: "SearchProductByQuery",
+			displayName: "Search Products",
+			type: "tool",
+			actionType: "shopify",
+			description: "This tool can fetch products by query",
+			questions:[
+				{
+					"ques": "What I should show you?",
+					"type": 'text',
+					"key": "userInput"
+				}
+			],
+			closing: {
+				"prompt": "Did you liked this? May I show you something else?",
+				"type": 'OptionFromServer',
+				"options": [
+					{
+						actionName: "SearchProductByQuery",
+						displayName: "No, I did not like it."
+					},
+					{
+						actionName: "main_menu",
+						displayName: "Go Back To Main Menu"
+					},
+					{
+						actionName: "AvailableCategories",
+						displayName: "Available Categories"	
+					}
+				]
+			}
+		},
+		{
+			actionName: "ShopifyCancelOrder",
+			displayName: "Cancel Order",
+			type: "tool",
+			actionType: "shopify",
+			description: "Use this tool to cancel a shopify order",
+			questions: [{
+					ques: "Please provide the order number of the order to cancel",
+					key: "orderId"
+				}
+			],
+			closing: {
+				"prompt": "Would you like to browse something?",
+				"type": 'OptionFromServer',
+				"options": [
+					{
+						actionName: "SearchProductByQuery",
+						displayName: "Yes"
+					},
+					{
+						actionName: "main_menu",
+						displayName: "Go Back To Main Menu"
+					}
+				]
+			}
+		},
+		{
+			actionName: "GenericAnswerTool",
+			displayName: "General Questions",
+			type: "tool",
+			actionType: "RAG",
+			description: "This is a retrieval augmented tool and should always be used for generic queries. Use this to search general information matching to the related query pre-stored in database.",
+			questions:[
+				{
+					"ques": "What do wish to know?",
+					"type": 'text',
+					"key": "userInput"
+				}
+			],
+			closing: {
+				"prompt": "Would you like to know anything else or would like to search some products to buy?",
+				"type": 'OptionFromServer',
+				"options": [
+					{
+						actionName: "SearchProductByQuery",
+						displayName: "I wish to search product"
+					},
+					{
+						actionName: "main_menu",
+						displayName: "Go Back To Main Menu"
+					},
+					{
+						actionName: "GenericAnswerTool",
+						displayName: "Ask more query"	
+					}
+				]
+			}
 		}
 	],
 

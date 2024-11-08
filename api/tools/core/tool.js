@@ -9,6 +9,7 @@ const path = require("path");
 const {findZodMissingKeys, extractMissingParams} = require('./../utils');
 
 const shopifyTools = require('../shopify/index.js');
+const {promptLLM} = require('../prompt.config.js');
 
 const toolMap = {
 	TavilySearchResults,
@@ -128,6 +129,7 @@ module.exports = {
 	toolInitializer: async function(actionType, actionName, extraData){
 		var instance;
 		const toolRef = toolMap[actionName];
+		const user = extraData['user'];
 		if(actionType === "shopify"){
 			var shopifyOptions = await AppData.findOne({cid: extraData['user'].appId.toString(), type: "shopify"});
 			if(shopifyOptions){
@@ -138,7 +140,7 @@ module.exports = {
 				shopifyOptions.autoLimit ??= true;
 				shopifyOptions.adminAPIVersion ??= '2024-07';
 				shopifyOptions.storeAPIVersion ??= '2024-10';
-				shopifyOptions.currency = extraData['user'].currency?extraData['user'].currency:"INR";
+				shopifyOptions.currency = user?.currency ? user?.currency : "INR";
 
 				const shopify = new Shopify({
 					shopName: shopifyOptions.shopName,
@@ -191,31 +193,33 @@ module.exports = {
 	},
 
 	toolExtractParameters: async function(args){
-		var {bestApi, existingParams, conversation} = args;
+		var {bestApi, existingParams, conversation, extraData} = args;
 		const messages = 
 		    [
 		      {
 		        "role": "system",
-		        "content": `Given a conversation and a list of parameters with types, extract and return parameter values as a JSON object. Omit parameters without values or mismatched types.
+		        "content": `Given a conversation, extraInfo and a list of parameters with types, extract and return parameter values as a JSON object. Omit parameters without values or mismatched types.
 		          Parameters: [{params}],
-		          conversation: {conversation}
+		          conversation: {conversation},
+		          extraInfo: ${JSON.stringify(extraData)}
 
-		          Your json object as output must only contain keys from params. If any parameter have default value and you do not find value for that parameter then you must include it in your response with given default value. Try your best to get the values for params from the user query and provided conversation.
+		          Your json object as output must only contain keys from parameters. If any parameter have default value and you do not find value for that parameter then you must include it in your response with given default value. Try your best to get the values for params from the provided conversation and extraInfo. Never make any kind of assumptions and insert values on your own.
 		          `
 		      }
 		];
+		var userQuery;
+		if(conversation.length>0){
+			userQuery = conversation[conversation.length-1]['content'];
+		}
 
 		  if(!bestApi){
-		    return {
-		      "lastExecutedNode": "extract_params_node",
-		      "next_node": "human_loop_node"  
-		    }
+		    return "No tool is selected";
 		  }
 
 		  var required_parameters = [];
 		  var optional_parameters = [];
 
-		  let requiredParams, optionalParams;
+		  let requiredParams, optionalParams, filteredParams;
 
 		  if(bestApi.required_parameters || bestApi.optional_parameters){
 		    requiredParams = bestApi?.required_parameters
@@ -233,6 +237,7 @@ module.exports = {
 		    messages[0]['content'] = messages[0]['content'].replace("{params}", requiredParams)
 		  }else{
 		    requiredParams = zodToJsonSchema(bestApi.schema);  
+
 		    const missingKeys = findZodMissingKeys(bestApi.schema, existingParams);
 		  
 		    const combinedMissingKeys = [
@@ -241,7 +246,7 @@ module.exports = {
 		      ...(missingKeys.atleast_1 || []),
 		      ...(missingKeys.atleast_3 || [])
 		    ];
-		    const filteredParams = Object.keys(requiredParams.properties)
+		    filteredParams = Object.keys(requiredParams.properties)
 		    .filter(key => {
 		      return !Object.keys(existingParams).includes(key)
 		    })
@@ -261,12 +266,69 @@ module.exports = {
 		  console.log(tempMessages);
 		  var response = await sails.helpers.callChatGpt.with({"messages": tempMessages, "max_tokens": 4096});
 		  var res_params = JSON.parse(response[0]['message']['content']);
-
+		  /*console.log(filteredParams);
+		  var res_params = await promptLLM("toolExtractParams", 
+		  	{"params": filteredParams, "conversation": conversation}, 
+		  	{"userQuery": userQuery}, 
+		  	conversation);*/
 		  console.log(res_params);
 		  return {
 		      ...existingParams,
 		      ...res_params
-		    }
-		    
+		    } 
+	},
+
+	optionPresenter: async function(context){
+		var {mainOptions} = require('./../description.js');
+		var {user, conversation, agentId, userInput} = context;
+
+		mainOptions = mainOptions[agentId];
+
+		return {
+        	msg: "Please make a choice", options: mainOptions
+        }
+
+		var userQuery;
+		if(conversation && conversation.length>0){
+			userQuery = conversation[conversation.length-1]['content'];
+		}else if(!userQuery && userInput){
+			userQuery = userInput;
+		}
+
+		if(userQuery==="all_available_options"){
+			return {
+	        	msg: "Please make a choice", options: mainOptions
+	        }			
+		}
+
+		var result = await promptLLM("optionPresenter", {"mainOptions": mainOptions}, {"userQuery": userQuery}, conversation);
+		console.log(result);
+        selectedOptions = result['options'];
+        const filteredOptions = mainOptions.filter(option =>
+		    selectedOptions.includes(option.actionName) || selectedOptions.includes(option.displayName)
+		);
+
+        return {msg: result['msg'], options: filteredOptions};
+	},
+
+	getSubOptions: async function(reqdOptions){
+		var {subOptions} = require('./../description.js');
+
+		const filteredOptions = subOptions
+							    .filter(subOption => 
+							      reqdOptions.some(reqdOption => reqdOption.actionName === subOption.actionName)
+							    )
+							    .map(subOption => {
+							      const matchedReqdOption = reqdOptions.find(reqdOption => reqdOption.actionName === subOption.actionName);
+							      
+							      // Replace displayName if it exists in reqdOptions
+							      if (matchedReqdOption && matchedReqdOption.displayName) {
+							        subOption.displayName = matchedReqdOption.displayName;
+							      }
+
+							      return subOption;
+							    });
+
+		return filteredOptions;		
 	}
 }

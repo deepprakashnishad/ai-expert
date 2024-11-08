@@ -60,6 +60,7 @@ module.exports.routes = {
   'POST /Agent/executeTool': { controller: 'Agent', action: "executeTool"},
   'POST /Agent/test': { controller: 'Agent', action: "test"},
   'POST /Agent/pdfTester': { controller: 'Agent', action: "pdfTester"},
+  'POST /Agent/getMenuOptionsByKey': { controller: 'Agent', action: "getMenuOptionsByKey"},
 
   'POST /Tool': { controller: 'Tool', action: "create"},
   'PATCH /Tool': { controller: 'Tool', action: "update"},
