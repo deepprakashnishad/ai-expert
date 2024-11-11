@@ -104,7 +104,7 @@ class ShopifyGetOrderFulfillment extends ShopifyBaseTool {
             arg['customer_id'] = await this.getCustomerId(arg);
 
             if(!arg['customer_id']){
-                return "Please provide your valid registered email or phone to get order fulfillment details.";
+                return JSON.stringify({msg: "No valid customer found for the provided email and phone"})
             }
 
             const orders = await this.shopify.customer.orders(arg['customer_id'], {"status": "any"});

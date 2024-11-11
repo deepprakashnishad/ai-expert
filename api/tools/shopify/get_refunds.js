@@ -60,9 +60,8 @@ class ShopifyGetRefunds extends ShopifyBaseTool {
     async _call(arg) {
         try{
             arg['customer_id'] = await this.getCustomerId(arg);
-
             if(!arg['customer_id']){
-                return "Please provide your valid customer id or registered email to get refund details.";
+                return JSON.stringify({msg: "No valid customer found for the provided email and phone"})
             }
             const cancelledOrders = await this.shopify.customer.orders(arg['customer_id'], {"status": "cancelled"});
             cancelledOrders.sort((a, b) => {

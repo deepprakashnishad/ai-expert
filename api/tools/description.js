@@ -85,7 +85,7 @@ module.exports = {
 						"options": [
 							{
 								actionName: "SearchProductByQuery",
-								displayName: "Yes"
+								displayName: "Browse Products"
 							},
 							{
 								actionName: "main_menu",
@@ -107,7 +107,7 @@ module.exports = {
 					description: "This tool can fetch products by query",
 					questions:[
 						{
-							"ques": "What I should show you?",
+							"ques": "What can I search for you?",
 							"type": 'text',
 							"key": "userInput"
 						}
@@ -129,7 +129,8 @@ module.exports = {
 								displayName: "Product Recommendations"	
 							}
 						]
-					}
+					},
+					timeoutAction: true
 				},
 				{
 					actionName: "ShopifyGetRefunds",

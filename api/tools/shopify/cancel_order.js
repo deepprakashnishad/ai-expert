@@ -37,7 +37,13 @@ class ShopifyCancelOrder extends ShopifyBaseTool {
                 return "Please provide your customer id or email to cancel an order.";
             }else if(arg['customer_phone']){
                 try{
-                    let response = await this.shopify.customer.search({phone: arg['customer_phone']});
+                    var response = await this.getCustomerId(arg);
+                    if(!response){
+                        return JSON.stringify({msg: "No valid customer found for the provided email and phone"})
+                    }
+
+                    // let response = await this.shopify.customer.search({phone: arg['customer_phone']});
+                    
                     if(response.length>1){
                         throw new Error("Multiple customers found!");
                     }

@@ -87,27 +87,32 @@ class ShopifyBaseTool extends StructuredTool {
     }
 
     async getCustomerId(arg){
-        if(!arg['customer_phone'] && !arg['customer_email']){
-            return "Please provide your customer id or email to cancel an order.";
-        }else if(arg['customer_phone']){
-            try{
-                let response = await this.shopify.customer.search({phone: arg['customer_phone']});
-                if(response.length>1){
-                    throw new Error("Multiple customers found!");
+        try{
+            if(!arg['customer_phone'] && !arg['customer_email']){
+                return "Please provide your customer id or email to cancel an order.";
+            }else if(arg['customer_phone']){
+                try{
+                    let response = await this.shopify.customer.search({phone: arg['customer_phone']});
+                    if(response.length>1){
+                        throw new Error("Multiple customers found!");
+                    }
+                    arg['customer_id'] = response[0]['id'];
+                }catch(e){
+                    let response = await this.shopify.customer.search({email: arg['customer_email']});
+                    if(response.length>1){
+                        throw new Error("Multiple customers found!");
+                    }
+                    arg['customer_id'] = response[0]['id'];    
                 }
-                arg['customer_id'] = response[0]['id'];
-            }catch(e){
-                let response = await this.shopify.customer.search({email: arg['customer_email']});
-                if(response.length>1){
-                    throw new Error("Multiple customers found!");
-                }
+            }else if(arg['customer_email']){
+                let response = await this.shopify.customer.search({email: arg['email']});
                 arg['customer_id'] = response[0]['id'];    
             }
-        }else if(arg['customer_email']){
-            let response = await this.shopify.customer.search({email: arg['email']});
-            arg['customer_id'] = response[0]['id'];    
+            return arg['customer_id'];
+        }catch(e){
+            console.log(e);
+            return false;
         }
-        return arg['customer_id'];
     }
 }
 
