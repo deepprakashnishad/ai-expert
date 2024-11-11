@@ -102,8 +102,12 @@ module.exports = {
 	},
 
 	list: async function(req, res){
-		var agents = await Agent.find();
-
+		var agents;
+		if(!req.query.agentType){
+			agents = await Agent.find();
+		}else{
+			agents = await Agent.find({type: req.query.agentType});
+		}
 		res.successResponse({"agents": agents}, 200, null, true, "Agent retrieved successfully");
 	},
 
@@ -421,8 +425,6 @@ module.exports = {
 				return res.successResponse({result: "Some technical error occurred", chatId: req.body.chatId}, 200, null, true, "Processing completed")
 			}	
 
-			console.log("Calling with following parameters");
-			console.log(toolInput);
 			var toolOutput = await instance._call(toolInput);
 
 			/*var finalResponse = await toolLib.responseFormatter({
